@@ -50,12 +50,15 @@ class _ContentState extends State<Content> {
   }
 
   Widget checkmarkText(String text){
-    return Row(
-      children: [
-        Icon(Icons.check_circle_outline_outlined, color: Colors.green, size: 12),
-        SizedBox(width: 5),
-        Text(text, style: TextStyle(fontSize: 12),)
-      ],
+    return Container(
+      margin: EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          Icon(Icons.check_circle_outline_outlined, color: Colors.green, size: 14),
+          SizedBox(width: 5),
+          Text(text, style: TextStyle(fontSize: 14),)
+        ],
+      ),
     );
   }
 
@@ -148,7 +151,7 @@ class _ContentState extends State<Content> {
                     if(productForm['allow_multiple_quantity_per_order'] == true && productForm['allow_maximum_quantity_per_order'] == false) checkmarkText('Allow more than 1 quantity per order'),
                     if(productForm['allow_multiple_quantity_per_order'] == true && productForm['allow_maximum_quantity_per_order'] == true) checkmarkText('Allow between 1 and '+productForm['maximum_quantity_per_order']+' quantities per order'),
 
-                    Divider(height: 40,),
+                    Divider(height: 20,),
 
                     SizedBox(height: 20),
 

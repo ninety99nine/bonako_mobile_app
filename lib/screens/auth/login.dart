@@ -194,7 +194,7 @@ class _LoginPageState extends State<LoginPage> {
 
       _handleValidationErrors(response);
       
-    }else{
+    }else if( response.statusCode == 200 ){
 
       final accountExistsStatus = responseBody['exists'];
         
@@ -296,7 +296,7 @@ class _LoginPageState extends State<LoginPage> {
 
       _handleValidationErrors(response);
       
-    }else{
+    }else if( response.statusCode == 200 ){
 
       //  Navigate to the stores
       Navigator.pushReplacementNamed(context, StoresScreen.routeName);

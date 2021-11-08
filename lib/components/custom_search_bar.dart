@@ -68,7 +68,8 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
   Widget build(BuildContext context) {
 
     return 
-      Expanded(
+      Container(
+        width: double.infinity,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

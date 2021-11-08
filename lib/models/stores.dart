@@ -16,21 +16,21 @@ class PaginatedStores {
     });
 
     final PaginatedStoresLinks links;
+    int count;
     final int total;
-    final int count;
+    int currentPage;
     final int perPage;
-    final int currentPage;
     final int totalPages;
     final Embedded embedded;
 
     factory PaginatedStores.fromJson(Map<String, dynamic> json) => PaginatedStores(
-        links: PaginatedStoresLinks.fromJson(json["_links"]),
-        total: json["total"] ?? 0,
-        count: json["count"] ?? 0,
-        perPage: json["per_page"],
-        currentPage: json["current_page"] ?? 0,
-        totalPages: json["total_pages"] ?? 0,
+        total: int.parse(json["total"].toString()),
+        count: int.parse(json["count"].toString()),
         embedded: Embedded.fromJson(json["_embedded"]),
+        perPage: int.parse(json["per_page"].toString()),
+        links: PaginatedStoresLinks.fromJson(json["_links"]),
+        totalPages: int.parse(json["total_pages"].toString()),
+        currentPage: int.parse(json["current_page"].toString()),
     );
 
     Map<String, dynamic> toJson() => {

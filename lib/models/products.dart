@@ -25,11 +25,11 @@ class PaginatedProducts {
 
     factory PaginatedProducts.fromJson(Map<String, dynamic> json) => PaginatedProducts(
         links: PaginatedProductsLinks.fromJson(json["_links"]),
-        total: json["total"],
-        count: json["count"],
-        perPage: int.parse(json["per_page"]),
-        currentPage: json["current_page"],
-        totalPages: json["total_pages"],
+        total: int.parse(json["total"].toString()),
+        count: int.parse(json["count"].toString()),
+        perPage: int.parse(json["per_page"].toString()),
+        totalPages: int.parse(json["total_pages"].toString()),
+        currentPage: int.parse(json["current_page"].toString()),
         embedded: PaginatedProductsEmbedded.fromJson(json["_embedded"]),
     );
 
@@ -115,8 +115,8 @@ class Product {
     final StockQuantity stockQuantity;
     final dynamic parentProductId;
     final int userId;
-    final DateTime createdAt;
-    final DateTime updatedAt;
+    final DateTime? createdAt;
+    final DateTime? updatedAt;
     final Attributes attributes;
     final ProductLinks links;
     final ProductEmbedded embedded;
@@ -145,8 +145,8 @@ class Product {
         stockQuantity: StockQuantity.fromJson(json["stock_quantity"]),
         parentProductId: json["parent_product_id"],
         userId: json["user_id"],
-        createdAt: DateTime.parse(json["created_at"]),
-        updatedAt: DateTime.parse(json["updated_at"]),
+        createdAt: json["created_at"] == null ? null : DateTime.parse(json["created_at"]),
+        updatedAt: json["created_at"] == null ? null : DateTime.parse(json["updated_at"]),
         attributes: Attributes.fromJson(json["_attributes"]),
         links: ProductLinks.fromJson(json["_links"]),
         embedded: ProductEmbedded.fromJson(json["_embedded"]),
@@ -176,8 +176,8 @@ class Product {
         "stock_quantity": stockQuantity.toJson(),
         "parent_product_id": parentProductId,
         "user_id": userId,
-        "created_at": createdAt.toIso8601String(),
-        "updated_at": updatedAt.toIso8601String(),
+        "created_at": createdAt?.toIso8601String(),
+        "updated_at": updatedAt?.toIso8601String(),
         "_attributes": attributes.toJson(),
         "_links": links.toJson(),
         "_embedded": embedded.toJson(),

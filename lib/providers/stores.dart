@@ -20,15 +20,22 @@ class StoresProvider with ChangeNotifier{
     
   }
   
-  Future<http.Response> fetchCreatedStores({ required BuildContext context }){
+  Future<http.Response> fetchCreatedStores({ String searchWord: '', int page = 1, int limit: 10, required BuildContext context }) async {
 
-    return apiProvider.get(url: createdStoresUrl, context: context);
+    var url = createdStoresUrl+'&page='+page.toString()+'&limit='+limit.toString()+(searchWord == '' ? '':  '&search='+searchWord);
+
+    print('url');
+    print(url);
+
+    return apiProvider.get(url: url, context: context);
     
   }
   
-  Future<http.Response> fetchSharedStores({ required BuildContext context }){
+  Future<http.Response> fetchSharedStores({ String searchWord: '', int page = 1, int limit: 10, required BuildContext context }) async {
 
-    return apiProvider.get(url: sharedStoresUrl, context: context);
+    var url = sharedStoresUrl+'&page='+page.toString()+'&limit='+limit.toString()+(searchWord == '' ? '':  '&search='+searchWord);
+
+    return apiProvider.get(url: url, context: context);
     
   }
   
@@ -47,8 +54,12 @@ class StoresProvider with ChangeNotifier{
 
     return apiProvider.delete(url: storeUrl, context: context)
     .then((response){
+
+      if( response.statusCode == 200 ){
       
-      showSnackbarMessage(context: context, msg: 'Store deleted successfully');
+        showSnackbarMessage(context: context, msg: 'Store deleted successfully');
+
+      }
 
       return response;
 
@@ -130,6 +141,8 @@ class StoresProvider with ChangeNotifier{
           showSnackbarMessage(context: context, msg: 'Failed to generate payment shortcode');
 
         }
+
+        return response;
         
       }).whenComplete((){
 

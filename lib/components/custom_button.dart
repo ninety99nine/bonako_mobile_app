@@ -20,7 +20,7 @@ class CustomButton extends StatelessWidget {
 
     final containerPadding = size == 'large' ? 15.00 : (size == 'medium' ? 10.00 : 5.00);
     final loaderSize = size == 'large' ? 20.00 : (size == 'medium' ? 16.00 : 14.00);
-    final fontSize = size == 'large' ? 20.00 : (size == 'medium' ? 16.00 : 14.00);
+    final fontSize = size == 'large' ? 18.00 : (size == 'medium' ? 16.00 : 14.00);
     final height = size == 'large' ? 50.00 : (size == 'medium' ? 40.00 : 30.00);
 
     return Material(

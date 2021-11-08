@@ -1,3 +1,5 @@
+import 'package:bonako_app_3/screens/dashboard/products/create/sections/variations/variations.dart';
+
 import './../../../../screens/dashboard/products/create/sections/quantities.dart';
 import './../../../../screens/dashboard/products/create/sections/inventory.dart';
 import './../../../../screens/dashboard/products/create/sections/locations.dart';
@@ -176,7 +178,11 @@ class _ContentState extends State<Content> {
           context: context
         ).then((response){
 
-          showSnackbarMessage('Product saved successfully');
+          if( response.statusCode == 200 ){
+
+            showSnackbarMessage('Product saved successfully');
+
+          }
 
           _handleOnSubmitResponse(response);
 
@@ -193,7 +199,11 @@ class _ContentState extends State<Content> {
           context: context
         ).then((response){
 
-          showSnackbarMessage('Product created successfully');
+          if( response.statusCode == 200 ){
+          
+            showSnackbarMessage('Product created successfully');
+
+          }
 
           _handleOnSubmitResponse(response);
 
@@ -222,7 +232,7 @@ class _ContentState extends State<Content> {
 
       _handleValidationErrors(response);
       
-    }else{
+    }else if( response.statusCode == 200 ){
 
       //  Navigate to the products
       Get.back(result: 'submitted');
@@ -246,18 +256,24 @@ class _ContentState extends State<Content> {
     if( isEditing ){
 
       //  Fetch the product
-      this.fetchProduct().then((value){
+      this.fetchProduct().then((response){
 
-        //  Set the form details
-        this.productForm = getProductForm();
+        if( response.statusCode == 200 ){
+          
+          //  Set the form details
+          this.productForm = getProductForm();
 
-        //  If this product is not a variation
-        if( !productsProvider.isVariationProduct ){
+          //  If this product is not a variation
+          if( !productsProvider.isVariationProduct ){
 
-          //  Fetch the product locations
-          this.fetchProductLocations();
+            //  Fetch the product locations
+            this.fetchProductLocations();
 
+          }
+        
         }
+
+        return response;
 
       });
 
@@ -270,16 +286,22 @@ class _ContentState extends State<Content> {
 
   }
 
-  Future fetchProduct() async {
+  Future<http.Response> fetchProduct() async {
 
     startProductLoader();
 
     return await productsProvider.fetchProduct(context: context).then((response){
 
-      final responseBody = jsonDecode(response.body);
+      if( response.statusCode == 200 ){
 
-      //  Set the product on the productsProvider
-      productsProvider.setProduct(Product.fromJson(responseBody as Map<String, dynamic>));
+        final responseBody = jsonDecode(response.body);
+
+        //  Set the product on the productsProvider
+        productsProvider.setProduct(Product.fromJson(responseBody as Map<String, dynamic>));
+
+      }
+
+      return response;
 
     }).whenComplete((){
 
@@ -289,44 +311,50 @@ class _ContentState extends State<Content> {
 
   }
 
-  Future fetchProductLocations() async {
+  Future<http.Response> fetchProductLocations() async {
 
     startLocationsLoader();
 
     return await productsProvider.fetchProductLocations(context: context).then((response){
+
       print('fetchProductLocations');
 
-      final responseBody = jsonDecode(response.body);
-      final locations = (responseBody['_embedded']['locations']);
-      print('responseBody');
-      print(responseBody);
+      if( response.statusCode == 200 ){
 
-      locations.forEach((location) => productForm['location_ids'].add(location['id']));
+        final responseBody = jsonDecode(response.body);
+        final locations = (responseBody['_embedded']['locations']);
 
-      //  Set the product locations on the productsProvider
-      //  final productLocations = Product.fromJson(response);
+        locations.forEach((location) => productForm['location_ids'].add(location['id']));
 
-      /*
+        //  Set the product locations on the productsProvider
+        //  final productLocations = Product.fromJson(response);
 
-      //  Stop loader
-      self.isLoadingLocations = false;
+        /*
 
-      if( self.productForm ){
+        //  Stop loader
+        self.isLoadingLocations = false;
 
-          //  Set the locations
-          self.productForm.location_ids = ((data || [])['_embedded'] || [])['locations'].map((location) => {
-              return location.id
-          });
+        if( self.productForm ){
 
-      }else{
+            //  Set the locations
+            self.productForm.location_ids = ((data || [])['_embedded'] || [])['locations'].map((location) => {
+                return location.id
+            });
 
-          //  Get the locations
-          self.location_ids = ((data || [])['_embedded'] || [])['locations'].map((location) => {
-              return location.id
-          });
+        }else{
+
+            //  Get the locations
+            self.location_ids = ((data || [])['_embedded'] || [])['locations'].map((location) => {
+                return location.id
+            });
+
+        }
+        */
 
       }
-      */
+
+      return response;
+
     }).whenComplete((){
 
       stopLocationsLoader();
@@ -521,6 +549,10 @@ class _ContentState extends State<Content> {
     return (notEmpty(productForm['unit_regular_price']) && (double.parse(productForm['unit_regular_price']) > 0) && isFree == false);
   }
 
+  bool get allowVariants {
+    return (productForm['allow_variants']);
+  }
+
   Widget showForm(){
 
     String getLocationCurrencySymbol = Provider.of<LocationsProvider>(context, listen: false).getLocationCurrencySymbol;
@@ -628,7 +660,7 @@ class _ContentState extends State<Content> {
 
             Divider(height: 20),
 
-            customCard(
+            if(allowVariants == false) customCard(
               title: 'Pricing',
               screen: ProductPricingScreen(),
               bottomWidget: Container(
@@ -668,7 +700,7 @@ class _ContentState extends State<Content> {
               )
             ),
 
-            customCard(
+            if(allowVariants == false) customCard(
               title: 'Quantities',
               screen: ProductQuantitiesScreen(),
               bottomWidget: Container(
@@ -683,7 +715,7 @@ class _ContentState extends State<Content> {
               )
             ),
 
-            customCard(
+            if(allowVariants == false) customCard(
               title: 'Inventory',
               screen: ProductInventoryScreen(),
               bottomWidget: Container(
@@ -698,7 +730,7 @@ class _ContentState extends State<Content> {
               )
             ),
 
-            customCard(
+            if(allowVariants == false) customCard(
               title: 'Tracking',
               screen: ProductTrackingScreen(),
               bottomWidget: Container(
@@ -712,6 +744,19 @@ class _ContentState extends State<Content> {
                     ),
                     if(notEmpty(productForm['sku'])) Row(children: [Text('SKU: ', style: TextStyle(fontSize: 12, color: Colors.grey),), Text(productForm['sku'], style: TextStyle(fontSize: 12),)],),
                     if(empty(productForm['barcode']) && empty(productForm['sku'])) Text('NONE', style: TextStyle(fontSize: 12, color: Colors.grey),),
+                  ],
+                ),
+              )
+            ),
+
+            customCard(
+              title: 'Variations',
+              screen: ProductVariationsScreen(),
+              bottomWidget: Container(
+                margin: EdgeInsets.only(bottom: 10),
+                child: Row(
+                  children: [
+                    (productForm['allow_variants']) ? checkmarkText('Allow variations') : Text('NONE', style: TextStyle(fontSize: 12, color: Colors.grey)),
                   ],
                 ),
               )

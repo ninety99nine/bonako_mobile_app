@@ -139,7 +139,7 @@ class _StoreFormCardState extends State<StoreFormCard> {
 
       _handleValidationErrors(response);
       
-    }else{
+    }else if(response.statusCode == 200){
 
       //  Navigate to the stores
       Get.off(() => StoresScreen());

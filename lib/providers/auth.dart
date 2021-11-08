@@ -118,10 +118,14 @@ class AuthProvider with ChangeNotifier{
     );
     
     return logoutServerSide(context: context).then((response) async {
+
+      if( response.statusCode == 200 ){
       
-      await logoutClientSide();
-      
-      Navigator.of(Get.overlayContext!).pop();
+        await logoutClientSide();
+        
+        Navigator.of(Get.overlayContext!).pop();
+
+      }
       
       return response;
 

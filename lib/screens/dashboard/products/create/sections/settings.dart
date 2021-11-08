@@ -112,11 +112,10 @@ class _ContentState extends State<Content> {
     productsProvider.deleteProduct(
       context: context
     ).then((response){
-
-      showSnackbarMessage('Product deleted successfully');
-    
-      //  If this is a validation error
+ 
       if(response.statusCode == 200){
+
+        showSnackbarMessage('Product deleted successfully');
 
         //  Navigate to the products screen
         Get.off(() => ProductsScreen());

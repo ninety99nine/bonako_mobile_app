@@ -55,8 +55,6 @@ class ProductsProvider with ChangeNotifier{
 
     });
 
-    print('fetchProducts: ' + url);
-
     return apiProvider.get(url: url, context: context);
     
   }
@@ -144,6 +142,20 @@ class ProductsProvider with ChangeNotifier{
   Future<http.Response> fetchProductLocations({ required BuildContext context }){
 
     return apiProvider.get(url: productLocationsUrl, context: context);
+    
+  }
+  
+  Future<http.Response> fetchProductVariations({ String searchWord: '', int page = 1, int limit: 10, required BuildContext context }) async {
+
+    var url = productVariationsUrl+'?page='+page.toString()+'&limit='+limit.toString()+(searchWord == '' ? '':  '&search='+searchWord);
+
+    return apiProvider.get(url: url, context: context);
+    
+  }
+  
+  Future<http.Response> generateProductVariations({ required body, required BuildContext context }) async {
+
+    return apiProvider.post(url: productVariationsUrl, body: body, context: context);
     
   }
 
@@ -268,6 +280,10 @@ class ProductsProvider with ChangeNotifier{
 
   String get productLocationsUrl {
     return (product as Product).links.bosLocations.href;
+  }
+
+  String get productVariationsUrl {
+    return (product as Product).links.bosVariations.href;
   }
 
   void setProduct(Product product){

@@ -90,10 +90,10 @@ class MyApp extends StatelessWidget {
       child: GetMaterialApp(
         title: 'Bonako',
         theme: ThemeData(
-          //  primarySwatch: kPrimaryColor,
           accentColor: Colors.blue,
-          splashColor: Colors.white.withOpacity(0.3),
-          highlightColor: Colors.white.withOpacity(0.2),
+          //  primarySwatch: kPrimaryColor,
+          splashColor: Colors.blue.withOpacity(0.3),
+          highlightColor: Colors.blue.withOpacity(0.2),
         ),
         
         home: AppScreen(),
@@ -101,12 +101,12 @@ class MyApp extends StatelessWidget {
         //  initialRoute: '/',
         routes: {
           LoginPage.routeName: (ctx) => LoginPage(),
-          WelcomePage.routeName: (ctx) => WelcomePage(),
           SignUpPage.routeName: (ctx) => SignUpPage(),
-          ForgotPasswordPage.routeName: (ctx) => ForgotPasswordPage(),
+          WelcomePage.routeName: (ctx) => WelcomePage(),
+          StoresScreen.routeName: (ctx) => StoresScreen(),
           OneTimePinPage.routeName: (ctx) => OneTimePinPage(),
           ResetPasswordPage.routeName: (ctx) => ResetPasswordPage(),
-          StoresScreen.routeName: (ctx) => StoresScreen(),
+          ForgotPasswordPage.routeName: (ctx) => ForgotPasswordPage(),
         }
       ),
     );
@@ -284,7 +284,6 @@ class LoadingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    //  Show the circular progress bar
     return Scaffold(
       body: Stack(
         children: [
@@ -698,11 +697,11 @@ class _IntroScreenState extends State<IntroScreen> {
     );
   }
 
-  ButtonStyle myButtonStyle() {
+  ButtonStyle buttonStyle() {
     return ButtonStyle(
       shape: MaterialStateProperty.all<OutlinedBorder>(StadiumBorder()),
-      backgroundColor: MaterialStateProperty.all<Color>(Color(0x33F3B4BA)),
       overlayColor: MaterialStateProperty.all<Color>(Color(0x33FFA8B0)),
+      backgroundColor: MaterialStateProperty.all<Color>(Color(0x33F3B4BA)),
     );
   }
 
@@ -710,28 +709,28 @@ class _IntroScreenState extends State<IntroScreen> {
   Widget build(BuildContext context) {
     return new IntroSlider(
       
-      // List slides
+      //  List slides
       slides: this.slides,
 
-      // Skip button
+      //  Skip button
       renderSkipBtn: this.renderSkipBtn(),
-      skipButtonStyle: myButtonStyle(),
+      skipButtonStyle: buttonStyle(),
 
-      // Next button
+      //  Next button
       renderNextBtn: this.renderNextBtn(),
-      nextButtonStyle: myButtonStyle(),
+      nextButtonStyle: buttonStyle(),
 
-      // Done button
+      //  Done button
       renderDoneBtn: this.renderDoneBtn(),
       onDonePress: this.onDonePress,
-      doneButtonStyle: myButtonStyle(),
+      doneButtonStyle: buttonStyle(),
 
-      // Dot indicator
+      //  Dot indicator
       colorDot: Colors.white.withOpacity(0.2),
       colorActiveDot: Colors.white,
       sizeDot: 13.0,
 
-      // Show or hide status bar
+      //  Show or hide status bar
       hideStatusBar: true,
       backgroundColorAllSlides: Colors.grey,
 

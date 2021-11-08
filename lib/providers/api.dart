@@ -33,20 +33,24 @@ class ApiProvider with ChangeNotifier{
 
       return await get(url: homeUrl, context: context)
         .then((response){
+          
+          if( response.statusCode == 200 ){
+              
+            final responseBody = jsonDecode(response.body);
+          
+            //  Update the login url
+            _apiHome = responseBody;
+          
+            //  Update the login url
+            _loginUrl = responseBody['_links']['bos:login']['href'];
 
-          final responseBody = jsonDecode(response.body);
-        
-          //  Update the login url
-          _apiHome = responseBody;
-        
-          //  Update the login url
-          _loginUrl = responseBody['_links']['bos:login']['href'];
+            //  Update the logout url
+            _logoutUrl = responseBody['_links']['bos:logout']['href'];
 
-          //  Update the logout url
-          _logoutUrl = responseBody['_links']['bos:logout']['href'];
+            //  Update the account exists url
+            _accountExistsUrl = responseBody['_links']['bos:account_exists']['href'];
 
-          //  Update the account exists url
-          _accountExistsUrl = responseBody['_links']['bos:account_exists']['href'];
+          }
 
           return response;
 
@@ -64,6 +68,10 @@ class ApiProvider with ChangeNotifier{
         'Authorization': 'Bearer $_bearerToken'
       }
     ).then((response){
+
+      handleApiResponseFail(response: response, context: context);
+
+      print(response.statusCode);
 
       return response;
       
@@ -86,6 +94,8 @@ class ApiProvider with ChangeNotifier{
         'Content-Type': 'application/json; charset=UTF-8',
       },
     ).then((response){
+
+      handleApiResponseFail(response: response, context: context);
 
       return response;
       
@@ -110,6 +120,8 @@ class ApiProvider with ChangeNotifier{
       },
     ).then((response){
 
+      handleApiResponseFail(response: response, context: context);
+
       return response;
       
     }).catchError((error){
@@ -130,6 +142,8 @@ class ApiProvider with ChangeNotifier{
         'Content-Type': 'application/json; charset=UTF-8',
       },
     ).then((response){
+
+      handleApiResponseFail(response: response, context: context);
 
       return response;
       
@@ -152,6 +166,8 @@ class ApiProvider with ChangeNotifier{
       },
     ).then((response){
 
+      handleApiResponseFail(response: response, context: context);
+
       return response;
       
     }).catchError((error){
@@ -163,7 +179,21 @@ class ApiProvider with ChangeNotifier{
     });
   }
 
-  void handleApiSuccess(http.Response response){
+  void handleApiResponseFail({ required http.Response response, required BuildContext context}){
+
+    //  Client or Server error
+    if(response.statusCode >= 400){
+
+      final responseBody = jsonDecode(response.body);
+
+      showAlertDialog(
+        context: context,
+        title: responseBody['error'],
+        dev_content: responseBody['message'],
+        content: 'Sorry, something went wrong on our side',
+      );
+
+    }
 
   }
 
@@ -180,6 +210,57 @@ class ApiProvider with ChangeNotifier{
             )
           ],
         );
+      });
+  }
+
+  void showAlertDialog({ required String title, required String content, required String dev_content, required BuildContext context }){
+
+    showDialog(context: context, builder: (ctx){
+
+        bool showingDevContent = false;
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+
+            return AlertDialog(
+              title: Text(title, style: TextStyle(fontSize: 14),),
+              content: Wrap(
+                children: [
+                  Divider(height: 10),
+                  if(showingDevContent == true) Text(dev_content, style: TextStyle(fontSize: 12)),
+                  if(showingDevContent == false) Text(content, style: TextStyle(fontSize: 12)),
+                  Divider(height: 10),
+                ],
+              ),
+              actions: [
+                ElevatedButton(
+                  onPressed: (){
+                    setState((){
+                      print(showingDevContent);
+                      showingDevContent = !showingDevContent;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.grey,
+                  ),
+                  child: Wrap(
+                    direction: Axis.horizontal,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Icon(Icons.info_outline, size: 14),
+                      SizedBox(width: 5),
+                      (showingDevContent == true) ? Text('Less') : Text('More')
+                    ]
+                  )
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(), 
+                  child: Text('Ok')
+                )
+              ],
+            );
+
+          });
       });
   }
 

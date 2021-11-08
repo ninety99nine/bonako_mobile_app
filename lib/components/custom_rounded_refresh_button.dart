@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class CustomRoundedRefreshButton extends StatelessWidget {
 
-  final Function onPressed;
+  final Function()? onPressed;
 
   CustomRoundedRefreshButton({ required this.onPressed });
 
@@ -12,7 +12,12 @@ class CustomRoundedRefreshButton extends StatelessWidget {
     return 
       //  Rounded Refresh Button
       OutlinedButton(
-        onPressed: () => onPressed(), 
+        onPressed: (){
+          if( onPressed == null ){
+            return null;
+          }
+          onPressed!();
+        }, 
         child: Row(
           children: [
             Icon(Icons.refresh),

@@ -108,10 +108,10 @@ class _ContentState extends State<Content> {
     //  Fetch the default store location
     locationsProvider.fetchLocation(context: context)
       .then((http.Response response) async {
-
-        final responseBody = jsonDecode(response.body);
         
-        if (mounted) {
+        if(response.statusCode == 200 && mounted){
+
+          final responseBody = jsonDecode(response.body);
 
           setState(() {
 
@@ -145,7 +145,7 @@ class _ContentState extends State<Content> {
     locationsProvider.fetchLocationTotals(context: context)
       .then((http.Response response) async {
 
-        if (mounted) {
+        if(response.statusCode == 200 && mounted){
 
           setState(() {
 

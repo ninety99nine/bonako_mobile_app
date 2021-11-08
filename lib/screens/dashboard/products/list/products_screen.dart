@@ -1,3 +1,5 @@
+import 'package:bonako_app_3/components/custom_instruction_message.dart';
+
 import './../../../../screens/dashboard/stores/show/store_screen.dart';
 import './../../../../components/custom_rounded_refresh_button.dart';
 import './../../../../components/custom_floating_action_button.dart';
@@ -7,6 +9,7 @@ import './../../../../components/custom_search_bar.dart';
 import './../../../../components/custom_app_bar.dart';
 import './../../../../components/custom_button.dart';
 import './../../../../components/custom_loader.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import '../../../../components/store_drawer.dart';
 import './../../../../providers/products.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -32,7 +35,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   var cancellableOperation;
   bool isLoading = false;
   var paginatedProducts;
-  int page = 1;
+  int currentPage = 1;
 
   void startLoader({ loadMore: false }){
     if(mounted){
@@ -59,25 +62,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   }
 
-  Future<http.Response> fetchProducts({ String searchWord: '', bool loadMore = false, bool resetPage = false, int limit = 10 }) async {
+  Future<http.Response> fetchProducts({ String searchWord: '', bool loadMore = false, bool resetPage = false, bool refreshContent = false, int limit = 10 }) async {
     
     startLoader(loadMore: loadMore);
 
-    //  If we have a cancellable operation of fetching products
+    //  If we have a cancellable operation of fetching stores
     if(cancellableOperation != null){
-
-      print('-----------------------------------');
-      print('cancel last request');
-      print('before: cancellableOperation.cancel()');
-      print(cancellableOperation);
-
-      print('hashCode: '+cancellableOperation.hashCode.toString());
       
-      //  Cancel the request of fetching products
+      //  Cancel the request of fetching stores
       (cancellableOperation as CancelableOperation).cancel();
-
-      print('after: cancellableOperation.cancel()');
-      print(cancellableOperation);
 
     }
 
@@ -85,37 +78,40 @@ class _ProductsScreenState extends State<ProductsScreen> {
     if(loadMore){
 
       //  Increment the page to target the next page content
-      page++;
+      currentPage++;
 
     }
 
-    //  If we should load more  
+    //  If we should reset the page 
     if(resetPage){
 
-      //  Set to target thr first page content
-      page = 1;
+      //  Set to target the first page content
+      currentPage = 1;
 
     }
+
+    /**
+     *  If we should refresh the content already loaded, then set  
+     *  the page equal to 1, otherwise set the current page.
+     */
+    final page = refreshContent ? 1 : currentPage;
 
     final productsProvider = Provider.of<ProductsProvider>(context, listen: false);
 
+    final apiInstance = (productsProvider.fetchProducts(searchWord: searchWord, page: page, limit: limit, context: context));
+
     cancellableOperation = CancelableOperation.fromFuture (
-    
-      (productsProvider.fetchProducts(searchWord: searchWord, page: page, limit: limit, context: context)),
+      apiInstance,
       onCancel: (){
-        print('Cancel the last request!!!!!!!!!!!!');
         cancellableOperation = null;
       }
-
     );
     
     cancellableOperation.value.then((http.Response response){
 
-      print('................... then()');
+      if(response.statusCode == 200 && mounted){
 
-      final responseBody = jsonDecode(response.body);
-
-      if(mounted){
+        final responseBody = jsonDecode(response.body);
 
         setState(() {
 
@@ -129,13 +125,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
             (paginatedProducts as PaginatedProducts).count += PaginatedProducts.fromJson(responseBody).count;
 
             //  Increment the current page
-            (paginatedProducts as PaginatedProducts).currentPage = page;
+            (paginatedProducts as PaginatedProducts).currentPage = currentPage;
 
           }else{
 
             paginatedProducts = PaginatedProducts.fromJson(responseBody);
-
-            print('Total: '+(paginatedProducts as PaginatedProducts).embedded.products.length.toString());
 
           }
 
@@ -148,8 +142,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
     });
     
     cancellableOperation.value.whenComplete(() {
-
-      print('................... whenComplete()');
 
       stopLoader(loadMore: loadMore);
 
@@ -265,12 +257,9 @@ class _ContentState extends State<Content> {
         widget.fetchProducts(searchWord: searchWord, loadMore: true);
 
       }
-      /*
-      setState(() {
-        items.addAll(new List.generate(42, (index) => 'Inserted $index'));
-      });
-      */
+      
     }
+
   }
 
   @override
@@ -384,20 +373,6 @@ class _ContentState extends State<Content> {
 
   bool get hasProducts {
     return (products.length > 0);
-  }
-
-  Widget instructionMessage({ required String text, crossAxisAlignment = CrossAxisAlignment.start }){
-    return Row(
-      crossAxisAlignment: crossAxisAlignment,
-      children: [
-        SizedBox(width: 5,),
-        Icon(Icons.info_outline, color: Colors.blue,),
-        SizedBox(width: 5,),
-        Flexible(
-          child: Text(text, style: TextStyle(color: Colors.blue, height: 1.4),),
-        )
-      ],
-    );
   }
 
   Widget saveChangesButton(){
@@ -671,7 +646,7 @@ class _ContentState extends State<Content> {
                    */
                   final limit = (widget.paginatedProducts!.count > widget.paginatedProducts!.perPage) ? widget.paginatedProducts!.count : widget.paginatedProducts!.perPage;
 
-                  widget.fetchProducts(searchWord: searchWord, resetPage: true, limit: limit);
+                  widget.fetchProducts(searchWord: searchWord, refreshContent: true, limit: limit);
 
                 }
 
@@ -692,13 +667,15 @@ class _ContentState extends State<Content> {
                     children: [
                 
                       //  Search Bar
-                      CustomSearchBar(
-                        labelText: 'Search products',
-                        helperText: 'Search using product name',
-                        onSearch: (searchWord){
-                          startSearchLoader();
-                          return startSearch(searchWord: searchWord).whenComplete(() => stopSearchLoader());
-                        }
+                      Expanded(
+                        child: CustomSearchBar(
+                          labelText: 'Search products',
+                          helperText: 'Search using product name',
+                          onSearch: (searchWord){
+                            startSearchLoader();
+                            return startSearch(searchWord: searchWord).whenComplete(() => stopSearchLoader());
+                          }
+                        ),
                       ),
                       
                       //  Popup Menu
@@ -726,16 +703,16 @@ class _ContentState extends State<Content> {
                       Divider(),
 
                       if(productOrderHasChanged == false && hasSearchWord && widget.paginatedProducts != null) 
-                        instructionMessage(text: 'Showing '+widget.paginatedProducts!.count.toString()+' / '+widget.paginatedProducts!.total.toString()+' matches', crossAxisAlignment: CrossAxisAlignment.center),
+                        CustomInstructionMessage(text: 'Showing '+widget.paginatedProducts!.count.toString()+' / '+widget.paginatedProducts!.total.toString()+' matches'),
 
                       if(productOrderHasChanged == false && isSearching == false && hasActiveFilters == false)
-                        instructionMessage(text: 'Long press any product to drag and drop into a different position'),
+                        CustomInstructionMessage(text: 'Long press any product to drag and drop into a different position'),
 
                       if(productOrderHasChanged == false && isSearching == false && hasActiveFilters == false)
-                        instructionMessage(text: 'Swipe any product to the right to delete', crossAxisAlignment: CrossAxisAlignment.center),
+                        CustomInstructionMessage(text: 'Swipe any product to the right to delete'),
 
                       if(productOrderHasChanged == false && isSearching == false && hasSearchWord == false && hasActiveFilters == true) 
-                        instructionMessage(text: 'Filters have been added to limit products', crossAxisAlignment: CrossAxisAlignment.center),
+                        CustomInstructionMessage(text: 'Filters have been added to limit products'),
 
                       if(productOrderHasChanged == true && isSearching == false) 
                         saveChangesButton(),
@@ -1023,7 +1000,7 @@ class ProductList extends StatelessWidget {
         itemCount: products.length,
         itemBuilder: (ctx, index){
 
-          final productCard = ProductCard(product: products[index], fetchProducts: fetchProducts);
+          final productCard = ProductCard(product: products[index], searchWord: searchWord, fetchProducts: fetchProducts);
 
           return Dismissible(
             direction: DismissDirection.startToEnd,
@@ -1042,7 +1019,7 @@ class ProductList extends StatelessWidget {
               //  If the current number of products is Zero 
               if(currNumberOfProducts == 0){
                 //  Fetch the products from the server
-                fetchProducts(searchWord: searchWord);
+                fetchProducts(searchWord: searchWord, resetPage: true);
               }
             },
             child: productCard,
@@ -1073,12 +1050,63 @@ class ProductList extends StatelessWidget {
   }
 }
 
+Widget showPricing(Product product){
+
+  var pricing;
+  
+  //  If this is a Free product
+  if(!product.allowVariants.status && product.isFree.status){
+
+    pricing = Text(product.isFree.name, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green));
+
+  //  If this product does not support variations and does not have a price
+  }else if(!product.allowVariants.status && !product.isFree.status && !product.attributes.hasPrice.status){
+  
+    pricing = Text(product.attributes.hasPrice.name, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),);
+                      
+  //  If this product does not support variations and does have a price
+  }else if(!product.allowVariants.status && !product.isFree.status && product.attributes.hasPrice.status) {
+  
+    pricing = AutoSizeText(
+      product.attributes.unitPrice.currencyMoney,
+      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black54),
+      maxLines: 1,
+    );
+                
+  }else if(!product.allowVariants.status && product.attributes.onSale.status){
+    
+    pricing = Text(product.unitRegularPrice.currencyMoney, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, decoration: TextDecoration.lineThrough, color: Colors.grey));
+
+  }else{
+    
+    pricing = Text('');
+
+  }
+
+  return Container(
+    width: 80,
+    child: pricing,
+  );
+
+}
+
+Widget showForwardArrow(){
+  return GestureDetector(
+    onTap: () => {},
+    child: Container(
+      margin: EdgeInsets.only(right: 10),
+      child: Icon(Icons.arrow_forward, color: Colors.grey,)
+    )
+  );
+}
+
 class ProductCard extends StatelessWidget {
 
   final Product product;
+  final String searchWord;
   final Function fetchProducts;
 
-  ProductCard({ required this.product, required this.fetchProducts });
+  ProductCard({ required this.product, required this.searchWord, required this.fetchProducts });
 
   @override
   Widget build(BuildContext context) {
@@ -1093,75 +1121,66 @@ class ProductCard extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: 5),
-
-                    //  Product name
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(product.name, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),)
-                      ]
-                    ),
-                    SizedBox(height: 5),
-
-                    //  Has variations
-                    if(product.allowVariants.status) Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Icon(Icons.device_hub_rounded, color: Colors.grey, size: 14,),
-                        SizedBox(width: 5),
-                        Text('Has variations', style: TextStyle(fontSize: 14),),
-                      ]
-                    ),
-
-                    Row(
-                      children: [
-
-                        if(product.visible.status == false) Icon(Icons.visibility_off, color: Colors.grey, size: 20,),
-                        if(product.visible.status == false) SizedBox(width: 5),
-                        
-                        //  Has Stock
-                        if(!product.allowVariants.status && product.visible.status == false) Text('|', style: TextStyle(fontSize: 14, color: Colors.grey),),
-                        if(!product.allowVariants.status && product.visible.status == false) SizedBox(width: 5),
-                        if(!product.allowVariants.status) Text(product.attributes.hasStock.name, style: TextStyle(fontSize: 14, color: (product.attributes.hasStock.status ? Colors.grey: Colors.red))),
-                        if(!product.allowVariants.status && product.attributes.hasStock.name != 'Unlimited Stock' && product.attributes.hasStock.status) Text(' ('+product.stockQuantity.value.toString()+')', style: TextStyle(fontSize: 14, color: (product.attributes.hasStock.status ? Colors.grey: Colors.red))),
-
-                      ]
-                    ),
-                  ],
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: 5),
+                
+                      //  Product name
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Flexible(
+                            child: AutoSizeText(
+                              product.name,
+                              maxLines: 2,
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                          )
+                        ]
+                      ),
+                      SizedBox(height: 5),
+                
+                      //  Has variations
+                      if(product.allowVariants.status) Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Icon(Icons.device_hub_rounded, color: Colors.blue, size: 14,),
+                          SizedBox(width: 5),
+                          Text('Has variations', style: TextStyle(fontSize: 14),),
+                        ]
+                      ),
+                
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                
+                          //  Visibility
+                          if(product.visible.status == false) Icon(Icons.visibility_off, color: Colors.grey, size: 20,),
+                          if(product.visible.status == false) SizedBox(width: 5),
+                          
+                          //  Has Stock
+                          if(!product.allowVariants.status && product.visible.status == false) Text('|', style: TextStyle(fontSize: 14, color: Colors.grey),),
+                          if(!product.allowVariants.status && product.visible.status == false) SizedBox(width: 5),
+                          if(!product.allowVariants.status) Text(product.attributes.hasStock.name, style: TextStyle(fontSize: 14, color: (product.attributes.hasStock.status ? Colors.grey: Colors.red))),
+                          if(!product.allowVariants.status && product.attributes.hasStock.name != 'Unlimited Stock' && product.attributes.hasStock.status) Text(' ('+product.stockQuantity.value.toString()+')', style: TextStyle(fontSize: 14, color: (product.attributes.hasStock.status ? Colors.grey: Colors.red))),
+                
+                        ]
+                      ),
+                    ],
+                  ),
                 ),
                 Row(
                   children: [
-
-                    Column(
-                      children: [
-
-                        if(!product.allowVariants.status && product.isFree.status) Text(product.isFree.name, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green)),
-
-                        if(!product.allowVariants.status && !product.isFree.status && !product.attributes.hasPrice.status) Text(product.attributes.hasPrice.name, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),),
-                  
-                        if(!product.allowVariants.status && !product.isFree.status && product.attributes.hasPrice.status) Text(product.attributes.unitPrice.currencyMoney, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
-
-                        if(!product.allowVariants.status && product.attributes.onSale.status) Text(product.unitRegularPrice.currencyMoney, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, decoration: TextDecoration.lineThrough, color: Colors.grey)),
-                        
-                      ],
-                    ),
-
+                    
+                    //  Pricing
+                    showPricing(product),
+                
                     //  Forward Arrow 
-                    TextButton(
-                      onPressed: () => {}, 
-                      child: Icon(Icons.arrow_forward, color: Colors.grey,),
-                      style: ButtonStyle(
-                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20)
-                          )
-                        )
-                      ),
-                    )
+                    showForwardArrow(),
+
                   ],
                 )
               ],
@@ -1184,7 +1203,7 @@ class ProductCard extends StatelessWidget {
                 await Get.to(() => CreateProductScreen());
 
                 //  Refetch the products as soon as we return back
-                fetchProducts(resetPage: true);
+                fetchProducts(searchWord: searchWord, resetPage: true);
 
               }, 
             )

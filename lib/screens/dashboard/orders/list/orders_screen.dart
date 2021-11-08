@@ -85,6 +85,8 @@ class _ContentState extends State<Content> {
     //  Handle API request
     apiInstance.then((http.Response response) async {
 
+      if( response.statusCode == 200 ){
+
         final responseBody = jsonDecode(response.body);
 
         setState(() {
@@ -94,11 +96,15 @@ class _ContentState extends State<Content> {
 
         });
 
-      }).whenComplete((){
+      }
 
-        stopLoader();
+      return response;
 
-      });
+    }).whenComplete((){
+
+      stopLoader();
+
+    });
       
   }
 

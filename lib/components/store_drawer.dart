@@ -210,8 +210,10 @@ class StoreDrawer extends StatelessWidget {
         },
         'onPressed': () {
 
-          Provider.of<AuthProvider>(context, listen: false).logout(context: context).then((value){
-            Get.off(() => WelcomePage());
+          Provider.of<AuthProvider>(context, listen: false).logout(context: context).then((response){
+            if( response.statusCode == 200 ){
+              Get.off(() => WelcomePage());
+            }
           });
           
         },
@@ -221,50 +223,53 @@ class StoreDrawer extends StatelessWidget {
     final primaryOptionWidgets = buildOptionWidgets(primaryOptions, storesProvider, locationsProvider);
 
     return Drawer(
-      child: ListView(
-        children: [
-          DrawerHeader(
-            padding: EdgeInsets.zero,
-            child: Container(
-              decoration: BoxDecoration(
-                color: kPrimaryColor,
-                image: DecorationImage(
-                  fit: BoxFit.cover,
-                  colorFilter: new ColorFilter.mode(kPrimaryColor.withOpacity(0.1), BlendMode.dstATop),
-                  image: AssetImage('assets/images/merchant.jpeg')
-                )
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+      child: Container(
+        color: Colors.blue.shade50,
+        child: ListView(
+          children: [
+            DrawerHeader(
+              padding: EdgeInsets.zero,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  image: DecorationImage(
+                    fit: BoxFit.cover,
+                    colorFilter: new ColorFilter.mode(Colors.blue.withOpacity(0.1), BlendMode.dstATop),
+                    image: AssetImage('assets/images/merchant.jpeg')
+                  )
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
 
-                  //  User Account Info
-                  SizedBox(height: 30),
-                  DrawerHeaderUserAccount(),
+                    //  User Account Info
+                    SizedBox(height: 30),
+                    DrawerHeaderUserAccount(),
 
-                  //  Divider
-                  SizedBox(height: 5),
-                  Divider(color: Colors.white,),
-                  SizedBox(height: 5),
+                    //  Divider
+                    SizedBox(height: 5),
+                    Divider(color: Colors.white,),
+                    SizedBox(height: 5),
 
-                  //  Store Info
-                  DrawerHeaderStore(
-                    storesProvider: storesProvider,
-                    locationsProvider: locationsProvider,
-                  ),
-                  
-                ],
-              ),
-            )
-          ),
+                    //  Store Info
+                    DrawerHeaderStore(
+                      storesProvider: storesProvider,
+                      locationsProvider: locationsProvider,
+                    ),
+                    
+                  ],
+                ),
+              )
+            ),
 
-          if(isLoadingLocation == true) CustomLoader(topMargin: 40, bottomMargin: 40, text: 'Loading store'),
-          
-          if(isLoadingLocation == true) Divider(height: 0),
+            if(isLoadingLocation == true) CustomLoader(topMargin: 40, bottomMargin: 40, text: 'Loading store'),
+            
+            if(isLoadingLocation == true) Divider(height: 0),
 
-          if(isLoadingLocation == false) ...primaryOptionWidgets
-        ],
+            if(isLoadingLocation == false) ...primaryOptionWidgets
+          ],
+        ),
       ),
     );
 
@@ -334,7 +339,7 @@ class DrawerHeaderStore extends StatelessWidget {
                 )
               : Text(
                   'No store selected',
-                  style: Theme.of(context).textTheme.headline6!.copyWith(color: Colors.white)
+                  style: Theme.of(context).textTheme.headline6!.copyWith(color: Colors.white, fontSize: 16)
                 ),
             if(hasLocation) SizedBox(height: 5),
             if(hasLocation) Text(
@@ -412,7 +417,7 @@ class DrawerOptionCount extends StatelessWidget{
       height: 20,
       width: countContainerWidth,
       decoration: BoxDecoration(
-        color: kPrimaryColor,
+        color: Colors.blue,
         borderRadius: BorderRadius.circular(10)
       ),
       child: Center(
