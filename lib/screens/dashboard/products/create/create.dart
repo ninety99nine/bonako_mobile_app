@@ -1,4 +1,6 @@
+import 'package:bonako_app_3/components/custom_checkmark_text.dart';
 import 'package:bonako_app_3/screens/dashboard/products/create/sections/variations/variations.dart';
+import 'package:bonako_app_3/screens/dashboard/products/create/sections/visibility.dart';
 
 import './../../../../screens/dashboard/products/create/sections/quantities.dart';
 import './../../../../screens/dashboard/products/create/sections/inventory.dart';
@@ -520,19 +522,6 @@ class _ContentState extends State<Content> {
     );
   }
 
-  Widget checkmarkText(String text){
-    return Container(
-      margin: EdgeInsets.only(bottom: 5),
-      child: Row(
-        children: [
-          Icon(Icons.check_circle_outline_outlined, color: Colors.green, size: 12),
-          SizedBox(width: 5),
-          Text(text, style: TextStyle(fontSize: 12),)
-        ],
-      ),
-    );
-  }
-
   bool empty(text){
     return (text == '' || text == null);
   }
@@ -562,38 +551,7 @@ class _ContentState extends State<Content> {
         child: Column(
           children: <Widget>[
 
-            SizedBox(height: 10),
-
-            Row(
-              children: [
-                Text('Visible'),
-                Switch(
-                  activeColor: Colors.green,
-                  value: productForm['visible'], 
-                  onChanged: (status){
-                    setState(() {
-                      productForm['visible'] = status;
-                    });
-                  }
-                ),
-                if(productForm['visible'] == false) Text('This product is hidden', style: TextStyle(color: Colors.orange),),
-              ],
-            ),
-
-            Row(
-              children: [
-                Text('Allow Variations'),
-                Switch(
-                  activeColor: Colors.green,
-                  value: productForm['allow_variants'], 
-                  onChanged: (status){
-                    setState(() {
-                      productForm['allow_variants'] = status;
-                    });
-                  }
-                ),
-              ],
-            ),
+            SizedBox(height: 40),
       
             TextFormField(
               initialValue: productForm['name'],
@@ -607,7 +565,7 @@ class _ContentState extends State<Content> {
                 ),
               ),
               validator: (value){
-                if(value == null){
+                if(value == null || value.isEmpty){
                   return 'Please enter product name';
                 }else if(serverErrors['name'] != ''){
                   return serverErrors['name'];
@@ -617,6 +575,8 @@ class _ContentState extends State<Content> {
                 productForm['name'] = value;
               }
             ),
+
+            SizedBox(height: 10),
 
             Row(
               children: [
@@ -635,7 +595,9 @@ class _ContentState extends State<Content> {
       
             if(productForm['show_description']) TextFormField(
               initialValue: productForm['description'],
-              keyboardType: TextInputType.text,
+              keyboardType: TextInputType.multiline,
+              minLines: 2,
+              maxLines: 5,
               decoration: InputDecoration(
                 labelText: "Description",
                 hintText: 'E.g Served with salad and 330ml coke',
@@ -645,7 +607,7 @@ class _ContentState extends State<Content> {
                 ),
               ),
               validator: (value){
-                if(value == null){
+                if(value == null || value.isEmpty){
                   return 'Please enter product description';
                 }else if(serverErrors['description'] != ''){
                   return serverErrors['description'];
@@ -701,15 +663,28 @@ class _ContentState extends State<Content> {
             ),
 
             if(allowVariants == false) customCard(
+              title: 'Visibility',
+              screen: ProductVisibilityScreen(),
+              bottomWidget: Container(
+                margin: EdgeInsets.only(bottom: 10),
+                child: Column(
+                  children: [
+                    CustomCheckmarkText(text: (productForm['visible'] == true) ? 'Visible for everyone' : 'Hidden for everyone'),
+                  ],
+                ),
+              )
+            ),
+
+            if(allowVariants == false) customCard(
               title: 'Quantities',
               screen: ProductQuantitiesScreen(),
               bottomWidget: Container(
                 margin: EdgeInsets.only(bottom: 10),
                 child: Column(
                   children: [
-                    if(productForm['allow_multiple_quantity_per_order'] == false) checkmarkText('Allow only 1 quantity per order'),
-                    if(productForm['allow_multiple_quantity_per_order'] == true && productForm['allow_maximum_quantity_per_order'] == false) checkmarkText('Allow more than 1 quantity per order'),
-                    if(productForm['allow_multiple_quantity_per_order'] == true && productForm['allow_maximum_quantity_per_order'] == true) checkmarkText('Allow between 1 and '+productForm['maximum_quantity_per_order']+' quantities per order')
+                    if(productForm['allow_multiple_quantity_per_order'] == false) CustomCheckmarkText(text: 'Allow only 1 quantity per order'),
+                    if(productForm['allow_multiple_quantity_per_order'] == true && productForm['allow_maximum_quantity_per_order'] == false) CustomCheckmarkText(text: 'Allow more than 1 quantity per order'),
+                    if(productForm['allow_multiple_quantity_per_order'] == true && productForm['allow_maximum_quantity_per_order'] == true) CustomCheckmarkText(text: 'Allow between 1 and '+productForm['maximum_quantity_per_order']+' quantities per order')
                   ],
                 ),
               )
@@ -722,9 +697,9 @@ class _ContentState extends State<Content> {
                 margin: EdgeInsets.only(bottom: 10),
                 child: Column(
                   children: [
-                    (productForm['allow_stock_management'] == true) ? checkmarkText('Allow '+(productForm['auto_manage_stock'] ? 'automatic' : 'manual')+' stock management') : checkmarkText('Disable stock management'),
-                    if(productForm['allow_stock_management'] == true) checkmarkText('Available Stock: ' + productForm['stock_quantity']),
-                    if(productForm['allow_multiple_quantity_per_order'] == true && productForm['allow_maximum_quantity_per_order'] == true) checkmarkText('Allow between 1 and '+productForm['maximum_quantity_per_order']+' quantities per order')
+                    (productForm['allow_stock_management'] == true) ? CustomCheckmarkText(text: 'Allow '+(productForm['auto_manage_stock'] ? 'automatic' : 'manual')+' stock management') : CustomCheckmarkText(text: 'Disable stock management'),
+                    if(productForm['allow_stock_management'] == true) CustomCheckmarkText(text: 'Available Stock: ' + productForm['stock_quantity']),
+                    if(productForm['allow_multiple_quantity_per_order'] == true && productForm['allow_maximum_quantity_per_order'] == true) CustomCheckmarkText(text: 'Allow between 1 and '+productForm['maximum_quantity_per_order']+' quantities per order')
                   ],
                 ),
               )
@@ -756,7 +731,7 @@ class _ContentState extends State<Content> {
                 margin: EdgeInsets.only(bottom: 10),
                 child: Row(
                   children: [
-                    (productForm['allow_variants']) ? checkmarkText('Allow variations') : Text('NONE', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    (productForm['allow_variants']) ? CustomCheckmarkText(text: 'Allow variations') : Text('NONE', style: TextStyle(fontSize: 12, color: Colors.grey)),
                   ],
                 ),
               )

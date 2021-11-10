@@ -17,19 +17,19 @@ class PaginatedOrders {
 
     final PaginatedOrdersLinks links;
     final int total;
-    final int count;
+    int count;
     final int perPage;
-    final int currentPage;
+    int currentPage;
     final int totalPages;
     final PaginatedOrdersEmbedded embedded;
 
     factory PaginatedOrders.fromJson(Map<String, dynamic> json) => PaginatedOrders(
         links: PaginatedOrdersLinks.fromJson(json["_links"]),
-        total: json["total"],
-        count: json["count"],
-        perPage: json["per_page"],
-        currentPage: json["current_page"],
-        totalPages: json["total_pages"],
+        total: int.parse(json["total"].toString()),
+        count: int.parse(json["count"].toString()),
+        perPage: int.parse(json["per_page"].toString()),
+        totalPages: int.parse(json["total_pages"].toString()),
+        currentPage: int.parse(json["current_page"].toString()),
         embedded: PaginatedOrdersEmbedded.fromJson(json["_embedded"]),
     );
 

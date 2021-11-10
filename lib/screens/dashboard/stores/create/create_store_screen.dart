@@ -123,7 +123,7 @@ class _StoreFormCardState extends State<StoreFormCard> {
     //  If validation failed
     }else{
 
-      final snackBar = SnackBar(content: Text('Store creation failed', textAlign: TextAlign.center));
+      final snackBar = SnackBar(content: Text('Validation failed', textAlign: TextAlign.center));
 
       //  Show snackbar  
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
@@ -139,7 +139,12 @@ class _StoreFormCardState extends State<StoreFormCard> {
 
       _handleValidationErrors(response);
       
-    }else if(response.statusCode == 200){
+    }else if(response.statusCode == 201){
+
+      final snackBar = SnackBar(content: Text('Store created successfully', textAlign: TextAlign.center));
+
+      //  Show snackbar  
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
 
       //  Navigate to the stores
       Get.off(() => StoresScreen());
@@ -190,11 +195,11 @@ class _StoreFormCardState extends State<StoreFormCard> {
                               ),
                               border: OutlineInputBorder(
                                 borderSide: const BorderSide(color: Colors.grey),
-                                borderRadius: BorderRadius.circular(15.0),
+                                borderRadius: BorderRadius.circular(5.0),
                               ),
                             ),
                             validator: (value){
-                              if(value == null){
+                              if(value == null || value.isEmpty){
                                 return 'Please enter store name';
                               }else if(storeServerErrors['name'] != ''){
                                 return storeServerErrors['name'];
@@ -216,11 +221,11 @@ class _StoreFormCardState extends State<StoreFormCard> {
                               ),
                               border:OutlineInputBorder(
                                 borderSide: const BorderSide(color: Colors.grey),
-                                borderRadius: BorderRadius.circular(15.0),
+                                borderRadius: BorderRadius.circular(5.0),
                               ),
                             ),
                             validator: (value){
-                              if(value == null){
+                              if(value == null || value.isEmpty){
                                 return 'Please enter call to action e.g Order food';
                               }else if(storeServerErrors['call_to_action'] != ''){
                                 return storeServerErrors['call_to_action'];

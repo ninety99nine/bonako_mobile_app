@@ -127,7 +127,7 @@ class _ContentState extends State<Content> {
                         ),
                       ),
                       validator: (value){
-                        if(value == null){
+                        if(value == null || value.isEmpty){
                           return 'Please enter product regular price';
                         }else if(serverErrors['unit_regular_price'] != ''){
                           return serverErrors['unit_regular_price'];
@@ -153,7 +153,7 @@ class _ContentState extends State<Content> {
                         ),
                       ),
                       validator: (value){
-                        if(value == null){
+                        if(value == null || value.isEmpty){
                           return 'Please enter product sale price';
                         }else if(serverErrors['unit_sale_price'] != ''){
                           return serverErrors['unit_sale_price'];
@@ -179,7 +179,7 @@ class _ContentState extends State<Content> {
                         ),
                       ),
                       validator: (value){
-                        if(value == null){
+                        if(value == null || value.isEmpty){
                           return 'Please enter product cost price';
                         }else if(serverErrors['unit_cost'] != ''){
                           return serverErrors['unit_cost'];

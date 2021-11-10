@@ -1,4 +1,5 @@
 import 'package:bonako_app_3/providers/products.dart';
+import 'package:bonako_app_3/screens/dashboard/stores/show/settings/settings.dart';
 
 import './.././../../../../components/custom_rounded_refresh_button.dart';
 import '././../../../../screens/dashboard/stores/list/stores_screen.dart';
@@ -22,7 +23,45 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'dart:convert';
 
-class ShowStoreScreen extends StatelessWidget {
+class ShowStoreScreen extends StatefulWidget {
+
+  @override
+  _ShowStoreScreenState createState() => _ShowStoreScreenState();
+}
+
+class _ShowStoreScreenState extends State<ShowStoreScreen> {
+  bool isLoading = false;
+
+  void startLoader(){
+    setState(() {
+      isLoading = true;
+    });
+  }
+
+  void stopLoader(){
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  Future<http.Response> fetchStore(){
+
+    startLoader();
+
+    StoresProvider storesProvider = Provider.of<StoresProvider>(context, listen: false);
+
+    return Provider.of<StoresProvider>(context, listen: false).fetchStore(context: context)
+      .then((response){
+        if(response.statusCode == 200){
+          final store = jsonDecode(response.body);
+          storesProvider.setStore(Store.fromJson(store));
+        }
+        return response;
+      }).whenComplete((){
+        stopLoader();
+      });
+
+  }
 
   @override
   Widget build(BuildContext context){
@@ -32,15 +71,21 @@ class ShowStoreScreen extends StatelessWidget {
 
     return Scaffold(
       drawer: StoreDrawer(),
-      appBar: CustomAppBar(title: store.name),
+      appBar: CustomAppBar(title: isLoading ? CustomLoader(color: Colors.white, topMargin: 0, rightPadding: 50) : Text(store.name)),
       floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
       floatingActionButton: CustomFloatingActionButton(),
-      body: Content(),
+      body: Content(
+        fetchStore: fetchStore
+      ),
     );
   }
 }
 
 class Content extends StatefulWidget {
+
+  final Function fetchStore;
+
+  Content({ required this.fetchStore });
 
   @override
   _ContentState createState() => _ContentState();
@@ -152,6 +197,9 @@ class _ContentState extends State<Content> {
             //  Get the location totals
             locationTotals = locationsProvider.getLocationTotals;
 
+            print('locationTotals');
+            print(locationTotals);
+
           });
 
         }
@@ -201,7 +249,9 @@ class _ContentState extends State<Content> {
             
                   //  Store Menus
                   if(!isLoadingLocation && !isLoadingTotals) StoreMenus(
-                    fetchLocationTotals: fetchLocationTotals
+                    fetchLocationTotals: fetchLocationTotals,
+                    fetchLocation: fetchLocation,
+                    fetchStore: widget.fetchStore
                   ),
                 ],
               ),
@@ -408,8 +458,10 @@ class SubcsriptionCountdown extends StatelessWidget {
 class StoreMenus extends StatelessWidget {
 
   final Function fetchLocationTotals;
+  final Function fetchLocation;
+  final Function fetchStore;
 
-  StoreMenus({ required this.fetchLocationTotals });
+  StoreMenus({ required this.fetchLocationTotals, required this.fetchLocation, required this.fetchStore });
 
   StoreMenuItem buildMenuWidgets(menuItem, LocationTotals locationTotals){
 
@@ -521,8 +573,11 @@ class StoreMenus extends StatelessWidget {
           'width': 28.00,
           'src': 'assets/icons/ecommerce_pack_1/settings.svg'
         },
-        'onPressed': () => {
-          Get.to(() => OrdersScreen())
+        'onPressed': () async {
+          await Get.to(() => StoreSettingsScreen());
+          fetchStore().then((response){
+            //  fetchLocation();
+          });
         }, 
       },
       {

@@ -694,13 +694,13 @@ class StoreCardOptionButton extends StatelessWidget {
                 svg: 'assets/icons/ecommerce_pack_1/delete.svg',
                 onPressed: () async {
 
-                  Provider.of<StoresProvider>(context, listen: false).deleteStore(
+                  //  Remove the alert dialog
+                  Navigator.of(context).pop();
+
+                  Provider.of<StoresProvider>(context, listen: false).handleDeleteStore(
                     store: store,
                     context: context
                   ).whenComplete((){
-
-                    //  Remove the alert dialog
-                    Navigator.of(context).pop();
 
                     //  Re-fetch the stores
                     fetchStores(searchWord: searchWord, resetPage: true);

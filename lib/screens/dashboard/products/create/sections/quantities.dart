@@ -1,3 +1,5 @@
+import 'package:bonako_app_3/components/custom_checkmark_text.dart';
+
 import './../../../../../components/custom_back_button.dart';
 import './../../../../../components/custom_app_bar.dart';
 import './../../../../../components/custom_button.dart';
@@ -47,19 +49,6 @@ class _ContentState extends State<Content> {
 
     super.initState();
 
-  }
-
-  Widget checkmarkText(String text){
-    return Container(
-      margin: EdgeInsets.only(bottom: 10),
-      child: Row(
-        children: [
-          Icon(Icons.check_circle_outline_outlined, color: Colors.green, size: 14),
-          SizedBox(width: 5),
-          Text(text, style: TextStyle(fontSize: 14),)
-        ],
-      ),
-    );
   }
 
   @override
@@ -132,7 +121,7 @@ class _ContentState extends State<Content> {
                         ),
                       ),
                       validator: (value){
-                        if(value == null){
+                        if(value == null || value.isEmpty){
                           return 'Please enter maximum quantity per order';
                         }else if(serverErrors['maximum_quantity_per_order'] != ''){
                           return serverErrors['maximum_quantity_per_order'];
@@ -147,9 +136,9 @@ class _ContentState extends State<Content> {
 
                     Divider(height: 40,),
 
-                    if(productForm['allow_multiple_quantity_per_order'] == false) checkmarkText('Allow only 1 quantity per order'),
-                    if(productForm['allow_multiple_quantity_per_order'] == true && productForm['allow_maximum_quantity_per_order'] == false) checkmarkText('Allow more than 1 quantity per order'),
-                    if(productForm['allow_multiple_quantity_per_order'] == true && productForm['allow_maximum_quantity_per_order'] == true) checkmarkText('Allow between 1 and '+productForm['maximum_quantity_per_order']+' quantities per order'),
+                    if(productForm['allow_multiple_quantity_per_order'] == false) CustomCheckmarkText(text: 'Allow only 1 quantity per order'),
+                    if(productForm['allow_multiple_quantity_per_order'] == true && productForm['allow_maximum_quantity_per_order'] == false) CustomCheckmarkText(text: 'Allow more than 1 quantity per order'),
+                    if(productForm['allow_multiple_quantity_per_order'] == true && productForm['allow_maximum_quantity_per_order'] == true) CustomCheckmarkText(text: 'Allow between 1 and '+productForm['maximum_quantity_per_order']+' quantities per order'),
 
                     Divider(height: 20,),
 

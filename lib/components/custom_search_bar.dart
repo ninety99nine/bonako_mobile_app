@@ -85,7 +85,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
                   ),
                   border:OutlineInputBorder(
                     borderSide: const BorderSide(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(15.0),
+                    borderRadius: BorderRadius.circular(5.0),
                   ),
                   suffixIcon: GestureDetector(
                     child: isLoading ? Container(width: 10, child: CustomLoader(topMargin:0, size: 10, strokeWidth: 2.0)) : Icon(hasSearchWord ? Icons.cancel : Icons.search),

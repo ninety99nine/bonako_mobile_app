@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import './../providers/locations.dart';
 import './../providers/stores.dart';
 import './../providers/auth.dart';
@@ -13,9 +16,42 @@ class OrdersProvider with ChangeNotifier{
 
   OrdersProvider({ required this.locationsProvider });
   
-  Future<http.Response> fetchOrders({ required BuildContext context }){
+  Future<http.Response> fetchOrders({ String searchWord: '', int page = 1, int limit: 10, required BuildContext context }) async {
 
-    return apiProvider.get(url: ordersUrl, context: context);
+    var url = ordersUrl+'?page='+page.toString()+'&limit='+limit.toString()+(searchWord == '' ? '':  '&search='+searchWord);
+    
+    await SharedPreferences.getInstance().then((prefs) async {
+
+      final filters = await jsonDecode(prefs.getString('orderFilters') ?? '{}');
+
+      final activeFilters = Map.from(filters)..removeWhere((key, value) => (value == false));
+
+      //  If we have any active filters
+      if( activeFilters.length > 0){
+
+        //  Add filters to Url string
+        url = url + '&status=' + activeFilters.keys.map((filterKey) {
+
+            /**
+             * filterKey: onSale / notOnSale / outOfStock / limitedStock / unlimitedStock
+             */
+            final Map<String, String> urlFilters = {
+              'onSale': 'On sale',
+              'notOnSale': 'Not on sale',
+              'outOfStock': 'Out Of Stock',
+              'limitedStock': 'Limited stock',
+              'unlimitedStock': 'Unlimited stock',
+            };
+
+            return urlFilters[filterKey];
+
+        }).join(',');
+
+      }
+
+    });
+
+    return apiProvider.get(url: url, context: context);
     
   }
 

@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 
 class CustomAppBar extends StatelessWidget with PreferredSizeWidget{
 
-  final String title;
+  final dynamic title;
 
   CustomAppBar({ this.title = '' });
 
   @override
   Widget build(BuildContext context) {
     return AppBar( 
-      title: Text(title),
+      title: (title is Widget) ? title : Text(title),
      );
   }
 

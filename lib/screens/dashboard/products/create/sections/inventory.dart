@@ -49,7 +49,7 @@ class _ContentState extends State<Content> {
 
   }
 
-  Widget checkmarkText(String text){
+  Widget CustomCheckmarkText(String text){
     return Container(
       margin: EdgeInsets.only(bottom: 10),
       child: Row(
@@ -117,7 +117,7 @@ class _ContentState extends State<Content> {
                         ),
                       ),
                       validator: (value){
-                        if(value == null){
+                        if(value == null || value.isEmpty){
                           return 'Please enter available stock quantity';
                         }else if(serverErrors['stock_quantity'] != ''){
                           return serverErrors['stock_quantity'];
@@ -149,9 +149,8 @@ class _ContentState extends State<Content> {
 
                     Divider(height: 40,),
 
-                    (productForm['allow_stock_management'] == true) ? checkmarkText('Allow '+(productForm['auto_manage_stock'] ? 'automatic' : 'manual')+' stock management') : checkmarkText('Disable stock management'),
-                    if(productForm['allow_stock_management'] == true) checkmarkText('Available Stock: ' + productForm['stock_quantity']),
-                    if(productForm['allow_multiple_quantity_per_order'] == true && productForm['allow_maximum_quantity_per_order'] == true) checkmarkText('Allow between 1 and '+productForm['maximum_quantity_per_order']+' quantities per order'),
+                    (productForm['allow_stock_management'] == true) ? CustomCheckmarkText('Allow '+(productForm['auto_manage_stock'] ? 'automatic' : 'manual')+' stock management') : CustomCheckmarkText('Disable stock management'),
+                    if(productForm['allow_stock_management'] == true) CustomCheckmarkText('Available Stock: ' + productForm['stock_quantity']),
 
                     Divider(height: 20,),
 

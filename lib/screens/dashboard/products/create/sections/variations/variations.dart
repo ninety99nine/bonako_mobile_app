@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:async/async.dart';
+import 'package:bonako_app_3/components/custom_checkmark_text.dart';
 import 'package:bonako_app_3/components/custom_loader.dart';
 import 'package:bonako_app_3/components/custom_rounded_refresh_button.dart';
 import 'package:bonako_app_3/screens/dashboard/products/create/sections/variations/product_variation_card.dart';
@@ -390,8 +391,6 @@ class _ContentState extends State<Content> {
 
           Divider(height: 0),
 
-          SizedBox(height: 20),
-
           //  Form
           Expanded(
             child: SingleChildScrollView(
@@ -408,6 +407,27 @@ class _ContentState extends State<Content> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+
+                          Row(
+                            children: [
+                              Text('Allow Variations'),
+                              Switch(
+                                activeColor: Colors.green,
+                                value: productForm['allow_variants'], 
+                                onChanged: (status){
+                                  setState(() {
+                                    productForm['allow_variants'] = status;
+                                  });
+                                }
+                              ),
+                            ],
+                          ),
+
+                          Divider(height: 20,),
+                          
+                          CustomCheckmarkText(text: (productForm['allow_variants'] == true) ? 'Allow different variations for this product' : 'Disable variations for this product'),
+
+                          Divider(height: 20,),
                           
                           //  Variant Attributes Setting e.g Color, Material, Size
                           ...variantAttributesForm.mapIndexed((index, attribute){
@@ -444,7 +464,7 @@ class _ContentState extends State<Content> {
                                     ),
                                   ),
                                   validator: (value){
-                                    if(value == null || value == ''){
+                                    if(value == null || value.isEmpty){
                                       return 'Please enter the variation name';
                                     }
                                   },
@@ -541,21 +561,28 @@ class _ContentState extends State<Content> {
                             children: [
                               Flexible(
                                 child: CustomButton(
+                                  color: ( !isGeneratingVariations && !isLoading ) ? Colors.green : Colors.grey,
+                                  solidColor: ( !isGeneratingVariations && !isLoading ) ? false : true,
                                   text: '+ Add Variation',
-                                  width: 130,
                                   size: 'small',
-                                  color: Colors.green,
+                                  width: 130,
                                   onSubmit: () {
-                                    addVariantAttribute();
+                                    if( !isGeneratingVariations && !isLoading ){
+                                      addVariantAttribute();
+                                    }
                                   },
                                 ),
                               ),
                               Flexible(
                                 child: CustomButton(
-                                  size: 'small',
+                                  color: ( !isGeneratingVariations && !isLoading ) ? Colors.blue : Colors.grey,
+                                  solidColor: ( !isGeneratingVariations && !isLoading ) ? false : true,
                                   text: 'Create Variations',
+                                  size: 'small',
                                   onSubmit: () {
-                                    generateProductVariations();
+                                    if( !isGeneratingVariations && !isLoading ){
+                                      generateProductVariations();
+                                    }
                                   },
                                 ),
                               ),
@@ -642,9 +669,9 @@ class ProductVariationList extends StatelessWidget {
       Column(
         children: [
           buildProductListView(products),
-          SizedBox(height: 40),
+          SizedBox(height: 20),
           if(paginatedProducts.count < paginatedProducts.total && isLoadingMore == true) CustomLoader(),
-          if(paginatedProducts.count == paginatedProducts.total && isLoadingMore == false) Text('No more products'),
+          if(paginatedProducts.count == paginatedProducts.total && isLoadingMore == false) Text('No more variations'),
           SizedBox(height: 60),
         ],
       );
