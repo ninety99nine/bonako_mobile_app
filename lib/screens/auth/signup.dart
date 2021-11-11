@@ -259,39 +259,42 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget build(BuildContext context) {
 
     final height = MediaQuery.of(context).size.height;
+    
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Center(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                constraints: BoxConstraints(maxWidth: 800),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                
+                    SizedBox(height: height * 0.1),
 
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Center(
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              constraints: BoxConstraints(maxWidth: 800),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-              
-                  SizedBox(height: height * 0.1),
+                    _headingText(),
+                    SizedBox(height: 20),
+        
+                    _emailPasswordWidget(),
+                    SizedBox(height: 20),
+        
+                    _signUpButton(),
+                    SizedBox(height: 20),
 
-                  _headingText(),
-                  SizedBox(height: 20),
-      
-                  _emailPasswordWidget(),
-                  SizedBox(height: 20),
-      
-                  _signUpButton(),
-                  SizedBox(height: 20),
-
-                  _divider( Text('or') ),
-                  
-                  _loginLabel(),
-      
-                ],
+                    _divider( Text('or') ),
+                    
+                    _loginLabel(),
+        
+                  ],
+                ),
               ),
-            ),
-          ), 
-        ),
+            ), 
+          ),
+        )
       )
     );
   }

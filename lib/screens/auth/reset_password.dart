@@ -235,41 +235,44 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
     final height = MediaQuery.of(context).size.height;
 
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Center(
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              constraints: BoxConstraints(maxWidth: 800),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-              
-                  SizedBox(height: height * 0.1),
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Center(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                constraints: BoxConstraints(maxWidth: 800),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                
+                    SizedBox(height: height * 0.1),
 
-                  _headingText(),
-                  SizedBox(height: 20),
+                    _headingText(),
+                    SizedBox(height: 20),
 
-                  _instructionText(),
-                  SizedBox(height: 20),
-      
-                  _emailPasswordWidget(),
-                  SizedBox(height: 20),
-      
-                  _resetPasswordButton(),
-                  SizedBox(height: 20),
+                    _instructionText(),
+                    SizedBox(height: 20),
+        
+                    _emailPasswordWidget(),
+                    SizedBox(height: 20),
+        
+                    _resetPasswordButton(),
+                    SizedBox(height: 20),
 
-                  _divider( Text('or') ),
-                  
-                  _loginLabel(),
-      
-                ],
+                    _divider( Text('or') ),
+                    
+                    _loginLabel(),
+        
+                  ],
+                ),
               ),
-            ),
-          ), 
-        ),
+            ), 
+          ),
+        )
       )
     );
   }

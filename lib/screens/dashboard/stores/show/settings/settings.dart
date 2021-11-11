@@ -1,31 +1,35 @@
-import 'dart:convert';
-
+import 'package:bonako_app_3/screens/dashboard/stores/show/store_screen.dart';
 import 'package:bonako_app_3/components/custom_floating_action_button.dart';
 import 'package:bonako_app_3/components/custom_rounded_refresh_button.dart';
-import 'package:bonako_app_3/models/stores.dart';
-import 'package:bonako_app_3/screens/dashboard/stores/show/store_screen.dart';
-
+import 'package:flutter/foundation.dart';
 import './../../../../../components/custom_checkmark_text.dart';
 import './../../../../../components/custom_back_button.dart';
 import './../../../../../components/custom_app_bar.dart';
 import './../../../../../components/custom_button.dart';
 import '../../../../../components/store_drawer.dart';
+import 'package:bonako_app_3/models/stores.dart';
 import '../../../../../providers/stores.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'dart:convert';
 
 class StoreSettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context){
-    return Scaffold(
-      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
-      floatingActionButton: CustomFloatingActionButton(),
-      appBar: CustomAppBar(title: 'Settings'),
-      drawer: StoreDrawer(),
-      body: Content(),
+
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
+        floatingActionButton: CustomFloatingActionButton(),
+        appBar: CustomAppBar(title: 'Settings'),
+        drawer: StoreDrawer(),
+        body: Content(),
+      )
     );
+
   }
 }
 
@@ -40,6 +44,7 @@ class _ContentState extends State<Content> {
 
   final GlobalKey<FormState> _formKey = GlobalKey();
   Map storeServerErrors = {};
+  Map originalStoreForm = {};
   bool isSubmitting = false;
   Map storeForm = {};
 
@@ -67,50 +72,57 @@ class _ContentState extends State<Content> {
 
     Store store = storesProvider.getStore;
 
-    print('store');
-    print(store.online);
-
     setState(() {
 
       storeForm = {
         'name': store.name,
         'online': store.online.status,
       };
+
+      originalStoreForm = new Map.from(storeForm);
       
     });
 
   }
 
+  bool get storeFormHasChanged {
+    return mapEquals(storeForm, originalStoreForm) == false;
+  }
+
   void _updateStore(){
 
-    //  Reset server errors
-    _resetStoreServerErrors();
-    
-    //  If local validation passed
-    if( _formKey.currentState!.validate() == true ){
+    if( storeFormHasChanged && isSubmitting == false ){
 
-      //  Save inputs
-      _formKey.currentState!.save();
+      //  Reset server errors
+      _resetStoreServerErrors();
+      
+      //  If local validation passed
+      if( _formKey.currentState!.validate() == true ){
 
-      startLoader();
+        //  Save inputs
+        _formKey.currentState!.save();
 
-      Provider.of<StoresProvider>(context, listen: false).updateStore(
-        body: storeForm,
-        context: context
-      ).then((response){
+        startLoader();
 
-        _handleOnSubmitResponse(response);
+        Provider.of<StoresProvider>(context, listen: false).updateStore(
+          body: storeForm,
+          context: context
+        ).then((response){
 
-      }).whenComplete((){
+          _handleOnSubmitResponse(response);
 
-        stopLoader();
+        }).whenComplete((){
 
-      });
-    
-    //  If validation failed
-    }else{
+          stopLoader();
 
-      storesProvider.showSnackbarMessage(msg: 'Validation failed', context: context);
+        });
+      
+      //  If validation failed
+      }else{
+
+        storesProvider.showSnackbarMessage(msg: 'Validation failed', context: context);
+
+      }
 
     }
 
@@ -121,15 +133,11 @@ class _ContentState extends State<Content> {
   }
 
   void _handleOnSubmitResponse(http.Response response){
-
-    print('stage 1');
     
     //  If this is a validation error
     if(response.statusCode == 422){
 
       storesProvider.showSnackbarMessage(msg: 'Validation failed', context: context);
-
-    print('stage 2');
 
       _handleValidationErrors(response);
     
@@ -139,6 +147,8 @@ class _ContentState extends State<Content> {
       final store = jsonDecode(response.body);
 
       storesProvider.setStore(Store.fromJson(store));
+
+      _setStoreForm();
 
       storesProvider.showSnackbarMessage(msg: 'Store updated successfully', context: context);
 
@@ -151,9 +161,6 @@ class _ContentState extends State<Content> {
     final responseBody = jsonDecode(response.body);
 
     final Map validationErrors = responseBody['errors'];
-
-    print('validationErrors');
-    print(validationErrors);
 
     /**
      *  validationErrors = {
@@ -225,17 +232,42 @@ class _ContentState extends State<Content> {
                                 return storeServerErrors['name'];
                               }
                             },
+                            onChanged: (value){
+                              setState(() {
+                                storeForm['name'] = value.trim();
+                              });
+                            },
                             onSaved: (value){
-                              storeForm['name'] = value;
+                              storeForm['name'] = value!.trim();
                             }
                           ),
 
+                          Row(
+                            children: [
+                              Text(storeForm['online'] ? 'Online' : 'Offline'),
+                              Switch(
+                                activeColor: Colors.green,
+                                value: storeForm['online'], 
+                                onChanged: (status){
+                                  setState(() {
+                                    storeForm['online'] = status;
+                                  });
+                                }
+                              ),
+                            ],
+                          ),
+
+                          Divider(height: 20),
+                          CustomCheckmarkText(
+                            text: storeForm['name'] +' is ' + ((storeForm['online'] == true) ? 'Online' : 'Offline'), 
+                            state: (storeForm['online'] == true) ? 'success' : 'warning'
+                          ),
                           Divider(height: 20),
 
-                          CustomButton(
+                          if(storeFormHasChanged) CustomButton(
                             text: 'Save',
                             isLoading: isSubmitting,
-                            onSubmit: (isSubmitting) ? null : _updateStore,
+                            onSubmit: (isSubmitting) ? null : _updateStore
                           ),
 
                           SizedBox(height: 50),

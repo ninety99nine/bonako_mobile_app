@@ -31,10 +31,13 @@ class CreateProductScreen extends StatelessWidget {
 
     final hasProduct = Provider.of<ProductsProvider>(context, listen: false).hasProduct;
 
-    return Scaffold(
-      appBar: CustomAppBar(title: hasProduct ? 'Edit Product' : 'Create Product'),
-      drawer: StoreDrawer(),
-      body: Content(),
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        appBar: CustomAppBar(title: hasProduct ? 'Edit Product' : 'Create Product'),
+        drawer: StoreDrawer(),
+        body: Content(),
+      )
     );
   }
 }

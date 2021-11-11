@@ -150,17 +150,20 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   @override
   Widget build(BuildContext context){
-    return Scaffold(
-      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
-      floatingActionButton: CustomFloatingActionButton(),
-      appBar: CustomAppBar(title: 'Orders'),
-      drawer: StoreDrawer(),
-      body: Content(
-        paginatedOrders: paginatedOrders,
-        fetchOrders: fetchOrders,
-        isLoadingMore: isLoadingMore,
-        isLoading: isLoading
-      ),
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
+        floatingActionButton: CustomFloatingActionButton(),
+        appBar: CustomAppBar(title: 'Orders'),
+        drawer: StoreDrawer(),
+        body: Content(
+          paginatedOrders: paginatedOrders,
+          isLoadingMore: isLoadingMore,
+          fetchOrders: fetchOrders,
+          isLoading: isLoading
+        ),
+      )
     );
   }
 }

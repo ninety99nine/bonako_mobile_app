@@ -26,13 +26,18 @@ class StoresScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context){
-    return Scaffold(
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: CustomFloatingActionButton(),
-      appBar: CustomAppBar(title: 'Stores'),
-      drawer: StoreDrawer(),
-      body: Content(),
+
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButton: CustomFloatingActionButton(),
+        appBar: CustomAppBar(title: 'Stores'),
+        drawer: StoreDrawer(),
+        body: Content(),
+      )
     );
+    
   }
 }
 

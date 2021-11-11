@@ -152,19 +152,22 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   @override
   Widget build(BuildContext context){
-    return Scaffold(
-      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
-      floatingActionButton: CustomFloatingActionButton(
-        onAddProduct: () => fetchProducts(resetPage: true)
-      ),
-      appBar: CustomAppBar(title: 'Products'),
-      drawer: StoreDrawer(),
-      body: Content(
-        paginatedProducts: paginatedProducts,
-        fetchProducts: fetchProducts,
-        isLoadingMore: isLoadingMore,
-        isLoading: isLoading
-      ),
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
+        floatingActionButton: CustomFloatingActionButton(
+          onAddProduct: () => fetchProducts(resetPage: true)
+        ),
+        appBar: CustomAppBar(title: 'Products'),
+        drawer: StoreDrawer(),
+        body: Content(
+          paginatedProducts: paginatedProducts,
+          fetchProducts: fetchProducts,
+          isLoadingMore: isLoadingMore,
+          isLoading: isLoading
+        ),
+      )
     );
   }
 }

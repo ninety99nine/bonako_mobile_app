@@ -811,27 +811,30 @@ class _LoginPageState extends State<LoginPage> {
 
     final height = MediaQuery.of(context).size.height;
 
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Center(
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              constraints: BoxConstraints(maxWidth: 800),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Center(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                constraints: BoxConstraints(maxWidth: 800),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
 
-                  SizedBox(height: height * 0.1),
+                    SizedBox(height: height * 0.1),
 
-                  ..._loginStageContent()
+                    ..._loginStageContent()
 
-                ],
+                  ],
+                ),
               ),
-            ),
-          ), 
-        ),
+            ), 
+          ),
+        )
       )
     );
   }

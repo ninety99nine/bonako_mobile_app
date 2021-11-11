@@ -13,11 +13,16 @@ import 'dart:convert';
 class CreateStoresScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context){
-    return Scaffold(
-      drawer: StoreDrawer(),
-      appBar: CustomAppBar(),
-      body: StoreFormCard(),
+
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        drawer: StoreDrawer(),
+        appBar: CustomAppBar(),
+        body: StoreFormCard(),
+      )
     );
+    
   }
 }
 

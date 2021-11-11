@@ -101,7 +101,6 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
                   _debouncer.run(() {
                     startLoader();
                     (widget.onSearch(searchWord) as Future<http.Response>).whenComplete((){
-                      print('we are don here!!!!!!!!!!!!!!!!!!!!!!');
                       stopLoader();
                     });
                   });

@@ -10,10 +10,13 @@ class ProductTrackingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context){
 
-    return Scaffold(
-      appBar: CustomAppBar(title: 'Tracking'),
-      drawer: StoreDrawer(),
-      body: Content(),
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        appBar: CustomAppBar(title: 'Tracking'),
+        drawer: StoreDrawer(),
+        body: Content(),
+      )
     );
 
   }
