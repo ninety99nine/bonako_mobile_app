@@ -378,6 +378,7 @@ class _ContentState extends State<Content> {
               children: [
                 Divider(height: 10,),
                 RichText(
+                  textAlign: TextAlign.justify,
                   text: TextSpan(
                     style: TextStyle(color: Colors.black, height: 1.5),
                     children: <TextSpan>[
@@ -734,6 +735,7 @@ class NoOrdersFound extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(20),
           child: RichText(
+            textAlign: TextAlign.justify,
             text: TextSpan(
               style: TextStyle(color: Colors.black, height: 1.5),
               children: <TextSpan>[

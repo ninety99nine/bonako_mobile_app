@@ -1,6 +1,6 @@
-import 'package:bonako_app_3/components/custom_checkmark_text.dart';
-import 'package:bonako_app_3/screens/dashboard/products/create/sections/variations/variations.dart';
-import 'package:bonako_app_3/screens/dashboard/products/create/sections/visibility.dart';
+import 'package:bonako_mobile_app/components/custom_checkmark_text.dart';
+import 'package:bonako_mobile_app/screens/dashboard/products/create/sections/variations/variations.dart';
+import 'package:bonako_mobile_app/screens/dashboard/products/create/sections/visibility.dart';
 
 import './../../../../screens/dashboard/products/create/sections/quantities.dart';
 import './../../../../screens/dashboard/products/create/sections/inventory.dart';

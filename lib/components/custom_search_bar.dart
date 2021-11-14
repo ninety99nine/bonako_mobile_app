@@ -1,4 +1,4 @@
-import 'package:bonako_app_3/components/custom_loader.dart';
+import 'package:bonako_mobile_app/components/custom_loader.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'dart:async';

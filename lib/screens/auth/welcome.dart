@@ -102,7 +102,7 @@ class _WelcomePageState extends State<WelcomePage> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            Navigator.pushReplacementNamed(context, LoginPage.routeName);
+            Navigator.pushReplacementNamed(context, LoginScreen.routeName);
           },
           child: Container(
             alignment: Alignment.center,
@@ -133,7 +133,7 @@ class _WelcomePageState extends State<WelcomePage> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            Navigator.pushReplacementNamed(context, SignUpPage.routeName);
+            Navigator.pushReplacementNamed(context, SignUpScreen.routeName);
           },
           child: Container(
             alignment: Alignment.center,

@@ -1,4 +1,4 @@
-import 'package:bonako_app_3/components/custom_instruction_message.dart';
+import 'package:bonako_mobile_app/components/custom_instruction_message.dart';
 import './../../../../screens/dashboard/stores/show/store_screen.dart';
 import './../../../../components/custom_rounded_refresh_button.dart';
 import './../../../../components/custom_floating_action_button.dart';
@@ -469,6 +469,7 @@ class _ContentState extends State<Content> {
               children: [
                 Divider(height: 10,),
                 RichText(
+                  textAlign: TextAlign.justify,
                   text: TextSpan(
                     style: TextStyle(color: Colors.black, height: 1.5),
                     children: <TextSpan>[

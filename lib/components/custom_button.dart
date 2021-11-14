@@ -13,8 +13,9 @@ class CustomButton extends StatelessWidget {
   final EdgeInsets margin;
   final Function()? onSubmit;
   final MaterialColor color;
+  final bool disabled;
 
-  CustomButton({ this.text: 'Button', this.ripple = false, this.widget, this.solidColor = false, this.color: Colors.blue, this.isLoading: false, this.onSubmit, this.margin: EdgeInsets.zero, this.width = double.infinity, this.size = 'large' });
+  CustomButton({ this.text: 'Button', this.ripple = false, this.widget, this.solidColor = false, this.color: Colors.blue, this.isLoading: false, this.onSubmit, this.margin: EdgeInsets.zero, this.width = double.infinity, this.size = 'large', this.disabled = false });
 
   Widget materialWidget(){
 
@@ -26,7 +27,7 @@ class CustomButton extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onSubmit,
+        onTap: (disabled == true) ? null : onSubmit,
         child: Container(
           width: width,
           height: height,
@@ -61,7 +62,7 @@ class CustomButton extends StatelessWidget {
         gradient: LinearGradient(
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
-            colors: [solidColor ? color : color.shade500, solidColor ? color : color.shade700]
+            colors: disabled ? [Colors.grey.shade400, Colors.grey.shade400] : [solidColor ? color : color.shade500, solidColor ? color : color.shade700]
         )
       ),
       child: ripple ? RippleAnimation(

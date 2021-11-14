@@ -1,4 +1,4 @@
-import 'package:bonako_app_3/components/custom_loader.dart';
+import 'package:bonako_mobile_app/components/custom_loader.dart';
 
 import './../screens/dashboard/products/list/products_screen.dart';
 import './../screens/dashboard/stores/list/stores_screen.dart';

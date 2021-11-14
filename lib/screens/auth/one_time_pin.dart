@@ -53,6 +53,7 @@ class _OneTimePinPageState extends State<OneTimePinPage> {
     final String accountIdentity = ModalRoute.of(context)!.settings.arguments as String;
 
     return RichText(
+        textAlign: TextAlign.justify,
         text: TextSpan(
           text: 'Enter the 6 digit pin sent to ',
           style: TextStyle(color: Colors.black),
@@ -124,6 +125,9 @@ class _OneTimePinPageState extends State<OneTimePinPage> {
                 textAlign: TextAlign.center,
               )
             );
+
+            //  Hide existing snackbar
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
             
             ScaffoldMessenger.of(context).showSnackBar(snackBar);
 
@@ -179,7 +183,7 @@ class _OneTimePinPageState extends State<OneTimePinPage> {
   Widget _loginLabel() {
     return InkWell(
       onTap: () {
-        Navigator.pushNamed(context, LoginPage.routeName);
+        Navigator.pushNamed(context, LoginScreen.routeName);
       },
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 20),

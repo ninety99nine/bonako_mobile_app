@@ -1,13 +1,13 @@
-import 'package:bonako_app_3/screens/dashboard/stores/show/store_screen.dart';
-import 'package:bonako_app_3/components/custom_floating_action_button.dart';
-import 'package:bonako_app_3/components/custom_rounded_refresh_button.dart';
+import 'package:bonako_mobile_app/screens/dashboard/stores/show/store_screen.dart';
+import 'package:bonako_mobile_app/components/custom_floating_action_button.dart';
+import 'package:bonako_mobile_app/components/custom_rounded_refresh_button.dart';
 import 'package:flutter/foundation.dart';
 import './../../../../../components/custom_checkmark_text.dart';
 import './../../../../../components/custom_back_button.dart';
 import './../../../../../components/custom_app_bar.dart';
 import './../../../../../components/custom_button.dart';
 import '../../../../../components/store_drawer.dart';
-import 'package:bonako_app_3/models/stores.dart';
+import 'package:bonako_mobile_app/models/stores.dart';
 import '../../../../../providers/stores.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';

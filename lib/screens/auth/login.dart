@@ -1,6 +1,11 @@
+import 'package:bonako_mobile_app/components/custom_back_button.dart';
+import 'package:bonako_mobile_app/components/previous_step_button.dart';
+import 'package:bonako_mobile_app/enum/enum.dart';
+import 'package:bonako_mobile_app/screens/auth/components/mobile_verification.dart';
 import 'package:bubble_tab_indicator/bubble_tab_indicator.dart';
+import 'package:get/get.dart';
 import './../dashboard/stores/list/stores_screen.dart';
-import 'package:bonako_app_3/providers/auth.dart';
+import 'package:bonako_mobile_app/providers/auth.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -16,19 +21,20 @@ enum LoginTypes {
 enum LoginStage {
   enterMobileOrEmail,
   enterPassword,
-  setNewPassword
+  setNewPassword,
+  enterVerificationCode
 }
 
-class LoginPage extends StatefulWidget {
+class LoginScreen extends StatefulWidget {
 
   static const routeName = '/login';
   
   @override
-  _LoginPageState createState() => _LoginPageState();
+  _LoginScreenState createState() => _LoginScreenState();
 
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginScreenState extends State<LoginScreen> {
   
   //  Set the form key
   final GlobalKey<FormState> _formKey = GlobalKey();
@@ -40,18 +46,18 @@ class _LoginPageState extends State<LoginPage> {
   LoginStage currLoginStage = LoginStage.enterMobileOrEmail;
   
   Map loginData = {
-    'password': '',
+    'password_confirmation': '',
+    'verification_code': '',
     'mobile_number': '',
+    'password': '',
     'email': '',
   };
 
-  Map loginServerErrors = {
-    'password': '',
-    'mobile_number': '',
-    'email': '',
-  };
+  Map loginServerErrors = {};
 
   Map userAccount = {};
+  bool requiresPassword = false;
+  bool requiresMobileNumberVerification = false;
 
   //  By default the password is not visible for viewing
   var hidePassword = true;
@@ -59,31 +65,78 @@ class _LoginPageState extends State<LoginPage> {
   //  By default the loader is not loading
   var isLoading = false;
 
-  void _showDialog({ required String title, required String message }){
+  AuthProvider get authProvider {
+    return Provider.of<AuthProvider>(context, listen: false);
+  }
+
+  Widget _noAccountExistsDialogMessage(){
+    return RichText(
+      textAlign: TextAlign.justify,
+      text: TextSpan(
+        style: TextStyle(color: Colors.black, height: 1.5, fontSize: 12),
+        children: <TextSpan>[
+          TextSpan(text: 'Could not find any account matching the ' + (selectedLoginType == LoginTypes.Mobile ? 'mobile number ' : 'email ')),
+          TextSpan(
+            text: (selectedLoginType == LoginTypes.Mobile ? loginData['mobile_number'] : loginData['email']), 
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+          ),
+          TextSpan(
+            text: '. Make sure you entered a correct '+(selectedLoginType == LoginTypes.Mobile ? 'mobile number' : 'email '), 
+            style: TextStyle(fontSize: 12)
+          ),
+        ],
+      )
+    );
+  }
+
+  void _showDialog({ required dynamic title, required dynamic message, String buttonText = 'Ok', Function()? onPressed, bool showCancelButton = true }){
     showDialog(context: context, builder: (ctx){
       return AlertDialog(
-        title: Text(title),
-        content: Text(message),
+        title: (title is Widget) ? title : Text(title),
+        content: (message is Widget) ? message : Text(message),
         actions: [
+          if(showCancelButton) TextButton(
+            onPressed: (){
+              Navigator.of(context).pop();
+            }, 
+            child: Text('Cancel')
+          ),
           ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(), 
-            child: Text('Ok')
+            onPressed: (){
+              if( onPressed == null ){
+                Navigator.of(context).pop();
+              }else{
+                onPressed();
+              }
+            }, 
+            child: Text(buttonText)
           )
         ],
       );
     });
   }
 
-  void _resetloginServerErrors(){
-    loginServerErrors = {
-      'password': '',
-      'mobile_number': '',
-      'email': '',
-    };
+  @override
+  void initState() {
+    
+    final arguments = Get.arguments;
+
+    //  Get arguments that may have been passed from login screen
+    if( arguments != null ){
+
+      //  Merge the form fields
+      loginData = {
+        ...loginData,
+        ...arguments
+      };
+
+    }
+    
+    super.initState();
   }
 
-  void _resetUserAccount(){
-    userAccount = {};
+  void _resetloginServerErrors(){
+    loginServerErrors = {};
   }
 
   void _handleValidationErrors(http.Response response){
@@ -92,19 +145,58 @@ class _LoginPageState extends State<LoginPage> {
 
     final Map validationErrors = responseBody['errors'];
 
+    print('validationErrors');
+    print(validationErrors);
+
     /**
      *  validationErrors = {
      *    mobile_number: [Enter a valid mobile number containing only digits e.g 26771234567]
      *  }
      */
     validationErrors.forEach((key, value){
-      if( loginServerErrors.containsKey(key) ){
-        loginServerErrors[key] = value[0];
-      }
+      loginServerErrors[key] = value[0];
     });
-    
-    // Run form validation
-   _formKey.currentState!.validate();
+
+    setState(() {
+
+      final emailError = validationErrors.containsKey('email');
+      final passwordError = validationErrors.containsKey('password');
+      final mobileNumberError = validationErrors.containsKey('mobile_number');
+      final verificationCodeError = validationErrors.containsKey('verification_code');
+
+      //  If we have errors related to the mobile number or  email
+      if(emailError || mobileNumberError){
+        currLoginStage = LoginStage.enterMobileOrEmail;
+
+      //  If we have errors related to the password
+      }else if(passwordError){
+
+        if(requiresPassword){
+          currLoginStage = LoginStage.setNewPassword;
+        }else{
+          currLoginStage = LoginStage.enterPassword;
+        }
+      
+      //  If we have errors related to the verification code
+      }else if(verificationCodeError){
+        
+        currLoginStage = LoginStage.enterVerificationCode;
+
+      }
+
+      //  Validate the form only on the following conditions
+      if( emailError || mobileNumberError || passwordError ){
+
+        Future.delayed(const Duration(milliseconds: 500), () {
+
+            // Run form validation
+          _formKey.currentState!.validate();
+
+        });
+
+      }
+
+    });
     
   }
 
@@ -119,75 +211,176 @@ class _LoginPageState extends State<LoginPage> {
       isLoading = false;
     });
   }
+  
+  void _onLogin(){
 
-  void _onCheckAccountExists(){
-
-    //  Reset user account
-    _resetUserAccount();
+    print('_onLogin()');
+    print('_formKey');
+    print(_formKey);
+    print('_formKey.currentState');
+    print(_formKey.currentState);
 
     //  Reset server errors
     _resetloginServerErrors();
-    
-    //  If local validation passed
-    if( _formKey.currentState!.validate() == true ){
+
+    if( currLoginStage == LoginStage.enterVerificationCode ){
+
+      _handleAttemptLogin();
+
+    //  Validate the form
+    }else if( _formKey.currentState!.validate() == true ){
 
       //  Save inputs
       _formKey.currentState!.save();
 
-      startLoader();
-    
-      //  If we provided a mobile number
-      if(selectedLoginType == LoginTypes.Mobile ){
+      //  If local validation passed for the user account mobile number / email
+      if( (currLoginStage == LoginStage.enterMobileOrEmail) ){
 
-        Provider.of<AuthProvider>(context, listen: false).checkIfMobileAccountExists(
-          mobileNumber: loginData['mobile_number'],
-          context: context
-        ).then((response){
+        _handleMobileOrEmailAccount();
 
-          _handleOnCheckAccountExistsResponse(response);
+      //  If local validation passed for the user account password
+      }else if (currLoginStage == LoginStage.enterPassword){
 
-        }).whenComplete((){
-
-          stopLoader();
-
-        });
-
-      }
-
-      //  If we want to login via email
-      if(selectedLoginType == LoginTypes.Email ){
-
-        Provider.of<AuthProvider>(context, listen: false).checkIfEmailAccountExists(
-          email: loginData['email'],
-          context: context
-        ).then((response){
-
-          _handleOnCheckAccountExistsResponse(response);
-
-        }).whenComplete((){
+          //  If the user account requires verification
+          if( requiresMobileNumberVerification == true ){
           
-          stopLoader();
+            setState(() {
+              currLoginStage = LoginStage.enterVerificationCode;
+            });
 
-        });
+          }else{
+
+            _handleAttemptLogin();
+
+          }
+
+      //  If local validation passed for the user account password
+      }else if (currLoginStage == LoginStage.setNewPassword){
+
+        _handleSetNewPassword();
 
       }
     
     //  If validation failed
     }else{
 
-      //  Set snackbar content
-      final snackBar = SnackBar(content: Text('Login failed', textAlign: TextAlign.center));
-
-      //  Show snackbar  
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      authProvider.showSnackbarMessage(msg: 'Login failed', type: SnackbarType.error, context: context);
 
     }
 
   }
 
+  void _handleMobileOrEmailAccount(){
+
+    print('_handleMobileOrEmailAccount()');
+
+    startLoader();
+  
+    //  If we want to login via mobile number
+    if(selectedLoginType == LoginTypes.Mobile ){
+
+      Provider.of<AuthProvider>(context, listen: false).checkIfMobileAccountExists(
+        mobileNumber: loginData['mobile_number'],
+        context: context
+      ).then((response){
+
+        _handleOnCheckAccountExistsResponse(response);
+
+      }).whenComplete((){
+
+        stopLoader();
+
+      });
+
+    }
+
+    //  If we want to login via email
+    if(selectedLoginType == LoginTypes.Email ){
+
+      Provider.of<AuthProvider>(context, listen: false).checkIfEmailAccountExists(
+        email: loginData['email'],
+        context: context
+      ).then((response){
+
+        _handleOnCheckAccountExistsResponse(response);
+
+      }).whenComplete((){
+        
+        stopLoader();
+
+      });
+
+    }
+
+  }
+
+  void _handleAttemptLogin(){
+
+    print('_handleAttemptLogin()');
+
+    startLoader();
+  
+    //  If we want to login via mobile
+    if(selectedLoginType == LoginTypes.Mobile ){
+
+      Provider.of<AuthProvider>(context, listen: false).loginWithMobile(
+        passwordConfirmation: loginData['password_confirmation'],
+        verificationCode: loginData['verification_code'],
+        mobileNumber: loginData['mobile_number'],
+        password: loginData['password'],
+        context: context
+      ).then((response){
+
+        print('jsonDecode(response.body)');
+        print(jsonDecode(response.body));
+
+        _handleOnLoginResponse(response);
+
+      }).whenComplete((){
+
+        stopLoader();
+
+      });
+
+    }
+
+    //  If we want to login via email
+    if(selectedLoginType == LoginTypes.Email ){
+
+      Provider.of<AuthProvider>(context, listen: false).loginWithEmail(
+        passwordConfirmation: loginData['password_confirmation'],
+        verificationCode: loginData['verification_code'],
+        password: loginData['password'],
+        email: loginData['email'],
+        context: context
+      ).then((response){
+
+        _handleOnLoginResponse(response);
+
+      }).whenComplete((){
+        
+        stopLoader();
+
+      });
+
+    }
+  }
+
+  _handleSetNewPassword(){
+
+    print('_handleSetNewPassword()');
+    setState(() {
+      currLoginStage = LoginStage.enterVerificationCode; 
+    });
+
+  }
+
   void _handleOnCheckAccountExistsResponse(http.Response response){
 
-    final responseBody = jsonDecode(response.body);
+    final Map responseBody = jsonDecode(response.body);
+
+        print('responseBody');
+        print(responseBody);
     
     //  If this is a validation error
     if(response.statusCode == 422){
@@ -196,20 +389,26 @@ class _LoginPageState extends State<LoginPage> {
       
     }else if( response.statusCode == 200 ){
 
-      final accountExistsStatus = responseBody['exists'];
-        
+      final bool sccountExists = (responseBody.containsKey('account_exists')) ? responseBody['account_exists'] : false;
+
       //  If we have a matching account
-      if(accountExistsStatus){
+      if(sccountExists){
         
         setState(() {
         
           userAccount = responseBody['user'];
+          requiresPassword = userAccount['requires_password'];
+          requiresMobileNumberVerification = userAccount['requires_mobile_number_verification'];
 
-          //  If the user account requires a password
-          if(userAccount['requires_password']){
+          //  If the user account requires a new password
+          if( requiresPassword ){
+          
             currLoginStage = LoginStage.setNewPassword;
+
           }else{
+          
             currLoginStage = LoginStage.enterPassword;
+
           }
           
         });
@@ -219,74 +418,18 @@ class _LoginPageState extends State<LoginPage> {
 
         _showDialog(
           title: 'Account does not exist', 
-          message: 'Could not find any account matching the mobile number ${loginData['mobile_number']}. Make sure you entered a correct mobile number.'
+          message: _noAccountExistsDialogMessage(),
+          buttonText: 'Register',
+          onPressed: () => { 
+            Get.off(() => SignUpScreen(), arguments: {
+              'email': loginData['email'],
+              'mobile_number': loginData['mobile_number'],
+            }) 
+          }
         );
 
       }
     }
-  }
-
-  void _onLogin(){
-
-    //  Reset server errors
-    _resetloginServerErrors();
-    
-    //  If local validation passed
-    if( _formKey.currentState!.validate() == true ){
-
-      //  Save inputs
-      _formKey.currentState!.save();
-
-      startLoader();
-    
-      //  If we want to login via mobile
-      if(selectedLoginType == LoginTypes.Mobile ){
-
-        Provider.of<AuthProvider>(context, listen: false).loginWithMobile(
-          mobileNumber: loginData['mobile_number'],
-          password: loginData['password'],
-          context: context
-        ).then((response){
-
-          _handleOnLoginResponse(response);
-
-        }).whenComplete((){
-
-          stopLoader();
-
-        });
-
-      }
-
-      //  If we want to login via email
-      if(selectedLoginType == LoginTypes.Email ){
-
-        Provider.of<AuthProvider>(context, listen: false).loginWithEmail(
-          email: loginData['email'],
-          password: loginData['password'],
-          context: context
-        ).then((response){
-
-          _handleOnLoginResponse(response);
-
-        }).whenComplete((){
-          
-          stopLoader();
-
-        });
-
-      }
-    
-    //  If validation failed
-    }else{
-
-      final snackBar = SnackBar(content: Text('Login failed', textAlign: TextAlign.center));
-
-      //  Show snackbar  
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
-
-    }
-
   }
 
   void _handleOnLoginResponse(http.Response response){
@@ -297,6 +440,8 @@ class _LoginPageState extends State<LoginPage> {
       _handleValidationErrors(response);
       
     }else if( response.statusCode == 200 ){
+      
+      authProvider.showSnackbarMessage(msg: 'Welcome back, '+userAccount['first_name']+'!', context: context);
 
       //  Navigate to the stores
       Navigator.pushReplacementNamed(context, StoresScreen.routeName);
@@ -377,6 +522,10 @@ class _LoginPageState extends State<LoginPage> {
               validator: (value){
                 if(value == null || value.isEmpty){
                   return 'Please enter your mobile number';
+                }else if(value.length != 8 && value.length != 11){
+                  return 'Please enter a valid 8 digit mobile number e.g 72000123';
+                }else if(value.toString().startsWith('7') == false && value.toString().startsWith('267') == false){
+                  return 'Please enter a valid mobile number e.g 72000123';
                 }else if(loginServerErrors['mobile_number'] != ''){
                   return loginServerErrors['mobile_number'];
                 }
@@ -392,6 +541,7 @@ class _LoginPageState extends State<LoginPage> {
           //  If a password text field
           if(title == 'Password')
             TextFormField(
+              initialValue: loginData['password'],
               keyboardType: TextInputType.text,
               obscureText: hidePassword,
               decoration: InputDecoration(
@@ -419,10 +569,52 @@ class _LoginPageState extends State<LoginPage> {
                   return loginServerErrors['password'];
                 }
               },
-              onSaved: (value){
+              onChanged: (value){
                 loginData['password'] = value;
               },
-            )
+              onSaved: (value){
+                loginData['password'] = value;
+              }
+            ),
+
+          //  If a password text field
+          if(title == 'Confirm Password')
+            TextFormField(
+              initialValue: loginData['password_confirmation'],
+              keyboardType: TextInputType.text,
+              obscureText: hidePassword,
+              decoration: InputDecoration(
+                  fillColor: Colors.black.withOpacity(0.05),
+                border: InputBorder.none,
+                filled: true,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    // Based on hidePassword state choose the icon
+                    hidePassword ? Icons.visibility : Icons.visibility_off,
+                    color: Theme.of(context).primaryColorDark,
+                  ),
+                  onPressed: () {
+                    //  Update the state i.e. toggle the state of hidePassword variable
+                    setState(() {
+                        hidePassword = !hidePassword;
+                    });
+                  },
+                ),
+              ),
+              validator: (value){
+                if(value == null || value.isEmpty){
+                  return 'Please confirm your password';
+                }else if(loginServerErrors['password_confirmation'] != ''){
+                  return loginServerErrors['password_confirmation'];
+                }
+              },
+              onChanged: (value){
+                loginData['password_confirmation'] = value;
+              },
+              onSaved: (value){
+                loginData['password_confirmation'] = value;
+              }
+            ),
 
         ],
       ),
@@ -505,7 +697,7 @@ class _LoginPageState extends State<LoginPage> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            _onCheckAccountExists();
+            _onLogin();
           },
           child: Container(
             alignment: Alignment.center,
@@ -522,38 +714,13 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _previousStepButton() {
     return Flexible(
-      child: Container(
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(50)),
-          boxShadow: <BoxShadow>[
-            BoxShadow(
-                color: Colors.grey.shade200,
-                offset: Offset(2, 4),
-                blurRadius: 5,
-                spreadRadius: 2
-            )
-          ],
-          color: Colors.grey.shade400
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () {
-              setState(() {
-                currLoginStage = LoginStage.enterMobileOrEmail;
-              });
-            },
-            splashColor: Colors.blue,
-            child: Container(
-              alignment: Alignment.center,
-              width: 55,
-              padding: EdgeInsets.symmetric(vertical: 15),
-              child: Icon(Icons.arrow_back, color: Colors.white,),
-            ),
-          ),
-        ),
-      ),
+      child: PreviousStepButton(
+        onTap: () {
+          setState(() {
+            currLoginStage = LoginStage.enterMobileOrEmail;
+          });
+        }
+      )
     );
   }
 
@@ -594,7 +761,10 @@ class _LoginPageState extends State<LoginPage> {
   Widget _createAccountLabel() {
     return InkWell(
       onTap: () {
-        Navigator.pushReplacementNamed(context, SignUpPage.routeName);
+        Get.off(() => SignUpScreen(), arguments: {
+          'email': loginData['email'],
+          'mobile_number': loginData['mobile_number'],
+        }) ;
       },
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 20),
@@ -640,9 +810,11 @@ class _LoginPageState extends State<LoginPage> {
             if(currLoginStage == LoginStage.enterMobileOrEmail && selectedLoginType == LoginTypes.Email )
               _entryField("Email"),
       
-            if(currLoginStage == LoginStage.enterPassword)
-            //  Always show password field
+            if(currLoginStage == LoginStage.enterPassword || currLoginStage == LoginStage.setNewPassword)
             _entryField("Password"),
+      
+            if(currLoginStage == LoginStage.setNewPassword)
+            _entryField("Confirm Password"),
       
           ],
         ),
@@ -731,16 +903,55 @@ class _LoginPageState extends State<LoginPage> {
           backgroundColor: Colors.blue,
           child: Icon(Icons.person, color: Colors.white)
         ),
-        title: Row(
+        title: Column(
           children: [
-            Text(userAccount['first_name']),
-            SizedBox(width: 5),
-            Text(userAccount['last_name'])
+            Row(
+              children: [
+                Text(userAccount['first_name']),
+                SizedBox(width: 5),
+                Text(userAccount['last_name'])
+              ],
+            ),
+            SizedBox(height: 5),
+            Row(
+              children: [
+                Icon(requiresMobileNumberVerification ? Icons.not_interested_outlined : Icons.check_circle_outlined, color: requiresMobileNumberVerification ? Colors.orange : Colors.green, size: 12),
+                SizedBox(width: 5),
+                Text(requiresMobileNumberVerification ? 'Not verified' : 'Verified', style: TextStyle(color: requiresMobileNumberVerification ? Colors.orange : Colors.green, fontSize: 12))
+              ],
+            )
           ],
         ),
       ),
     );
 
+  }
+
+
+  Widget _verificationCode() {
+    return MobileVerification(
+      isProcessingSuccess: isLoading,
+      mobileNumber: loginData['mobile_number'],
+      onCompleted: (value){
+        setState(() {
+          loginData['verification_code'] = value;
+        });
+      },
+      onChanged: (value){
+        setState(() {
+          loginData['verification_code'] = value;
+        });
+      },
+      onSuccess: (){
+        _onLogin();
+      },
+      onGoBack: (){
+        setState(() {
+          currLoginStage = LoginStage.enterMobileOrEmail;
+        });
+      },
+      
+    );
   }
 
   List<Widget> _loginStageContent(){
@@ -783,6 +994,14 @@ class _LoginPageState extends State<LoginPage> {
 
       ];
 
+    }else if( currLoginStage == LoginStage.enterVerificationCode ){
+
+      return [
+        
+        _verificationCode()
+
+      ];
+    
     }else{
       
       return [

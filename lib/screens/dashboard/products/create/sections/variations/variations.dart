@@ -1,14 +1,14 @@
 import 'dart:convert';
 
 import 'package:async/async.dart';
-import 'package:bonako_app_3/components/custom_checkmark_text.dart';
-import 'package:bonako_app_3/components/custom_loader.dart';
-import 'package:bonako_app_3/components/custom_rounded_refresh_button.dart';
-import 'package:bonako_app_3/screens/dashboard/products/create/sections/variations/product_variation_card.dart';
-import 'package:bonako_app_3/screens/dashboard/products/create/sections/variations/variation_tag.dart';
-import 'package:bonako_app_3/models/products.dart';
-import 'package:bonako_app_3/providers/products.dart';
-import 'package:bonako_app_3/screens/dashboard/products/create/create.dart';
+import 'package:bonako_mobile_app/components/custom_checkmark_text.dart';
+import 'package:bonako_mobile_app/components/custom_loader.dart';
+import 'package:bonako_mobile_app/components/custom_rounded_refresh_button.dart';
+import 'package:bonako_mobile_app/screens/dashboard/products/create/sections/variations/product_variation_card.dart';
+import 'package:bonako_mobile_app/screens/dashboard/products/create/sections/variations/variation_tag.dart';
+import 'package:bonako_mobile_app/models/products.dart';
+import 'package:bonako_mobile_app/providers/products.dart';
+import 'package:bonako_mobile_app/screens/dashboard/products/create/create.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../../../components/custom_back_button.dart';

@@ -1,5 +1,5 @@
-import 'package:bonako_app_3/providers/products.dart';
-import 'package:bonako_app_3/screens/dashboard/stores/show/settings/settings.dart';
+import 'package:bonako_mobile_app/providers/products.dart';
+import 'package:bonako_mobile_app/screens/dashboard/stores/show/settings/settings.dart';
 
 import './.././../../../../components/custom_rounded_refresh_button.dart';
 import '././../../../../screens/dashboard/stores/list/stores_screen.dart';

@@ -128,7 +128,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            Navigator.pushReplacementNamed(context, LoginPage.routeName);
+            Navigator.pushReplacementNamed(context, LoginScreen.routeName);
 
             final snackBar = SnackBar(
               duration: Duration(seconds: 30),
@@ -137,6 +137,9 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                 textAlign: TextAlign.center,
               )
             );
+
+            //  Hide existing snackbar
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
             
             ScaffoldMessenger.of(context).showSnackBar(snackBar);
           },
@@ -191,7 +194,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   Widget _loginLabel() {
     return InkWell(
       onTap: () {
-        Navigator.pushReplacementNamed(context, LoginPage.routeName);
+        Navigator.pushReplacementNamed(context, LoginScreen.routeName);
       },
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 20),

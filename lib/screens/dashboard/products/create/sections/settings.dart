@@ -196,6 +196,7 @@ class _ContentState extends State<Content> {
                     SizedBox(height: 20),
 
                     RichText(
+                      textAlign: TextAlign.justify,
                       text: TextSpan(
                         text: 'Click the delete button to permanently delete ',
                         style: TextStyle(color: Colors.black, height: 1.4),

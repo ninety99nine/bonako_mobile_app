@@ -157,6 +157,7 @@ class StoresProvider with ChangeNotifier{
                   if(isDeleting) Container(height:20, width:20, margin: EdgeInsets.only(right: 10), child: CircularProgressIndicator(strokeWidth: 3,)),
                   if(isDeleting) Text("Deleting store..."),
                   if(!isDeleting) RichText(
+                    textAlign: TextAlign.justify,
                     text: TextSpan(
                       style: TextStyle(color: Colors.black, height: 1.5, fontSize: 12),
                       children: <TextSpan>[
@@ -326,6 +327,9 @@ class StoresProvider with ChangeNotifier{
 
     //  Set snackbar content
     final snackBar = SnackBar(content: Text(msg, textAlign: TextAlign.center));
+
+    //  Hide existing snackbar
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
     //  Show snackbar  
     ScaffoldMessenger.of(context).showSnackBar(snackBar);

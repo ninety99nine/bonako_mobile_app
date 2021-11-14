@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:bonako_app_3/providers/api.dart';
-import 'package:bonako_app_3/providers/auth.dart';
+import 'package:bonako_mobile_app/providers/api.dart';
+import 'package:bonako_mobile_app/providers/auth.dart';
 
 import './../models/location_totals.dart';
 import 'package:http/http.dart' as http;

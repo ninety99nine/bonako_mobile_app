@@ -1,4 +1,4 @@
-import 'package:bonako_app_3/components/custom_checkmark_text.dart';
+import 'package:bonako_mobile_app/components/custom_checkmark_text.dart';
 
 import './../../../../../components/custom_back_button.dart';
 import './../../../../../components/custom_app_bar.dart';

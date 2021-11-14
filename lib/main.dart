@@ -89,6 +89,7 @@ class MyApp extends StatelessWidget {
       ],
       child: GetMaterialApp(
         title: 'Bonako',
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
           accentColor: Colors.blue,
           //  primarySwatch: kPrimaryColor,
@@ -100,8 +101,8 @@ class MyApp extends StatelessWidget {
     
         //  initialRoute: '/',
         routes: {
-          LoginPage.routeName: (ctx) => LoginPage(),
-          SignUpPage.routeName: (ctx) => SignUpPage(),
+          LoginScreen.routeName: (ctx) => LoginScreen(),
+          SignUpScreen.routeName: (ctx) => SignUpScreen(),
           WelcomePage.routeName: (ctx) => WelcomePage(),
           StoresScreen.routeName: (ctx) => StoresScreen(),
           OneTimePinPage.routeName: (ctx) => OneTimePinPage(),

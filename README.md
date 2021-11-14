@@ -1,4 +1,4 @@
-# bonako_app_3
+# bonako_mobile_app
 
 A new Flutter project.
 

@@ -65,7 +65,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       (selectedAccountType == AccountTypes.Mobile)
       ? 'Enter your mobile number, then click the submit button. This will send a code to your mobile number to help you reset your password'
       : 'Enter your email address, then click the submit button. This will send a code to your email address to help you reset your password',
-      
+      textAlign: TextAlign.justify,
     );
   }
 
@@ -160,6 +160,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 textAlign: TextAlign.center,
               )
             );
+
+            //  Hide existing snackbar
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
             
             ScaffoldMessenger.of(context).showSnackBar(snackBar);
 
@@ -215,7 +218,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   Widget _loginLabel() {
     return InkWell(
       onTap: () {
-        Navigator.pushReplacementNamed(context, LoginPage.routeName);
+        Navigator.pushReplacementNamed(context, LoginScreen.routeName);
       },
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 20),

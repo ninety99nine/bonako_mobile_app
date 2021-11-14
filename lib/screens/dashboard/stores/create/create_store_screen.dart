@@ -1,4 +1,4 @@
-import 'package:bonako_app_3/screens/dashboard/stores/list/stores_screen.dart';
+import 'package:bonako_mobile_app/screens/dashboard/stores/list/stores_screen.dart';
 import './../../../../components/custom_back_button.dart';
 import './../../../../components/custom_app_bar.dart';
 import './../../../../components/custom_button.dart';
@@ -22,7 +22,7 @@ class CreateStoresScreen extends StatelessWidget {
         body: StoreFormCard(),
       )
     );
-    
+
   }
 }
 

@@ -257,6 +257,9 @@ class ProductsProvider with ChangeNotifier{
     //  Set snackbar content
     final snackBar = SnackBar(content: Text(msg, textAlign: TextAlign.center));
 
+    //  Hide existing snackbar
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
     //  Show snackbar  
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
 

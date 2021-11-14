@@ -1,5 +1,5 @@
-import 'package:bonako_app_3/components/custom_instruction_message.dart';
-import 'package:bonako_app_3/components/custom_search_bar.dart';
+import 'package:bonako_mobile_app/components/custom_instruction_message.dart';
+import 'package:bonako_mobile_app/components/custom_search_bar.dart';
 import './../../../../../components/custom_rounded_refresh_button.dart';
 import './../../../../screens/dashboard/stores/show/store_screen.dart';
 import '../../../../components/custom_floating_action_button.dart';

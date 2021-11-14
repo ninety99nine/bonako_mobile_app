@@ -5,14 +5,19 @@ import 'dart:convert';
 
 class ApiProvider with ChangeNotifier{
 
-  final String homeUrl = 'http://165.232.179.255/api';
+  final String homeUrl = 'http://127.0.0.1:9000/api'; //  'http://165.232.179.255/api';
 
   String _loginUrl = '';
   String _logoutUrl = '';
-  String _accountExistsUrl = '';
-  Map<String, dynamic> _apiHome = {};
-
+  String _registerUrl = '';
   String _bearerToken = '';
+  String _mainShortcode = '';
+  String _accountExistsUrl = '';
+  String _registerValidationUrl = '';
+  Map<String, dynamic> _apiHome = {};
+  String _verifyUserAccountShortcode = '';
+  String _verifyMobileVerificationCodeUrl = '';
+  String _generateMobileVerificationCodeUrl = '';
 
   Future<http.Response> setApiEndpoints({ required BuildContext context }) async {
     
@@ -43,12 +48,31 @@ class ApiProvider with ChangeNotifier{
           
             //  Update the login url
             _loginUrl = responseBody['_links']['bos:login']['href'];
+          
+            //  Update the register url
+            _registerUrl = responseBody['_links']['bos:register']['href'];
+
+            //  Update the register validation url
+            _registerValidationUrl = responseBody['_links']['bos:register_validation']['href'];
+
+            //  Update the generate mobile verification code url
+            _generateMobileVerificationCodeUrl = responseBody['_links']['bos:generate_mobile_verification_code']['href'];
+
+            //  Update the verify mobile verification code url
+            _verifyMobileVerificationCodeUrl = responseBody['_links']['bos:verify_mobile_verification_code']['href'];
 
             //  Update the logout url
             _logoutUrl = responseBody['_links']['bos:logout']['href'];
 
             //  Update the account exists url
             _accountExistsUrl = responseBody['_links']['bos:account_exists']['href'];
+
+            //  Update Main USSD shortcode
+            _mainShortcode = responseBody['_embedded']['main_shortcode'];
+
+            //  Update shortcode to verify user account after registration
+            _verifyUserAccountShortcode = responseBody['_embedded']['verify_user_account_shortcode'];
+
 
           }
 
@@ -85,7 +109,8 @@ class ApiProvider with ChangeNotifier{
   }
 
   Future<http.Response> post({ required String url, body: const {}, required BuildContext context }) {
-
+    print('post url');
+    print(url);
     return http.post(
       Uri.parse(url),
       body: jsonEncode(body),
@@ -186,10 +211,18 @@ class ApiProvider with ChangeNotifier{
 
       final responseBody = jsonDecode(response.body);
 
+      var showingDevContent = false;
+
+      //  If this is a validation error
+      if( response.statusCode == 422 ){
+        showingDevContent = true;
+      }
+
       showAlertDialog(
         context: context,
         title: responseBody['error'],
-        dev_content: responseBody['message'],
+        devContent: responseBody['message'],
+        showingDevContent: showingDevContent,
         content: 'Sorry, something went wrong on our side',
       );
 
@@ -213,11 +246,9 @@ class ApiProvider with ChangeNotifier{
       });
   }
 
-  void showAlertDialog({ required String title, required String content, required String dev_content, required BuildContext context }){
+  void showAlertDialog({ required String title, required String content, required String devContent, bool showingDevContent = false, required BuildContext context }){
 
     showDialog(context: context, builder: (ctx){
-
-        bool showingDevContent = false;
 
         return StatefulBuilder(
           builder: (context, setState) {
@@ -227,7 +258,7 @@ class ApiProvider with ChangeNotifier{
               content: Wrap(
                 children: [
                   Divider(height: 10),
-                  if(showingDevContent == true) Text(dev_content, style: TextStyle(fontSize: 12)),
+                  if(showingDevContent == true) Text(devContent, style: TextStyle(fontSize: 12)),
                   if(showingDevContent == false) Text(content, style: TextStyle(fontSize: 12)),
                   Divider(height: 10),
                 ],
@@ -268,12 +299,36 @@ class ApiProvider with ChangeNotifier{
     return _loginUrl;
   }
 
+  String get getRegisterUrl {
+    return _registerUrl;
+  }
+
+  String get getRegisterValidationUrl {
+    return _registerValidationUrl;
+  }
+  
+  String get getGenerateMobileVerificationCodeUrl {
+    return _generateMobileVerificationCodeUrl;
+  }
+  
+  String get getVerifyMobileVerificationCodeUrl {
+    return _verifyMobileVerificationCodeUrl;
+  }
+
   String get getLogoutUrl {
     return _logoutUrl;
   }
   
   String get getAccountExistsUrl {
     return _accountExistsUrl;
+  }
+  
+  String get getMainShortcode {
+    return _mainShortcode;
+  }
+  
+  String get getVerifyUserAccountShortcode {
+    return _verifyUserAccountShortcode;
   }
 
   Map<String, dynamic> get apiHome {

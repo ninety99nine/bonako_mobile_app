@@ -5,12 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "bonako_app_3",
+            "name": "bonako_mobile_app",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "bonako_app_3 (profile mode)",
+            "name": "bonako_mobile_app (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"

@@ -1,4 +1,4 @@
-name: bonako_app_3
+name: bonako_mobile_app
 description: A new Flutter project.
 
 # The following line prevents the package from being accidentally published to
@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
@@ -23,7 +23,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -44,6 +43,8 @@ dependencies:
   flutter_masked_text2: ^0.9.1
   textfield_tags: ^1.4.2
   auto_size_text: ^3.0.0
+  pin_code_fields: ^7.3.0
+  loader_overlay: ^2.0.2+1
 
 dev_dependencies:
   flutter_test:
@@ -53,7 +54,7 @@ dev_dependencies:
 flutter_icons:
   ios: true
   android: true
-  image_path: "dev_assets/icon.png"
+  image_path: "dev_assets/bonako_icon.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
