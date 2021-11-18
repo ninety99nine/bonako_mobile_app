@@ -122,7 +122,7 @@ class _ContentState extends State<Content> {
                       validator: (value){
                         if(value == null || value.isEmpty){
                           return 'Please enter available stock quantity';
-                        }else if(serverErrors['stock_quantity'] != ''){
+                        }else if(serverErrors.containsKey('stock_quantity')){
                           return serverErrors['stock_quantity'];
                         }
                       },

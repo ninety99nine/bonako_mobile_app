@@ -5,18 +5,20 @@ class CustomLoader extends StatelessWidget {
   final double size;
   final Color color;
   final String? text;
+  final double? height;
   final double topMargin;
   final double leftMargin;
   final double bottomMargin;
   final double rightPadding;
   final double strokeWidth;
 
-  CustomLoader({ this.size = 20, this.color = Colors.blue, this.text, this.topMargin = 20, this.leftMargin = 0, this.bottomMargin = 0, this.rightPadding = 0, this.strokeWidth = 4.0 });
+  CustomLoader({ this.height, this.size = 20, this.color = Colors.blue, this.text, this.topMargin = 20, this.leftMargin = 0, this.bottomMargin = 0, this.rightPadding = 0, this.strokeWidth = 4.0 });
 
   @override
   Widget build(BuildContext context) {
 
     return Container(
+      height: height,
       padding: EdgeInsets.only(right: rightPadding), 
       margin: EdgeInsets.only(top: topMargin, bottom: bottomMargin, left: leftMargin), 
       child: Row(

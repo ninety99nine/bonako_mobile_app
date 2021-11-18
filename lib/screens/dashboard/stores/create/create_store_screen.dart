@@ -50,19 +50,13 @@ class _StoreFormCardState extends State<StoreFormCard> {
     }
   };
 
-  Map storeServerErrors = {
-    'name': '',
-    'call_to_action': '',
-  };
+  Map storeServerErrors = {};
 
   //  By default the loader is not loading
   var isLoading = false;
 
   void _resetStoreServerErrors(){
-    storeServerErrors = {
-      'name': '',
-      'call_to_action': '',
-    };
+    storeServerErrors = {};
   }
 
   void _handleValidationErrors(http.Response response){
@@ -77,9 +71,7 @@ class _StoreFormCardState extends State<StoreFormCard> {
      *  }
      */
     validationErrors.forEach((key, value){
-      if( storeServerErrors.containsKey(key) ){
-        storeServerErrors[key] = value[0];
-      }
+      storeServerErrors[key] = value[0];
     });
     
     // Run form validation
@@ -206,7 +198,7 @@ class _StoreFormCardState extends State<StoreFormCard> {
                             validator: (value){
                               if(value == null || value.isEmpty){
                                 return 'Please enter store name';
-                              }else if(storeServerErrors['name'] != ''){
+                              }else if(storeServerErrors.containsKey('name')){
                                 return storeServerErrors['name'];
                               }
                             },
@@ -232,7 +224,7 @@ class _StoreFormCardState extends State<StoreFormCard> {
                             validator: (value){
                               if(value == null || value.isEmpty){
                                 return 'Please enter call to action e.g Order food';
-                              }else if(storeServerErrors['call_to_action'] != ''){
+                              }else if(storeServerErrors.containsKey('call_to_action')){
                                 return storeServerErrors['call_to_action'];
                               }
                             },

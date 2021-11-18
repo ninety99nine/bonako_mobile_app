@@ -721,11 +721,14 @@ class NoOrdersFound extends StatelessWidget {
     
     return Column(
       children: [
-        CircleAvatar(
-          radius: 50,
-          backgroundColor: Colors.blue,
-          foregroundColor: Colors.white,
-          child: SvgPicture.asset('assets/icons/ecommerce_pack_1/package-6.svg', width: 40.00, color: Colors.white,),
+        Container(
+          padding: EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.blue.shade50,
+            borderRadius: BorderRadius.circular(100),
+            border: Border.all(color: Colors.blue.shade100, width: 1),
+          ),
+          child: SvgPicture.asset('assets/icons/ecommerce_pack_1/package-2.svg', color: Colors.blue, width: 40,)
         ),
         SizedBox(height: 30),
         Text('No orders found', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),),
@@ -780,11 +783,14 @@ class NoSearchedOrdersFound extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Divider(),
-          CircleAvatar(
-            radius: 50,
-            backgroundColor: Colors.blue,
-            foregroundColor: Colors.white,
-            child: SvgPicture.asset('assets/icons/ecommerce_pack_1/shopping-bag-2.svg', width: 40.00, color: Colors.white,),
+          Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(100),
+              border: Border.all(color: Colors.blue.shade100, width: 1),
+            ),
+            child: SvgPicture.asset('assets/icons/ecommerce_pack_1/package-2.svg', color: Colors.blue, width: 40,)
           ),
           SizedBox(height: 30),
           Text('No search results', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),),

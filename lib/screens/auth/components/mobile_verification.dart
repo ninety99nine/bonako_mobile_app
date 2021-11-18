@@ -4,6 +4,8 @@ import 'package:bonako_mobile_app/components/custom_button.dart';
 import 'package:bonako_mobile_app/providers/auth.dart';
 import 'package:bonako_mobile_app/screens/auth/components/auth_divider.dart';
 import 'package:bonako_mobile_app/screens/auth/components/auth_heading.dart';
+import 'package:bonako_mobile_app/screens/auth/components/auth_mobile_number_instruction.dart';
+import 'package:bonako_mobile_app/screens/auth/components/mobile_verification_pin_code_input.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -14,15 +16,22 @@ import 'dart:convert';
 
 class MobileVerification extends StatefulWidget {
 
+  final MobileNumberInstructionType mobileNumberInstructionType;
+  final bool autoGenerateVerificationCode;
   final Function(String)? onCompleted;
   final Function(String)? onChanged;
   final bool showPreviousStepButton;
   final bool isProcessingSuccess;
   final Function()? onSuccess;
   final Function()? onGoBack;
+  final bool hideHeadingText;
   final String mobileNumber;
+  final bool hideBackButton;
+  final String headingText;
+  final String verifyText;
+  final Map metadata;
 
-  MobileVerification({ required this.mobileNumber, this.onCompleted, this.onChanged , this.showPreviousStepButton = true, this.onGoBack, this.onSuccess, this.isProcessingSuccess = true });
+  MobileVerification({ this.metadata = const {}, this.hideBackButton = false, this.verifyText = 'Verify', required this.mobileNumberInstructionType, required this.mobileNumber, this.autoGenerateVerificationCode = true, this.onCompleted, this.onChanged , this.showPreviousStepButton = true, this.onGoBack, this.onSuccess, this.isProcessingSuccess = true, this.hideHeadingText = false, this.headingText = 'Verify Mobile' });
 
   @override
   _MobileVerificationState createState() => _MobileVerificationState();
@@ -39,7 +48,12 @@ class _MobileVerificationState extends State<MobileVerification> {
 
   @override
   void initState() {
-    _generateMobileVerification();
+
+    if(widget.autoGenerateVerificationCode == true){
+
+      _generateMobileVerification();
+
+    }
     
     super.initState();
   }
@@ -72,15 +86,35 @@ class _MobileVerificationState extends State<MobileVerification> {
     return Provider.of<AuthProvider>(context, listen: false);
   }
 
+  MobileVerificationType get mobileVerificationType {
+    if( widget.mobileNumberInstructionType == MobileNumberInstructionType.mobile_verification_order_delivery_confirmation ){
+      return MobileVerificationType.order_delivery_confirmation;
+
+    }else if(widget.mobileNumberInstructionType == MobileNumberInstructionType.mobile_verification_change_password ){
+      return MobileVerificationType.password_reset;
+
+    }else {
+      return MobileVerificationType.account_ownership;
+
+    }
+  }
+
   void _generateMobileVerification(){
 
     print('_generateMobileVerification()');
 
     startLoader();
+    
+    print('................. widget.mobileNumberInstructionType .............');
+    print(widget.mobileNumberInstructionType);
+
+    print('................. mobileVerificationType .............');
+    print(mobileVerificationType);
 
     authProvider.generateMobileVerification(
-      type: MobileVerificationType.account_registration,
+      type: mobileVerificationType,
       mobileNumber: widget.mobileNumber,
+      metadata: widget.metadata,
       context: context
     ).then((response){
 
@@ -111,7 +145,7 @@ class _MobileVerificationState extends State<MobileVerification> {
     startVerifyVerificationCodeLoader();
 
     authProvider.verifyMobileVerificationCode(
-      type: MobileVerificationType.account_registration,
+      type: mobileVerificationType,
       mobileNumber: widget.mobileNumber,
       code: verificationCode,
       context: context
@@ -181,108 +215,51 @@ class _MobileVerificationState extends State<MobileVerification> {
   }
 
   Widget _headingText() {
-    return AuthHeading(text: 'Verify Mobile', fontSize: 32,);
+    return AuthHeading(text: widget.headingText, fontSize: 32,);
+  }
+
+  Widget _instructionText(){
+    return AuthMobileNumberInstruction(type: widget.mobileNumberInstructionType, mobileNumber: widget.mobileNumber);
   }
 
   Widget _verificationInput(){
+    return MobileVerificationPinCodeInput(
+      length: 6,
+      onCompleted: (value){
+        verificationCode = value;
+
+        if(widget.onCompleted != null){
+          widget.onCompleted!(value);
+        }
+      },
+      onChanged: (value){
+        verificationCode = value;
+
+        if(widget.onChanged != null){
+          widget.onChanged!(value);
+        }
+      },
+    );
+  }
+
+  Widget _instructionTextAndVerificationInput(){
     return Column(
       children: [
-        if(isGeneratingVerificationCode == true) Text('Generating verification code...'),
-        if(isGeneratingVerificationCode == false) RichText(
-          textAlign: TextAlign.justify,
-          text: TextSpan(
-            style: TextStyle(color: Colors.black, height: 1.5, fontSize: 12),
-            children: <TextSpan>[
-              TextSpan(text: 'Dial '),
-              TextSpan(
-                text: authProvider.apiProvider.getVerifyUserAccountShortcode, 
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, decoration: TextDecoration.underline), 
-                recognizer: TapGestureRecognizer()
-                  ..onTap = () {
-                    //  storesProvider.launchVisitShortcode(store: store, context: context);
-                  }),
-              TextSpan(text: ' on '),
-              TextSpan(
-                text: widget.mobileNumber, 
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
-              ),
-              TextSpan(text: ' to verify that the mobile number belongs to you. Enter the '),
-              TextSpan(
-                text: '6 digit verification code', 
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
-              ),
-              TextSpan(text: ' below'),
-            ],
-          ),
-        ),
-        SizedBox(height: 20),
-        PinCodeTextField(
-          length: 6,
-          obscureText: false,
-          appContext: context,
-          animationType: AnimationType.fade,
-          keyboardType: TextInputType.number,
-          pinTheme: PinTheme(
-            shape: PinCodeFieldShape.underline,
-
-            activeColor: Colors.green,
-            activeFillColor: Colors.green.withOpacity(0.05),
-
-            selectedColor: Colors.green,
-            selectedFillColor: Colors.transparent,
-
-            inactiveColor: Colors.grey,
-            inactiveFillColor: Colors.transparent,
-
-            /*
-            borderRadius: BorderRadius.circular(5),
-            fieldHeight: 50,
-            fieldWidth: 40,
-            activeFillColor: Colors.white,
-            */
-          ),
-          animationDuration: Duration(milliseconds: 300),
-          //  backgroundColor: Colors.blue.shade50,
-          enableActiveFill: true,
-          //  errorAnimationController: errorController,
-          //  controller: textEditingController,
-
-          onCompleted: (value){
-            verificationCode = value;
-
-            if(widget.onCompleted != null){
-              widget.onCompleted!(value);
-            }
-          },
-          onChanged: (value){
-            verificationCode = value;
-
-            if(widget.onChanged != null){
-              widget.onChanged!(value);
-            }
-          },
-          beforeTextPaste: (text) {
-            print("Allowing to paste $text");
-            //  If you return true then it will show the paste confirmation dialog. Otherwise if false, then nothing will happen.
-            //  but you can show anything you want here, like your pop up saying wrong paste format or etc
-            return true;
-          },
-        ),
+        if(isGeneratingVerificationCode == true) CustomLoader(text: 'Generating verification code'),
+        if(isGeneratingVerificationCode == false) _instructionText(),
+        _verificationInput(),
       ],
     );
   }
 
   Widget _verifyButton() {
-    return Flexible(
-      flex: 4,
-      child: CustomButton(
-        text: 'Verify',
-        disabled: (isGeneratingVerificationCode || isVerifyingCode || verificationCode.length < 6 ),
-        isLoading: isVerifyingCode,
-        onSubmit: () {
-          _verifyMobileVerificationCode();
-        },
-      ),
+    return CustomButton(
+      text: widget.verifyText,
+      disabled: (isGeneratingVerificationCode || isVerifyingCode || verificationCode.length < 6 ),
+      isLoading: isVerifyingCode,
+      onSubmit: () {
+        _verifyMobileVerificationCode();
+      },
     );
   }
 
@@ -305,7 +282,7 @@ class _MobileVerificationState extends State<MobileVerification> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           if(widget.showPreviousStepButton) _previousStepButton(),
-          _verifyButton(),
+          Flexible(flex: 4, child: _verifyButton()),
         ],
       ),
     );
@@ -334,7 +311,7 @@ class _MobileVerificationState extends State<MobileVerification> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: <Widget>[
-            Icon(Icons.sms_outlined, color: Colors.green,),
+            Icon(Icons.speaker_phone, color: Colors.green,),
             SizedBox(width: 10),
             Text(
               'Resend verification code',
@@ -358,15 +335,16 @@ class _MobileVerificationState extends State<MobileVerification> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
       
-          SizedBox(height: height * 0.1),
+          if(widget.hideHeadingText == false) SizedBox(height: height * 0.1),
     
-          _headingText(),
-          SizedBox(height: 20),
+          if(widget.hideHeadingText == false) _headingText(),
+          if(widget.hideHeadingText == false) SizedBox(height: 20),
             
-          if(!widget.isProcessingSuccess) _verificationInput(),
+          if(!widget.isProcessingSuccess) _instructionTextAndVerificationInput(),
           if(!widget.isProcessingSuccess) SizedBox(height: 20),
             
-          if(!widget.isProcessingSuccess) _verifyWithBackButton(),
+          if(!widget.isProcessingSuccess && widget.hideBackButton) _verifyButton(),
+          if(!widget.isProcessingSuccess && !widget.hideBackButton) _verifyWithBackButton(),
           if(widget.isProcessingSuccess) _processing(),
           if(!widget.isProcessingSuccess) SizedBox(height: 20),
     

@@ -1,3 +1,13 @@
+import 'dart:convert';
+
+import 'package:bonako_mobile_app/components/custom_button.dart';
+import 'package:bonako_mobile_app/components/custom_loader.dart';
+import 'package:bonako_mobile_app/enum/enum.dart';
+import 'package:bonako_mobile_app/providers/auth.dart';
+import 'package:bonako_mobile_app/screens/auth/components/mobile_verification.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
+import 'package:http/http.dart' as http;
 import './../../../../screens/dashboard/orders/list/orders_screen.dart';
 import './../../../../components/custom_rounded_refresh_button.dart';
 import './../../../../components/custom_back_button.dart';
@@ -29,7 +39,8 @@ class Content extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    final order = Provider.of<OrdersProvider>(context, listen: false).getOrder;
+    final Order order = Provider.of<OrdersProvider>(context, listen: false).getOrder;
+    final bool hasDeliveryConfirmationCode = Get.arguments == null ? false : (Get.arguments as Map).containsKey('delivery_confirmation_code');
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
@@ -70,11 +81,17 @@ class Content extends StatelessWidget {
           
                   OrderCouponsCard(),
                   SizedBox(height: 20),
-          
+
+                  if(hasDeliveryConfirmationCode == true) ConfirmDeliveryByDeliveryCode(),
+
+                  if(hasDeliveryConfirmationCode == false) ConfirmDeliveryByMobileVerification(order: order)
+
+                  /*
                   ReceivedLocationCard(),
                   SizedBox(height: 20),
           
                   TransactionsCard()
+                  */
           
                 ],
               ),
@@ -202,7 +219,7 @@ class OrderItemsCard extends StatelessWidget {
               Text('Cart Items', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               SizedBox(height: 20),
               if(hasItems) ...buildItemCards(order),
-              if(!hasItems) Text('No items found', style: TextStyle(color: Colors.red)),
+              if(!hasItems) Text('No items found', style: TextStyle(fontSize: 12, color: Colors.grey)),
               SizedBox(height: 10),
               Divider(),
               SizedBox(height: 10),
@@ -294,7 +311,7 @@ class OrderCouponsCard extends StatelessWidget {
               Text('Coupons Applied', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               SizedBox(height: 20),
               if(hasCoupons) ...buildCouponLines(order),
-              if(!hasCoupons) Text('No coupons found', style: TextStyle(color: Colors.red)),
+              if(!hasCoupons) Text('No coupons found', style: TextStyle(fontSize: 12, color: Colors.grey)),
             ],
           ),
         ),
@@ -344,6 +361,344 @@ class TransactionsCard extends StatelessWidget {
           ),
         ),
       )
+    );
+  }
+}
+
+class ConfirmDeliveryByDeliveryCode extends StatefulWidget {
+  const ConfirmDeliveryByDeliveryCode({ Key? key }) : super(key: key);
+
+  @override
+  _ConfirmDeliveryByDeliveryCodeState createState() => _ConfirmDeliveryByDeliveryCodeState();
+}
+
+class _ConfirmDeliveryByDeliveryCodeState extends State<ConfirmDeliveryByDeliveryCode> {
+
+  Map serverErrors = {};
+  bool isSubmitting = false;
+  String deliveryConfirmationCode = '';
+  final GlobalKey<FormState> _formKey = GlobalKey();
+
+  void startLoader(){
+    setState(() {
+      isSubmitting = true;
+    });
+  }
+
+  void stopLoader(){
+    setState(() {
+      isSubmitting = false;
+    });
+  }
+
+  AuthProvider get authProvider {
+    return Provider.of<AuthProvider>(context, listen: false);
+  }
+
+  OrdersProvider get ordersProvider {
+    return Provider.of<OrdersProvider>(context, listen: false);
+  }
+
+  @override
+  void initState() {
+    
+    deliveryConfirmationCode = Get.arguments['delivery_confirmation_code'];
+
+    super.initState();
+
+  }
+
+  _onSubmit(){
+    
+    _resetServerErrors();
+
+    if( _formKey.currentState!.validate() == true ){
+
+      _verifyOrderDeliveryCode();
+
+    }else{
+
+      authProvider.showSnackbarMessage(msg: 'Invalid delivery code', context: context, type: SnackbarType.error);
+
+    }
+
+  }
+
+  _resetServerErrors(){
+    serverErrors = {};
+  }
+
+  _verifyOrderDeliveryCode(){
+
+    startLoader();
+
+    return ordersProvider.acceptOrderAsDelivered(deliveryConfirmationCode: deliveryConfirmationCode, context: context)
+      .then((response) async {
+
+        //  If this is a successful request
+        if( response.statusCode == 200){
+
+            authProvider.showSnackbarMessage(msg: 'Order accepted as delivered!', context: context);
+
+            Get.back(result: 'accepted');
+
+        }else if(response.statusCode == 422){
+
+          authProvider.showSnackbarMessage(msg: 'Could not accept as delivered', context: context, type: SnackbarType.error);
+
+          _handleValidationErrors(response);
+          
+        }
+
+      }).whenComplete((){
+
+        stopLoader();
+      
+      });
+    
+  }
+
+  void _handleValidationErrors(http.Response response){
+
+    final responseBody = jsonDecode(response.body);
+
+    final Map validationErrors = responseBody['errors'];
+    
+    validationErrors.forEach((key, value){
+      serverErrors[key] = value[0];
+    });
+    
+  }
+
+  Widget _instructionText(){
+    return Row(
+      children: [
+        Flexible(
+          child: RichText(
+            textAlign: TextAlign.justify,
+            text: TextSpan(
+              style: TextStyle(color: Colors.black, height: 1.5, fontSize: 12),
+              children: <TextSpan>[
+                TextSpan(text: 'Accept that this order has been successfully '),
+                TextSpan(
+                  text: 'paid', 
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+                ),
+                TextSpan(text: ' and '),
+                TextSpan(
+                  text: 'delivered', 
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+                ),
+                TextSpan(text: ' to the customer.'),
+              ],
+            )
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget _acceptButton(){
+    return
+      CustomButton(
+        text: 'Accept As Delivered',
+        disabled: (isSubmitting),
+        onSubmit: () {
+          _onSubmit();
+        },
+      );
+  }
+
+  Widget _serverErrorText(){
+    return Column(
+      children: [
+        SizedBox(height: 20,),
+        ...serverErrors.values.map((value){
+          return Row(
+            children: [
+              Icon(Icons.error_outline_sharp, color: Colors.red),
+              SizedBox(width: 5),
+              Text(value, style: TextStyle(fontSize: 12, color: Colors.red),)
+            ],
+          );
+        }).toList()
+      ]
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Container(
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(100),
+                border: Border.all(color: Colors.blue.shade100, width: 1),
+              ),
+              child: SvgPicture.asset('assets/icons/ecommerce_pack_1/like.svg', width: 32, color: Colors.blue,),
+            ),
+            SizedBox(height: 30),
+            if(isSubmitting == false) _instructionText(),
+            if(isSubmitting == true) CustomLoader(text: 'Accepting delivery...',),
+            _serverErrorText(),
+            SizedBox(height: 30),
+            _acceptButton(),
+            SizedBox(height: 150),
+              
+          ],
+        ),
+      ),
+    );
+
+  }
+
+}
+
+class ConfirmDeliveryByMobileVerification extends StatefulWidget {
+  final Order order;
+
+  const ConfirmDeliveryByMobileVerification({ required this.order });
+
+  @override
+  _ConfirmDeliveryByMobileVerificationState createState() => _ConfirmDeliveryByMobileVerificationState();
+}
+
+class _ConfirmDeliveryByMobileVerificationState extends State<ConfirmDeliveryByMobileVerification> {
+
+  Map serverErrors = {};
+  bool isSubmitting = false;
+  String verificationCode = '';
+
+  void startLoader(){
+    setState(() {
+      isSubmitting = true;
+    });
+  }
+
+  void stopLoader(){
+    setState(() {
+      isSubmitting = false;
+    });
+  }
+
+  AuthProvider get authProvider {
+    return Provider.of<AuthProvider>(context, listen: false);
+  }
+
+  OrdersProvider get ordersProvider {
+    return Provider.of<OrdersProvider>(context, listen: false);
+  }
+
+  String get _customerMobileNumber {
+    return widget.order.embedded.customer.embedded.user.mobileNumber.number;
+  }
+
+  _resetServerErrors(){
+    serverErrors = {};
+  }
+
+  _verifyOrderDeliveryCode(){
+
+    startLoader();
+
+    _resetServerErrors();
+
+    return ordersProvider.acceptOrderAsDelivered(verificationCode: verificationCode, mobileNumber: _customerMobileNumber, context: context)
+      .then((response) async {
+
+        //  If this is a successful request
+        if( response.statusCode == 200){
+
+            authProvider.showSnackbarMessage(msg: 'Order accepted as delivered!', context: context);
+
+            Get.back(result: 'accepted');
+
+        }else if(response.statusCode == 422){
+
+          authProvider.showSnackbarMessage(msg: 'Could not accept as delivered', context: context, type: SnackbarType.error);
+
+          _handleValidationErrors(response);
+          
+        }
+
+      }).whenComplete((){
+
+        stopLoader();
+      
+      });
+    
+  }
+
+  void _handleValidationErrors(http.Response response){
+
+    final responseBody = jsonDecode(response.body);
+
+    final Map validationErrors = responseBody['errors'];
+    
+    validationErrors.forEach((key, value){
+      serverErrors[key] = value[0];
+    });
+    
+  }
+
+  Widget _verificationCodeField() {
+    return MobileVerification(
+      metadata: {
+        'order_id': widget.order.id
+      },
+      hideBackButton: true,
+      hideHeadingText: true,
+      verifyText: 'Accept As Delivered',
+      isProcessingSuccess: isSubmitting,
+      mobileNumber: _customerMobileNumber,
+      autoGenerateVerificationCode: true,
+      mobileNumberInstructionType: MobileNumberInstructionType.mobile_verification_order_delivery_confirmation,
+      onCompleted: (value){
+        setState(() {
+          verificationCode = value;
+        });
+      },
+      onChanged: (value){
+        setState(() {
+          verificationCode = value;
+        });
+      },
+      onSuccess: (){
+        _verifyOrderDeliveryCode();
+      }
+      
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(100),
+              border: Border.all(color: Colors.blue.shade100, width: 1),
+            ),
+            child: SvgPicture.asset('assets/icons/ecommerce_pack_1/like.svg', width: 32, color: Colors.blue,),
+          ),
+          SizedBox(height: 10),
+          _verificationCodeField(),
+          SizedBox(height: 100),
+        ],
+      ),
     );
   }
 }

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import './../providers/api.dart';
@@ -63,7 +62,7 @@ class StoresProvider with ChangeNotifier{
 
     final storeUrl = store.links.self.href;
 
-    showLoadingDialog(context: context, loadingMsg: 'Deleting store...');
+    authProvider.showLoadingDialog(context: context, loadingMsg: 'Deleting store...');
 
     return apiProvider.delete(url: storeUrl, context: context)
     .then((response){
@@ -188,7 +187,7 @@ class StoresProvider with ChangeNotifier{
                         validator: (value){
                           if(value == null || value.isEmpty){
                             return 'Please enter the confirmation code to delete';
-                          }else if( (userConfirmationCode != randomConfirmationCode.toString()) ){
+                          }else if( (userConfirmationCode.trim() != randomConfirmationCode.toString().trim()) ){
                             return 'Confirmation code does not match';
                           }
                         },
@@ -244,8 +243,6 @@ class StoresProvider with ChangeNotifier{
 
   void launchVisitShortcode ({ required Store store, required BuildContext context }) async {
 
-    showLoadingDialog(context: context, loadingMsg: 'Preparing store visitation');
-
     final hasVisitShortCode = store.attributes.hasVisitShortCode;
 
     if( hasVisitShortCode ){
@@ -253,24 +250,14 @@ class StoresProvider with ChangeNotifier{
       final visitShortCode = store.attributes.visitShortCode!;
       
       final dialingCode = visitShortCode.dialingCode;
-
-      final ussdString = "tel:" + Uri.encodeComponent(dialingCode);
-
-      if(await canLaunch(ussdString)){
-
-        await launch(ussdString);
-
-        Navigator.of(context).pop();
-
-      }
+      
+      authProvider.launchShortcode (dialingCode: dialingCode, loadingMsg: 'Preparing store visitation', context: context);
 
     }
 
   }
 
   void launchPaymentShortcode ({ required Store store, required BuildContext context }) async {
-
-    showLoadingDialog(context: context, loadingMsg: 'Preparing store subscription');
 
     //  Run API call to generate a payment shortcode
     await generatePaymentShortcode(store: store, context: context)
@@ -281,14 +268,8 @@ class StoresProvider with ChangeNotifier{
 
           final responseBody = jsonDecode(response.body);
           final String dialingCode = responseBody['dialing_code'];
-
-          final ussdString = "tel:" + Uri.encodeComponent(dialingCode);
-
-          if(await canLaunch(ussdString)){
-
-            await launch(ussdString);
-
-          }
+            
+          authProvider.launchShortcode (dialingCode: dialingCode, loadingMsg: 'Preparing store subscription', context: context);
 
         }else{
 
@@ -305,22 +286,6 @@ class StoresProvider with ChangeNotifier{
 
       });
 
-  }
-
-  void showLoadingDialog({ required BuildContext context, String loadingMsg = 'loading...' }){
-    showDialog(
-      context: context, 
-      builder: (BuildContext context) {
-        return AlertDialog(
-          content: Row(
-            children: [
-              Container(height:20, width:20, margin: EdgeInsets.only(right: 10), child: CircularProgressIndicator(strokeWidth: 3,)),
-              Text(loadingMsg),
-            ],
-          )
-        );
-      }
-    );
   }
 
   void showSnackbarMessage({ required BuildContext context, required String msg }){

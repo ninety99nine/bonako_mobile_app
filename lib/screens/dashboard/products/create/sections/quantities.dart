@@ -126,7 +126,7 @@ class _ContentState extends State<Content> {
                       validator: (value){
                         if(value == null || value.isEmpty){
                           return 'Please enter maximum quantity per order';
-                        }else if(serverErrors['maximum_quantity_per_order'] != ''){
+                        }else if(serverErrors.containsKey('maximum_quantity_per_order')){
                           return serverErrors['maximum_quantity_per_order'];
                         }
                       },

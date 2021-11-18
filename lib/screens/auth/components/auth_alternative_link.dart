@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import './auth_divider.dart';
 
 class AuthAlternativeLink extends StatelessWidget {
   
@@ -22,15 +21,15 @@ class AuthAlternativeLink extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: <Widget>[
             Text(
-              'Have an account ?',
+              messageText,
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             ),
             SizedBox(
               width: 10,
             ),
             Text(
-              'Login',
-              style: TextStyle(color: Color(0xfff79c4f), fontSize: 16, fontWeight: FontWeight.w600),
+              linkText,
+              style: TextStyle(color: Color(0xfff79c4f), fontSize: 16, fontWeight: FontWeight.w600, decoration: TextDecoration.underline),
             ),
           ],
         ),

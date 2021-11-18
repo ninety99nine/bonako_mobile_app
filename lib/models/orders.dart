@@ -1481,7 +1481,6 @@ class User {
         required this.id,
         required this.firstName,
         required this.lastName,
-        required this.email,
         required this.mobileNumber,
         required this.createdAt,
         required this.updatedAt,
@@ -1493,7 +1492,6 @@ class User {
     final int id;
     final String firstName;
     final String lastName;
-    final String email;
     final MobileNumber mobileNumber;
     final DateTime createdAt;
     final DateTime updatedAt;
@@ -1505,7 +1503,6 @@ class User {
         id: json["id"],
         firstName: json["first_name"],
         lastName: json["last_name"],
-        email: json["email"],
         mobileNumber: MobileNumber.fromJson(json["mobile_number"]),
         createdAt: DateTime.parse(json["created_at"]),
         updatedAt: DateTime.parse(json["updated_at"]),
@@ -1518,7 +1515,6 @@ class User {
         "id": id,
         "first_name": firstName,
         "last_name": lastName,
-        "email": email,
         "mobile_number": mobileNumber.toJson(),
         "created_at": createdAt.toIso8601String(),
         "updated_at": updatedAt.toIso8601String(),

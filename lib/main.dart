@@ -1,10 +1,12 @@
+import 'package:bonako_mobile_app/screens/auth/terms_and_conditions.dart';
+import 'package:bonako_mobile_app/screens/dashboard/orders/verify/order_options_screen.dart';
+import 'package:bonako_mobile_app/screens/dashboard/orders/verify/verify_order_screen.dart';
+
 import './screens/dashboard/stores/list/stores_screen.dart';
 import 'package:intro_slider/slide_object.dart';
 import 'package:intro_slider/intro_slider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import './screens/auth/forgot_password.dart';
-import './screens/auth/reset_password.dart';
-import './screens/auth/one_time_pin.dart';
+import 'screens/auth/password_reset.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
@@ -102,12 +104,10 @@ class MyApp extends StatelessWidget {
         //  initialRoute: '/',
         routes: {
           LoginScreen.routeName: (ctx) => LoginScreen(),
-          SignUpScreen.routeName: (ctx) => SignUpScreen(),
           WelcomePage.routeName: (ctx) => WelcomePage(),
+          SignUpScreen.routeName: (ctx) => SignUpScreen(),
           StoresScreen.routeName: (ctx) => StoresScreen(),
-          OneTimePinPage.routeName: (ctx) => OneTimePinPage(),
-          ResetPasswordPage.routeName: (ctx) => ResetPasswordPage(),
-          ForgotPasswordPage.routeName: (ctx) => ForgotPasswordPage(),
+          PasswordResetScreen.routeName: (ctx) => PasswordResetScreen(),
         }
       ),
     );
@@ -199,6 +199,21 @@ class _AppScreenState extends State<AppScreen> {
            */
           await authProvider.setHasViewedIntroFromDevice();
 
+          /**
+           * Set if we have an incomplete login process
+           */
+          await authProvider.setLoginDataFromDevice();
+
+          /**
+           * Set if we have an incomplete password reset process
+           */
+          await authProvider.setPasswordResetDataFromDevice();
+
+          /**
+           * Set if we have an incomplete registration process
+           */
+          await authProvider.setRegistrationDataFromDevice();
+
         }
 
       }).whenComplete((){
@@ -224,16 +239,65 @@ class _AppScreenState extends State<AppScreen> {
     //  Check for authenticated user
     final hasViewedIntro = authProvider.hasViewedIntro;
 
-    print('isAuthenticated: '+isAuthenticated.toString());
-    print('hasAuthUser: '+hasAuthUser.toString());
+    //  Check for incomplete login form
+    final hasIncompleteLoginForm = authProvider.hasLoginData;
 
-    return 
-      isLoading
-        ? LoadingScreen() : 
-        //  If we have not seen the intro screen
-          hasViewedIntro == false ? IntroScreen()
-            //  If we are authenticated show the stores otherwise show the login page
-            : ((isAuthenticated && hasAuthUser) ? StoresScreen() : WelcomePage());
+    //  Check for incomplete password reset form
+    final hasIncompletePasswordResetForm = authProvider.hasPasswordResetData;
+
+    //  Check for incomplete registration form
+    final hasIncompleteRegistrationForm = authProvider.hasRegistrationData;
+
+    //  Check is the user accepted the terms and conditions
+    final hasAcceptedTermsAndConditions = authProvider.hasAcceptedTermsAndConditions;
+
+    //  Set default screen
+    Widget appScreen = WelcomePage();
+
+    if(isLoading == true){
+
+      appScreen = LoadingScreen();
+
+    }else if(hasViewedIntro == false){
+
+      //  If we have not seen the intro screen
+      appScreen = IntroScreen();
+
+    }else if(hasIncompleteLoginForm == true){
+
+      //  If we have an incomplete login form
+      appScreen = LoginScreen();
+
+    }else if(hasIncompletePasswordResetForm == true){
+
+      //  If we have an incomplete password reset form
+      appScreen = PasswordResetScreen();
+
+    }else if(hasIncompleteRegistrationForm == true){
+
+      //  If we have an incomplete registration form
+      appScreen = SignUpScreen();
+
+    }else if((isAuthenticated && hasAuthUser) == true && hasAcceptedTermsAndConditions == false){
+      
+      //  If we have not accepted terms and conditions
+      appScreen = TermsAndConditionsScreen();
+
+    }else if((isAuthenticated && hasAuthUser) == true && hasAcceptedTermsAndConditions == true){
+
+      //  If we are authenticated show the stores
+      appScreen = StoresScreen();
+
+    }
+
+    print('hasAuthUser: '+hasAuthUser.toString());
+    print('isAuthenticated: '+isAuthenticated.toString());
+    print('hasIncompleteLoginForm: '+hasIncompleteLoginForm.toString());
+    print('hasIncompletePasswordResetForm: '+hasIncompletePasswordResetForm.toString());
+    print('hasIncompleteRegistrationForm: '+hasIncompleteRegistrationForm.toString());
+    print('hasAcceptedTermsAndConditions: '+hasAcceptedTermsAndConditions.toString());
+
+    return appScreen;
   }
 
 }

@@ -493,7 +493,7 @@ class _ContentState extends State<Content> {
                                     ),
                                   ),
                                   validator: (value){
-                                    if(value == null || value == ''){
+                                    if(value == null || value.isEmpty){
                                       return 'Please enter the variation instruction';
                                     }
                                   },

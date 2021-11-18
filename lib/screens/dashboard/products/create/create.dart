@@ -75,15 +75,7 @@ class _ContentState extends State<Content> {
 
   List locationIds = [];
 
-  Map serverErrors = {
-    'name': '',
-    'description': '',
-    'unit_regular_price': '',
-    'unit_sale_price': '',
-    'unit_cost': '',
-    'maximum_quantity_per_order': '',
-    'stock_quantity': '',
-  };
+  Map serverErrors = {};
 
   ProductsProvider get productsProvider {
     return Provider.of<ProductsProvider>(context, listen: false);
@@ -94,15 +86,7 @@ class _ContentState extends State<Content> {
   }
 
   void _resetServerErrors(){
-    serverErrors = {
-    'name': '',
-    'description': '',
-    'unit_regular_price': '',
-    'unit_sale_price': '',
-    'unit_cost': '',
-    'maximum_quantity_per_order': '',
-    'stock_quantity': '',
-    };
+    serverErrors = {};
   }
 
   void startProductLoader(){
@@ -153,9 +137,7 @@ class _ContentState extends State<Content> {
      *  }
      */
     validationErrors.forEach((key, value){
-      if( serverErrors.containsKey(key) ){
-        serverErrors[key] = value[0];
-      }
+      serverErrors[key] = value[0];
     });
     
     // Run form validation
@@ -570,7 +552,7 @@ class _ContentState extends State<Content> {
               validator: (value){
                 if(value == null || value.isEmpty){
                   return 'Please enter product name';
-                }else if(serverErrors['name'] != ''){
+                }else if(serverErrors.containsKey('name')){
                   return serverErrors['name'];
                 }
               },
@@ -612,7 +594,7 @@ class _ContentState extends State<Content> {
               validator: (value){
                 if(value == null || value.isEmpty){
                   return 'Please enter product description';
-                }else if(serverErrors['description'] != ''){
+                }else if(serverErrors.containsKey('description')){
                   return serverErrors['description'];
                 }
               },

@@ -55,8 +55,46 @@ class OrdersProvider with ChangeNotifier{
     
   }
 
+  Future<http.Response> verifyOrderDeliveryConfirmationCode({ String deliveryConfirmationCode: '', required BuildContext context }) async {
+
+    final data = {
+      'delivery_confirmation_code': deliveryConfirmationCode
+    };
+
+    return apiProvider.post(url: verifyOrderDeliveryConfirmationCodeUrl, body: data, context: context);
+    
+  }
+
+  Future<http.Response> acceptOrderAsDelivered({ String? deliveryConfirmationCode, String? verificationCode, String? mobileNumber, required BuildContext context }) async {
+
+    Map data = {};
+
+    if(deliveryConfirmationCode != null){
+      data['delivery_confirmation_code'] = deliveryConfirmationCode;
+    }
+
+    if(verificationCode != null){
+      data['verification_code'] = verificationCode;
+    }
+
+    if(mobileNumber != null){
+      data['mobile_number'] = mobileNumber;
+    }
+
+    return apiProvider.put(url: orderDeliverUrl, body: data, context: context);
+    
+  }
+
+  String get verifyOrderDeliveryConfirmationCodeUrl {
+    return apiProvider.apiHome['_links']['bos:order_verify_delivery_confirmation_code']['href'];
+  }
+
   String get ordersUrl {
     return locationsProvider.getLocation.links.bosOrders.href;
+  }
+
+  String get orderDeliverUrl {
+    return (order as Order).links.bosDeliver.href;
   }
 
   void setOrder(Order order){

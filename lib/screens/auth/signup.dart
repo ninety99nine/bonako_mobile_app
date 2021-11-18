@@ -1,15 +1,15 @@
+import 'package:bonako_mobile_app/components/custom_loader.dart';
 import 'package:bonako_mobile_app/screens/auth/components/auth_alternative_link.dart';
 import 'package:bonako_mobile_app/screens/auth/components/auth_divider.dart';
+import 'package:bonako_mobile_app/screens/auth/components/auth_input_field.dart';
 import 'package:bonako_mobile_app/screens/auth/components/mobile_verification.dart';
-
+import 'package:bonako_mobile_app/screens/auth/terms_and_conditions.dart';
 import './../../screens/dashboard/stores/list/stores_screen.dart';
 import './../../components/previous_step_button.dart';
-import 'package:pin_code_fields/pin_code_fields.dart';
 import './../../components/custom_button.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';
 import './../../providers/auth.dart';
 import './../../enum/enum.dart';
 import 'package:get/get.dart';
@@ -30,7 +30,6 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
 
   Map registerForm = {
-    'email': '',
     'password': '',
     'last_name': '',
     'first_name': '',
@@ -41,11 +40,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   Map registerServerErrors = {};
 
+  var isLoading = false;
   var hidePassword = true;
   var isSubmitting = false;
+  var autoGenerateVerificationCode = true;
 
   Map userAccount = {};
   bool requiresPassword = false;
+  bool mobileAccountExists = false;
   bool requiresMobileNumberVerification = false;
   
   final GlobalKey<FormState> _formKey = GlobalKey();
@@ -64,6 +66,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return (currRegistrationStage == RegisterStage.enterVerificationCode);
   }
 
+  void startLoader(){
+    setState(() {
+      isLoading = true;
+    });
+  }
+
+  void stopLoader(){
+    setState(() {
+      isLoading = false;
+    });
+  }
+
   void startRegisterLoader(){
     setState(() {
       isSubmitting = true;
@@ -79,21 +93,90 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   void initState() {
     
-    final arguments = Get.arguments;
+    setRegistrationDataFromDevice();
 
-    //  Get arguments that may have been passed from login screen
-    if( arguments != null ){
+    super.initState();
 
-      //  Merge the form fields
-      registerForm = {
-        ...registerForm,
-        ...arguments
-      };
+  }
+
+  void setRegistrationDataFromDevice() async {
+    
+    startLoader();
+
+    //  Set the registration data stored on the device
+    await authProvider.setRegistrationDataFromDevice().then((value){
+
+      setState(() {
+    
+        //  If we have the registration data
+        if( authProvider.hasRegistrationData ){
+
+          final registrationData = authProvider.getRegistrationData;
+
+          userAccount = registrationData['userAccount'];
+          registerForm = registrationData['registerForm'];
+          requiresPassword = registrationData['requiresPassword'];
+          mobileAccountExists = registrationData['mobileAccountExists'];
+          currRegistrationStage = RegisterStage.values[registrationData['currRegistrationStage']];
+          requiresMobileNumberVerification = registrationData['requiresMobileNumberVerification'];
+
+          //  If we should enter the verification code
+          if(currRegistrationStage == RegisterStage.enterVerificationCode){
+
+            //  Disable automatic generation of verification code
+            autoGenerateVerificationCode = false;
+
+          }
+
+        }
+
+        final arguments = Get.arguments;
+
+        //  Get arguments that may have been passed from login screen
+        if( arguments != null ){
+
+          //  Merge the form fields
+          registerForm = {
+            ...registerForm,
+            ...arguments
+          };
+
+        }
+        
+      });
+
+    }).whenComplete((){
+      
+      stopLoader();
+      
+    });
+
+  }
+
+  void storeRegistrationDataOnDevice({ bool reset = false }){
+
+    Map<String, dynamic> registrationData = {
+      'userAccount': userAccount,
+      'registerForm': registerForm,
+      'requiresPassword': requiresPassword,
+      'mobileAccountExists': mobileAccountExists,
+      'currRegistrationStage': currRegistrationStage.index,
+      'requiresMobileNumberVerification': requiresMobileNumberVerification,
+    };
+
+    //  If we must reset
+    if(reset == true){
+
+      //  Reset the registration data on the device
+      authProvider.storeRegistrationDataLocallyAndOnDevice();
+
+    }else{
+
+      //  Store the registration data on the device
+      authProvider.storeRegistrationDataLocallyAndOnDevice(registrationData: registrationData);
 
     }
     
-    super.initState();
-
   }
 
   void _onRegister(){
@@ -105,92 +188,168 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       _attemptCreateUserAccount();
 
-    //  Validate the form
-    }else if( _formKey.currentState!.validate() == true ){
-
-      //  Save inputs
-      _formKey.currentState!.save();
-
-      //  If we are still checking account details
-      if(currRegistrationStage == RegisterStage.enterAccountDetails){
-
-        startRegisterLoader();
-
-        //  Check if any user account exists using the same mobile number or email
-        authProvider.checkIfMobileOrEmailAccountExists(
-          mobileNumber: registerForm['mobile_number'],
-          email: registerForm['email'],
-          context: context
-        ).then((response){
-
-          _handleOnRegisterResponse(response);
-
-            final Map responseBody = jsonDecode(response.body);
-
-          if( response.statusCode == 200 ){
-
-            final bool mobileAccountExists = (responseBody.containsKey('mobile_account_exists')) ? responseBody['mobile_account_exists'] : false;
-            final bool emailAccountExists = (responseBody.containsKey('email_account_exists')) ? responseBody['email_account_exists'] : false;
-
-            //  Handle non-existing account
-            if(mobileAccountExists == false && emailAccountExists == false){
-
-              //  Confirm mobile number ownership
-              _handleVerificationCodeRequirement();
-              
-            //  Handle existing account
-            }else{
-        
-              userAccount = responseBody['user'];
-              requiresPassword = userAccount['requires_password'];
-              requiresMobileNumberVerification = userAccount['requires_mobile_number_verification'];
-
-              print('requiresPassword: '+ requiresPassword.toString());
-              print('requiresMobileNumberVerification: '+ requiresMobileNumberVerification.toString());
-
-              _showDialog(
-                title: 'Account Exists',
-                message: (mobileAccountExists == true)
-                  ? _accountExistsDialogMessage('mobile_number', requiresPassword, requiresMobileNumberVerification)
-                  : _accountExistsDialogMessage('email', requiresPassword, requiresMobileNumberVerification),
-                buttonText: (requiresMobileNumberVerification || requiresPassword) ? 'Ok' : 'Login',
-                onPressed: (requiresMobileNumberVerification || requiresPassword) ? null : () => { 
-                  Get.off(() => LoginScreen(), arguments: {
-                      'email': registerForm['email'],
-                      'mobile_number': registerForm['mobile_number'],
-                    }) 
-                  }
-              );
-
-              if( requiresPassword || requiresMobileNumberVerification ){
-
-                //  Confirm mobile number ownership
-                _handleVerificationCodeRequirement();
-
-              }
-
-            }
-          }
-
-        }).whenComplete((){
-
-          stopRegisterLoader();
-
-        });
-        
-      }
-    
-    //  If validation failed
     }else{
 
-      authProvider.showSnackbarMessage(msg: 'Registration failed', type: SnackbarType.error, context: context);
+      //  Validate the form
+      validateForm().then((success){
+
+        if( success ){
+
+          //  Save inputs
+          _formKey.currentState!.save();
+
+          //  If we are still checking account details
+          if(currRegistrationStage == RegisterStage.enterAccountDetails){
+
+            startRegisterLoader();
+
+            //  Check if any user account exists using the same mobile number
+            authProvider.checkIfMobileAccountExists(
+              mobileNumber: registerForm['mobile_number'],
+              context: context
+            ).then((response){
+
+              _handleOnRegisterResponse(response);
+
+              final Map responseBody = jsonDecode(response.body);
+
+              if( response.statusCode == 200 ){
+
+                mobileAccountExists = (responseBody.containsKey('account_exists')) ? responseBody['account_exists'] : false;
+
+                //  Handle non-existing account
+                if(mobileAccountExists == false){
+
+                  //  Confirm mobile number ownership
+                  _handleVerificationCodeRequirement();
+                  
+                //  Handle existing account
+                }else{
+            
+                  userAccount = responseBody['user'];
+                  requiresPassword = userAccount['requires_password'];
+                  requiresMobileNumberVerification = userAccount['requires_mobile_number_verification'];
+
+                  _showDialog(
+                    title: 'Account Exists',
+                    message: _accountExistsDialogMessage(requiresPassword, requiresMobileNumberVerification),
+                    buttonText: (requiresMobileNumberVerification || requiresPassword) ? 'Ok' : 'Login',
+                    onPressed: (requiresMobileNumberVerification || requiresPassword) ? null : () { 
+
+                      //  Reset the registration data stored on the device
+                      storeRegistrationDataOnDevice(reset: true);
+
+                      Get.off(() => LoginScreen(), arguments: {
+                        'mobile_number': registerForm['mobile_number'],
+                      });
+
+                    }
+
+                  );
+
+                  if( requiresPassword || requiresMobileNumberVerification ){
+
+                    //  Confirm mobile number ownership
+                    _handleVerificationCodeRequirement();
+
+                  }
+
+                }
+              }
+
+            }).whenComplete((){
+
+              stopRegisterLoader();
+
+            });
+            
+          }
+    
+        //  If validation failed
+        }else{
+
+          authProvider.showSnackbarMessage(msg: 'Check for mistakes', type: SnackbarType.error, context: context);
+
+          storeRegistrationDataOnDevice();
+
+        }
+
+      });
 
     }
 
   }
 
+  Future<bool> validateForm() async {
+
+    /**
+     * When running the _resetRegisterServerErrors(), we actually reset the registerServerErrors = {}, 
+     * however the AuthInputField() must render to pick up these changes. These changes will 
+     * clear any previous server errors. Since the re-build of AuthInputField() may take
+     * sometime, we don't want to validate the form too soon since we may use the old 
+     * registerServerErrors within AuthInputField() causing the form to fail even if 
+     * the user input correct information.
+     */
+    return await Future.delayed(const Duration(milliseconds: 100), () {
+
+      // Run form validation
+      return _formKey.currentState!.validate() == true;
+
+    });
+    
+  }
+
   void _resetRegisterServerErrors(){
-    registerServerErrors = {};
+    setState(() {
+      registerServerErrors = {};
+    });
+  }
+
+  void _attemptCreateUserAccount(){
+
+    startRegisterLoader();
+
+    //  Register the user account
+    authProvider.registerUserAccount(
+      passwordConfirmation: registerForm['password_confirmation'],
+      verificationCode: registerForm['verification_code'],
+      mobileNumber: registerForm['mobile_number'],
+      password: registerForm['password'],
+      firstName: registerForm['first_name'],
+      lastName: registerForm['last_name'],
+      context: context
+    ).then((response){
+
+      _handleOnRegisterResponse(response);
+
+    final responseBody = jsonDecode(response.body);
+      print('responseBody');
+      print(responseBody);
+
+      if( response.statusCode == 200 ){
+
+        storeRegistrationDataOnDevice(reset: true);
+
+        if( authProvider.hasAcceptedTermsAndConditions ){
+
+          authProvider.showSnackbarMessage(msg: 'Account created successfully', context: context);
+
+          Get.off(() => StoresScreen());
+
+        }else{
+
+          Get.off(() => TermsAndConditionsScreen());
+
+        }
+
+      }
+
+    }).whenComplete((){
+
+      stopRegisterLoader();
+
+    });
+
   }
 
   void _handleOnRegisterResponse(http.Response response){
@@ -212,9 +371,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     final Map validationErrors = responseBody['errors'];
 
-    print('validationErrors');
-    print(validationErrors);
-
     /**
      *  validationErrors = {
      *    mobile_number: [Enter a valid mobile number containing only digits e.g 26771234567]
@@ -223,16 +379,56 @@ class _SignUpScreenState extends State<SignUpScreen> {
     validationErrors.forEach((key, value){
       registerServerErrors[key] = value[0];
     });
-    
-    // Run form validation
-   _formKey.currentState!.validate();
+
+    setState(() {
+      
+      final passwordError = validationErrors.containsKey('password');
+      final lastNameError = validationErrors.containsKey('last_name');
+      final firstNameError = validationErrors.containsKey('first_name');
+      final mobileNumberError = validationErrors.containsKey('mobile_number');
+      final verificationCodeError = validationErrors.containsKey('verification_code');
+
+      //  If we have errors related to the name, mobile number or password
+      if(firstNameError || lastNameError || mobileNumberError || passwordError){
+
+        currRegistrationStage = RegisterStage.enterAccountDetails;
+
+        /**
+         *  Since executing currRegistrationStage = RegisterStage.enterAccountDetails
+         *  will force the form to change the input fields, we need to give the
+         *  application a chance to change the inputs before we can validate,
+         *  we buy ourselves this time by delaying the execution of the form
+         *  validation
+         */
+        Future.delayed(const Duration(milliseconds: 100), () {
+
+            // Run form validation
+          _formKey.currentState!.validate();
+
+        });
+      
+      //  If we have errors related to the verification code
+      }else if(verificationCodeError){
+        
+        currRegistrationStage = RegisterStage.enterVerificationCode;
+
+      }
+
+    });
+
+    storeRegistrationDataOnDevice();
     
   }
 
   void _handleVerificationCodeRequirement(){
     setState(() {
+
       //  Request that we enter the verification code to confirm ownership
       currRegistrationStage = RegisterStage.enterVerificationCode;
+
+      //  Store the registration form to the device
+      storeRegistrationDataOnDevice();
+
     });
   }
 
@@ -257,15 +453,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
   }
 
-  Widget _accountExistsDialogMessage(type, requiresPassword, requiresMobileNumberVerification){
+  Widget _accountExistsDialogMessage(requiresPassword, requiresMobileNumberVerification){
     return RichText(
       textAlign: TextAlign.justify,
       text: TextSpan(
         style: TextStyle(color: Colors.black, height: 1.5, fontSize: 12),
         children: <TextSpan>[
-          TextSpan(text: 'An account using the '+(type == 'mobile_number' ? 'mobile number ' : 'email')),
+          TextSpan(text: 'An account using the mobile number '),
           TextSpan(
-            text: (type == 'mobile_number' ? registerForm['mobile_number'] : registerForm['email']), 
+            text: registerForm['mobile_number'], 
             style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
           ),
           if(!requiresPassword && !requiresMobileNumberVerification) TextSpan(
@@ -273,7 +469,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             style: TextStyle(fontSize: 12)
           ),
           if((requiresMobileNumberVerification && requiresPassword) || requiresMobileNumberVerification && !requiresPassword) TextSpan(
-            text: ' already exists'+(requiresMobileNumberVerification ? '. This account must be verified to continue.' : '. Please login to continue'), 
+            text: ' already exists'+(requiresMobileNumberVerification ? '. Verify that you own this mobile number to continue.' : '. Please login to continue'), 
             style: TextStyle(fontSize: 12)
           ),
           if(requiresPassword && !requiresMobileNumberVerification) TextSpan(
@@ -283,40 +479,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ],
       )
     );
-  }
-
-  void _attemptCreateUserAccount(){
-
-    startRegisterLoader();
-
-    //  Register the user account
-    authProvider.registerUserAccount(
-      passwordConfirmation: registerForm['password_confirmation'],
-      verificationCode: registerForm['verification_code'],
-      mobileNumber: registerForm['mobile_number'],
-      password: registerForm['password'],
-      firstName: registerForm['first_name'],
-      lastName: registerForm['last_name'],
-      email: registerForm['email'],
-      context: context
-    ).then((response){
-
-      _handleOnRegisterResponse(response);
-
-      if( response.statusCode == 200 ){
-
-        authProvider.showSnackbarMessage(msg: 'Account created successfully', context: context);
-
-        Get.off(() => StoresScreen());
-
-      }
-
-    }).whenComplete((){
-
-      stopRegisterLoader();
-
-    });
-
   }
 
   Widget _headingText() {
@@ -343,6 +505,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         onTap: () {
           setState(() {
             currRegistrationStage = RegisterStage.enterAccountDetails;
+            storeRegistrationDataOnDevice();
           });
         }
       )
@@ -367,17 +530,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Column(
       children: <Widget>[
         
-        if(isEnteringAccountDetails) _entryField("First Name"),
+        if(isEnteringAccountDetails) _entryFieldFirstName(),
         
-        if(isEnteringAccountDetails) _entryField("Last Name"),
+        if(isEnteringAccountDetails) _entryFieldLastName(),
         
-        if(isEnteringAccountDetails) _entryField("Mobile"),
-          
-        if(isEnteringAccountDetails) _entryField("Email", optional: true),
+        if(isEnteringAccountDetails) _entryFieldMobile(),
 
-        if(isEnteringAccountDetails) _entryField("Password"),
+        if(isEnteringAccountDetails) _entryFieldPassword(),
 
-        if(isEnteringAccountDetails) _entryField("Confirm Password"),
+        if(isEnteringAccountDetails) _entryFieldConfirmPassword(),
 
         if(isEnteringVerificationCode) _verificationCodeField()
 
@@ -385,217 +546,85 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
+  Widget _entryFieldFirstName() {
+    return AuthInputField(
+      title: 'First Name', 
+      initialValue: registerForm['first_name'], 
+      serverErrors: registerServerErrors,
+      onChanged: (value){
+        registerForm['first_name'] = value.trim();
+      },
+      onSaved: (value){
+        registerForm['first_name'] = value == null ? '' : value.trim();
+      }
+    );
+  }
 
+  Widget _entryFieldLastName() {
+    return AuthInputField(
+      title: 'Last Name', 
+      initialValue: registerForm['last_name'], 
+      serverErrors: registerServerErrors,
+      onChanged: (value){
+        registerForm['last_name'] = value.trim();
+      },
+      onSaved: (value){
+        registerForm['last_name'] = value == null ? '' : value.trim();
+      }
+    );
+  }
 
-  Widget _entryField(String title, {bool optional = false}) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            children: [
-              Text(
-                title,
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-              ),
-              if(optional)
-                Text(
-                  ' (Optional)',
-                  style: TextStyle(fontSize: 15),
-                ),
-            ],
-          ),
-          SizedBox(
-            height: 10,
-          ),
+  Widget _entryFieldMobile() {
+    return AuthInputField(
+      title: 'Mobile', 
+      initialValue: registerForm['mobile_number'], 
+      serverErrors: registerServerErrors,
+      onChanged: (value){
+        registerForm['mobile_number'] = value;
+      },
+      onSaved: (value){
+        registerForm['mobile_number'] = value;
+      }
+    );
+  }
 
-          //  If an first name text field
-          if(title == 'First Name')
-            TextFormField(
-              initialValue: registerForm['first_name'],
-              keyboardType: TextInputType.text,
-              decoration: InputDecoration(
-                filled: true,
-                hintText: 'Katlego',
-                border: InputBorder.none,
-                fillColor: Colors.black.withOpacity(0.05),
-              ),
-              validator: (value){
-                if(value == null || value.isEmpty){
-                  return 'Please enter your first name';
-                }else if(registerServerErrors['first_name'] != ''){
-                  return registerServerErrors['first_name'];
-                }
-              },
-              onChanged: (value){
-                registerForm['first_name'] = value.trim();
-              },
-              onSaved: (value){
-                registerForm['first_name'] = value!.trim();
-              }
-            ),
+  Widget _entryFieldPassword() {
+    return AuthInputField(
+      title: 'Password', 
+      initialValue: registerForm['password'],
+      serverErrors: registerServerErrors,
+      hidePassword: hidePassword,
+      onChanged: (value){
+        registerForm['password'] = value;
+      },
+      onSaved: (value){
+        registerForm['password'] = value;
+      },
+      onTogglePasswordVisibility: (){
+        setState(() {
+            hidePassword = !hidePassword;
+        });
+      }
+    );
+  }
 
-          //  If an last name text field
-          if(title == 'Last Name')
-            TextFormField(
-              initialValue: registerForm['last_name'],
-              keyboardType: TextInputType.text,
-              decoration: InputDecoration(
-                filled: true,
-                hintText: 'Warona',
-                border: InputBorder.none,
-                fillColor: Colors.black.withOpacity(0.05),
-              ),
-              validator: (value){
-                if(value == null || value.isEmpty){
-                  return 'Please enter your last name';
-                }else if(registerServerErrors['last_name'] != ''){
-                  return registerServerErrors['last_name'];
-                }
-              },
-              onChanged: (value){
-                registerForm['last_name'] = value.trim();
-              },
-              onSaved: (value){
-                registerForm['last_name'] = value!.trim();
-              }
-            ),
-
-          //  If an email text field
-          if(title == 'Email')
-            TextFormField(
-              initialValue: registerForm['email'],
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                filled: true,
-                hintText: 'example@gmail.com',
-                border: InputBorder.none,
-                fillColor: Colors.black.withOpacity(0.05),
-              ),
-              validator: (value){
-                if(registerServerErrors['email'] != ''){
-                  return registerServerErrors['email'];
-                }
-              },
-              onChanged: (value){
-                registerForm['email'] = value.trim();
-              },
-              onSaved: (value){
-                registerForm['email'] = value!.trim();
-              }
-            ),
-
-          //  If a mobile text field
-          if(title == 'Mobile')
-            TextFormField(
-              initialValue: registerForm['mobile_number'],
-              keyboardType: TextInputType.phone,
-              decoration: InputDecoration(
-                filled: true,
-                hintText: 'e.g 72000123',
-                border: InputBorder.none,
-                fillColor: Colors.black.withOpacity(0.05),
-              ),
-              validator: (value){
-                if(value == null || value.isEmpty){
-                  return 'Please enter your mobile number';
-                }else if(value.length != 8){
-                  return 'Please enter a valid 8 digit mobile number e.g 72000123';
-                }else if(value.startsWith('7') == false){
-                  return 'Please enter a valid mobile number e.g 72000123';
-                }else if(registerServerErrors['mobile_number'] != ''){
-                  return registerServerErrors['mobile_number'];
-                }
-              },
-              onChanged: (value){
-                registerForm['mobile_number'] = value.trim();
-              },
-              onSaved: (value){
-                registerForm['mobile_number'] = value!.trim();
-              }
-            ),
-
-          //  If a password text field
-          if(title == 'Password')
-            TextFormField(
-              initialValue: registerForm['password'],
-              keyboardType: TextInputType.text,
-              obscureText: hidePassword,
-              decoration: InputDecoration(
-                  fillColor: Colors.black.withOpacity(0.05),
-                border: InputBorder.none,
-                filled: true,
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    // Based on hidePassword state choose the icon
-                    hidePassword ? Icons.visibility : Icons.visibility_off,
-                    color: Theme.of(context).primaryColorDark,
-                  ),
-                  onPressed: () {
-                    //  Update the state i.e. toggle the state of hidePassword variable
-                    setState(() {
-                        hidePassword = !hidePassword;
-                    });
-                  },
-                ),
-              ),
-              validator: (value){
-                if(value == null || value.isEmpty){
-                  return 'Please enter your password';
-                }else if(registerServerErrors['password'] != ''){
-                  return registerServerErrors['password'];
-                }
-              },
-              onChanged: (value){
-                registerForm['password'] = value;
-              },
-              onSaved: (value){
-                registerForm['password'] = value;
-              }
-            ),
-
-          //  If a password text field
-          if(title == 'Confirm Password')
-            TextFormField(
-              initialValue: registerForm['password_confirmation'],
-              keyboardType: TextInputType.text,
-              obscureText: hidePassword,
-              decoration: InputDecoration(
-                  fillColor: Colors.black.withOpacity(0.05),
-                border: InputBorder.none,
-                filled: true,
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    // Based on hidePassword state choose the icon
-                    hidePassword ? Icons.visibility : Icons.visibility_off,
-                    color: Theme.of(context).primaryColorDark,
-                  ),
-                  onPressed: () {
-                    //  Update the state i.e. toggle the state of hidePassword variable
-                    setState(() {
-                        hidePassword = !hidePassword;
-                    });
-                  },
-                ),
-              ),
-              validator: (value){
-                if(value == null || value.isEmpty){
-                  return 'Please confirm your password';
-                }else if(registerServerErrors['password_confirmation'] != ''){
-                  return registerServerErrors['password_confirmation'];
-                }
-              },
-              onChanged: (value){
-                registerForm['password_confirmation'] = value;
-              },
-              onSaved: (value){
-                registerForm['password_confirmation'] = value;
-              }
-            ),
-
-        ],
-      ),
+  Widget _entryFieldConfirmPassword() {
+    return AuthInputField(
+      title: 'Confirm Password', 
+      initialValue: registerForm['password_confirmation'],
+      serverErrors: registerServerErrors,
+      hidePassword: hidePassword,
+      onChanged: (value){
+        registerForm['password_confirmation'] = value;
+      },
+      onSaved: (value){
+        registerForm['password_confirmation'] = value;
+      },
+      onTogglePasswordVisibility: (){
+        setState(() {
+            hidePassword = !hidePassword;
+        });
+      }
     );
   }
 
@@ -603,6 +632,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return MobileVerification(
       isProcessingSuccess: isSubmitting,
       mobileNumber: registerForm['mobile_number'],
+      autoGenerateVerificationCode: autoGenerateVerificationCode,
+      mobileNumberInstructionType: 
+        /**
+         *  If we don't have any matching account, or we have a matching account
+         *  but is not verified, then request an account ownership verification,
+         *  otherwise request a password reset verification.
+         */
+        (mobileAccountExists == false || requiresMobileNumberVerification == true) 
+          ? MobileNumberInstructionType.mobile_verification_ownership 
+          : MobileNumberInstructionType.mobile_verification_change_password, 
       onCompleted: (value){
         setState(() {
           registerForm['verification_code'] = value;
@@ -619,6 +658,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       onGoBack: (){
         setState(() {
           currRegistrationStage = RegisterStage.enterAccountDetails;
+          storeRegistrationDataOnDevice();
         });
       },
       
@@ -630,10 +670,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
       linkText: 'Login',
       messageText: 'Have an account ?',
       onTap: () {
+
+        //  Reset the registration data stored on the device
+        storeRegistrationDataOnDevice(reset: true);
+
         Get.off(() => LoginScreen(), arguments: {
-            'email': registerForm['email'],
-            'mobile_number': registerForm['mobile_number'],
-          });
+          'mobile_number': registerForm['mobile_number'],
+        });
+
       },
     );
   }
@@ -664,7 +708,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       if(isEnteringAccountDetails) _headingText(),
                       if(isEnteringAccountDetails) SizedBox(height: 20),
                         
-                      _formFields(),
+                      (isLoading) ? CustomLoader(height: 400) : _formFields(),
                       
                       if(isEnteringAccountDetails) SizedBox(height: 20),
                         

@@ -1,3 +1,4 @@
+import 'package:bonako_mobile_app/screens/dashboard/stores/list/stores_screen.dart';
 import 'package:bonako_mobile_app/screens/dashboard/stores/show/store_screen.dart';
 import 'package:bonako_mobile_app/components/custom_floating_action_button.dart';
 import 'package:bonako_mobile_app/components/custom_rounded_refresh_button.dart';
@@ -168,9 +169,7 @@ class _ContentState extends State<Content> {
      *  }
      */
     validationErrors.forEach((key, value){
-      if( storeServerErrors.containsKey(key) ){
-        storeServerErrors[key] = value[0];
-      }
+      storeServerErrors[key] = value[0];
     });
     
     // Run form validation
@@ -184,6 +183,8 @@ class _ContentState extends State<Content> {
 
   @override
   Widget build(BuildContext context) {
+
+    final store = storesProvider.getStore;
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
@@ -228,7 +229,7 @@ class _ContentState extends State<Content> {
                             validator: (value){
                               if(value == null || value.isEmpty){
                                 return 'Please enter store name';
-                              }else if(storeServerErrors['name'] != ''){
+                              }else if(storeServerErrors.containsKey('name')){
                                 return storeServerErrors['name'];
                               }
                             },
@@ -268,6 +269,23 @@ class _ContentState extends State<Content> {
                             text: 'Save',
                             isLoading: isSubmitting,
                             onSubmit: (isSubmitting) ? null : _updateStore
+                          ),
+
+                          CustomButton(
+                            text: 'Delete store',
+                            color: Colors.red,
+                            onSubmit: (){
+
+                              Provider.of<StoresProvider>(context, listen: false).handleDeleteStore(
+                                store: store,
+                                context: context
+                              ).whenComplete((){
+
+                                //  Return to the stores
+                                Get.off(() => StoresScreen());
+
+                              });
+                            },
                           ),
 
                           SizedBox(height: 50),

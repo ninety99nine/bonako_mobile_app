@@ -5,15 +5,15 @@ import 'dart:convert';
 
 class ApiProvider with ChangeNotifier{
 
-  final String homeUrl = 'http://127.0.0.1:9000/api'; //  'http://165.232.179.255/api';
+  final String homeUrl = 'http://165.232.179.255/api';  //  'http://127.0.0.1:9000/api';  //  
 
   String _loginUrl = '';
   String _logoutUrl = '';
-  String _registerUrl = '';
+  String _registerUrl = ''; 
   String _bearerToken = '';
   String _mainShortcode = '';
+  String _resetPasswordUrl = '';
   String _accountExistsUrl = '';
-  String _registerValidationUrl = '';
   Map<String, dynamic> _apiHome = {};
   String _verifyUserAccountShortcode = '';
   String _verifyMobileVerificationCodeUrl = '';
@@ -52,9 +52,6 @@ class ApiProvider with ChangeNotifier{
             //  Update the register url
             _registerUrl = responseBody['_links']['bos:register']['href'];
 
-            //  Update the register validation url
-            _registerValidationUrl = responseBody['_links']['bos:register_validation']['href'];
-
             //  Update the generate mobile verification code url
             _generateMobileVerificationCodeUrl = responseBody['_links']['bos:generate_mobile_verification_code']['href'];
 
@@ -66,6 +63,9 @@ class ApiProvider with ChangeNotifier{
 
             //  Update the account exists url
             _accountExistsUrl = responseBody['_links']['bos:account_exists']['href'];
+
+            //  Update the reset password url
+            _resetPasswordUrl = responseBody['_links']['bos:reset_password']['href'];
 
             //  Update Main USSD shortcode
             _mainShortcode = responseBody['_embedded']['main_shortcode'];
@@ -85,6 +85,8 @@ class ApiProvider with ChangeNotifier{
   }
 
   Future<http.Response> get({ required String url, required BuildContext context }){
+    
+    print('get url: '+ url);
 
     return http.get(
       Uri.parse(url),
@@ -94,8 +96,6 @@ class ApiProvider with ChangeNotifier{
     ).then((response){
 
       handleApiResponseFail(response: response, context: context);
-
-      print(response.statusCode);
 
       return response;
       
@@ -109,8 +109,9 @@ class ApiProvider with ChangeNotifier{
   }
 
   Future<http.Response> post({ required String url, body: const {}, required BuildContext context }) {
-    print('post url');
-    print(url);
+    
+    print('post url: '+ url);
+
     return http.post(
       Uri.parse(url),
       body: jsonEncode(body),
@@ -135,6 +136,8 @@ class ApiProvider with ChangeNotifier{
   }
 
   Future<http.Response> put({ url, body: const {}, required BuildContext context }) {
+    
+    print('put url: '+ url);
 
     return http.put(
       Uri.parse(url),
@@ -159,6 +162,9 @@ class ApiProvider with ChangeNotifier{
   }
 
   Future<http.Response> patch({ url, body: const {}, required BuildContext context }) {
+    
+    print('patch url: '+ url);
+
     return http.patch(
       Uri.parse(url),
       body: jsonEncode(body),
@@ -182,6 +188,9 @@ class ApiProvider with ChangeNotifier{
   }
 
   Future<http.Response> delete({ url, body: const {}, required BuildContext context }) {
+    
+    print('delete url: '+ url);
+
     return http.delete(
       Uri.parse(url),
       body: jsonEncode(body),
@@ -211,17 +220,22 @@ class ApiProvider with ChangeNotifier{
 
       final responseBody = jsonDecode(response.body);
 
+      var devContent = responseBody['message'];
+      var title = responseBody['error'];
       var showingDevContent = false;
 
       //  If this is a validation error
       if( response.statusCode == 422 ){
+        
         showingDevContent = true;
+        devContent = _getServerValidationErrorsAsWidget(response);
+
       }
 
       showAlertDialog(
         context: context,
-        title: responseBody['error'],
-        devContent: responseBody['message'],
+        title: title,
+        devContent: devContent,
         showingDevContent: showingDevContent,
         content: 'Sorry, something went wrong on our side',
       );
@@ -229,6 +243,39 @@ class ApiProvider with ChangeNotifier{
     }
 
   }
+    
+    Widget _getServerValidationErrorsAsWidget(http.Response response){
+
+      final serverErrors = {};
+
+      final responseBody = jsonDecode(response.body);
+
+      final Map validationErrors = responseBody['errors'];
+      
+      validationErrors.forEach((key, value){
+        serverErrors[key] = value[0];
+      });
+
+      return Column(
+        children: [
+          SizedBox(height: 10,),
+          ...serverErrors.values.map((value){
+            return Column(
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.error_outline_sharp, color: Colors.red, size: 12,),
+                    SizedBox(width: 5),
+                    Flexible(child: Text(value, style: TextStyle(fontSize: 12, color: Colors.red),))
+                  ],
+                ),
+                SizedBox(height: 10,),
+              ],
+            );
+          }).toList()
+        ]
+      );
+    }
 
   void handleApiFail(Object error, BuildContext context){
 
@@ -246,7 +293,7 @@ class ApiProvider with ChangeNotifier{
       });
   }
 
-  void showAlertDialog({ required String title, required String content, required String devContent, bool showingDevContent = false, required BuildContext context }){
+  void showAlertDialog({ required String title, required String content, required devContent, bool showingDevContent = false, required BuildContext context }){
 
     showDialog(context: context, builder: (ctx){
 
@@ -258,7 +305,7 @@ class ApiProvider with ChangeNotifier{
               content: Wrap(
                 children: [
                   Divider(height: 10),
-                  if(showingDevContent == true) Text(devContent, style: TextStyle(fontSize: 12)),
+                  if(showingDevContent == true) (devContent is String ? Text(devContent, style: TextStyle(fontSize: 12)) : devContent),
                   if(showingDevContent == false) Text(content, style: TextStyle(fontSize: 12)),
                   Divider(height: 10),
                 ],
@@ -267,7 +314,6 @@ class ApiProvider with ChangeNotifier{
                 ElevatedButton(
                   onPressed: (){
                     setState((){
-                      print(showingDevContent);
                       showingDevContent = !showingDevContent;
                     });
                   },
@@ -302,10 +348,6 @@ class ApiProvider with ChangeNotifier{
   String get getRegisterUrl {
     return _registerUrl;
   }
-
-  String get getRegisterValidationUrl {
-    return _registerValidationUrl;
-  }
   
   String get getGenerateMobileVerificationCodeUrl {
     return _generateMobileVerificationCodeUrl;
@@ -322,6 +364,13 @@ class ApiProvider with ChangeNotifier{
   String get getAccountExistsUrl {
     return _accountExistsUrl;
   }
+  
+  String get getResetPasswordUrl{
+    return _resetPasswordUrl;
+  }
+
+
+  
   
   String get getMainShortcode {
     return _mainShortcode;

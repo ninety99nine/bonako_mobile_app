@@ -65,8 +65,8 @@ class User {
         required this.id,
         required this.firstName,
         required this.lastName,
-        required this.email,
         required this.mobileNumber,
+        required this.acceptedTermsAndConditions,
         required this.createdAt,
         required this.updatedAt,
         required this.attributes,
@@ -77,8 +77,8 @@ class User {
     final int id;
     final String firstName;
     final String lastName;
-    final dynamic email;
     final MobileNumber mobileNumber;
+    final BooleanStatus acceptedTermsAndConditions;
     final DateTime createdAt;
     final DateTime updatedAt;
     final Attributes attributes;
@@ -89,8 +89,8 @@ class User {
         id: json["id"],
         firstName: json["first_name"],
         lastName: json["last_name"],
-        email: json["email"],
         mobileNumber: MobileNumber.fromJson(json["mobile_number"]),
+        acceptedTermsAndConditions: BooleanStatus.fromJson(json["accepted_terms_and_conditions"]),
         createdAt: DateTime.parse(json["created_at"]),
         updatedAt: DateTime.parse(json["updated_at"]),
         attributes: Attributes.fromJson(json["_attributes"]),
@@ -102,8 +102,8 @@ class User {
         "id": id,
         "first_name": firstName,
         "last_name": lastName,
-        "email": email,
         "mobile_number": mobileNumber.toJson(),
+        "accepted_terms_and_conditions": acceptedTermsAndConditions,
         "created_at": createdAt.toIso8601String(),
         "updated_at": updatedAt.toIso8601String(),
         "_attributes": attributes.toJson(),
@@ -128,6 +128,30 @@ class Attributes {
     };
 }
 
+class BooleanStatus {
+    BooleanStatus({
+        required this.name,
+        required this.status,
+        required this.description,
+    });
+
+    final bool status;
+    final String name;
+    final String description;
+
+    factory BooleanStatus.fromJson(Map<String, dynamic> json) => BooleanStatus(
+        name: json["name"],
+        status: json["status"],
+        description: json["description"],
+    );
+
+    Map<String, dynamic> toJson() => {
+        "name": name,
+        "status": status,
+        "description": description,
+    };
+}
+
 class UserLinks {
     UserLinks({
         required this.curies,
@@ -138,6 +162,7 @@ class UserLinks {
         required this.bosFavouriteStores,
         required this.bosSharedStores,
         required this.bosCreatedStores,
+        required this.bosAcceptTermsAndConditions,
     });
 
     final List<Cury> curies;
@@ -148,6 +173,7 @@ class UserLinks {
     final ResourceLink bosFavouriteStores;
     final ResourceLink bosSharedStores;
     final ResourceLink bosCreatedStores;
+    final ResourceLink bosAcceptTermsAndConditions;
 
     factory UserLinks.fromJson(Map<String, dynamic> json) => UserLinks(
         curies: List<Cury>.from(json["curies"].map((x) => Cury.fromJson(x))),
@@ -158,6 +184,7 @@ class UserLinks {
         bosFavouriteStores: ResourceLink.fromJson(json["bos:favourite-stores"]),
         bosSharedStores: ResourceLink.fromJson(json["bos:shared-stores"]),
         bosCreatedStores: ResourceLink.fromJson(json["bos:created-stores"]),
+        bosAcceptTermsAndConditions: ResourceLink.fromJson(json["bos:accept-terms-and-conditions"]),
     );
 
     Map<String, dynamic> toJson() => {
@@ -169,6 +196,7 @@ class UserLinks {
         "bos:favourite-stores": bosFavouriteStores.toJson(),
         "bos:shared-stores": bosSharedStores.toJson(),
         "bos:created-stores": bosCreatedStores.toJson(),
+        "bos:accept-terms-and-conditions": bosAcceptTermsAndConditions.toJson(),
     };
 }
 

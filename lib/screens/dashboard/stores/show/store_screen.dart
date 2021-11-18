@@ -1,4 +1,5 @@
 import 'package:bonako_mobile_app/providers/products.dart';
+import 'package:bonako_mobile_app/screens/dashboard/orders/verify/order_options_screen.dart';
 import 'package:bonako_mobile_app/screens/dashboard/stores/show/settings/settings.dart';
 
 import './.././../../../../components/custom_rounded_refresh_button.dart';
@@ -497,7 +498,7 @@ class StoreMenus extends StatelessWidget {
         },
         'count': 15,
         'onPressed': () async {
-          await Get.to(() => OrdersScreen());
+          await Get.to(() => OrderOptionsScreen());
           fetchLocationTotals();
         }, 
       },

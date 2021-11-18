@@ -5,20 +5,24 @@ class AuthHeading extends StatelessWidget {
   
   final String text;
   final double fontSize;
+  final double bottomMargin;
 
-  AuthHeading({ required this.text, this.fontSize = 50 });
+  AuthHeading({ required this.text, this.fontSize = 50, this.bottomMargin = 0.0 });
 
   @override
   Widget build(BuildContext context) {
-    return AuthDivider(
-      text: Text(
-        text,
-        style: TextStyle(
-          fontSize: fontSize, 
-          color: Colors.blue,
-          fontWeight: FontWeight.bold, 
-        ),
-      )
+    return Container(
+      margin: EdgeInsets.only(bottom: bottomMargin),
+      child: AuthDivider(
+        text: Text(
+          text,
+          style: TextStyle(
+            fontSize: fontSize, 
+            color: Colors.blue,
+            fontWeight: FontWeight.bold, 
+          ),
+        )
+      ),
     );
   }
 }
