@@ -4,10 +4,12 @@ import 'package:get/get.dart';
 
 class CustomBackButton extends StatelessWidget {
 
+  final text;
   final arguments;
   final Function? fallback;
+  final Function? onOveride;
 
-  CustomBackButton({ this.fallback, this.arguments });
+  CustomBackButton({ this.text = 'Back', this.onOveride, this.fallback, this.arguments });
 
   @override
   Widget build(BuildContext context) {
@@ -16,20 +18,39 @@ class CustomBackButton extends StatelessWidget {
         alignment: Alignment.centerLeft,
         child: TextButton(
           onPressed: () {
+
+            //  If we don't want to overide the default function
+            if( onOveride == null ){
             
-            //  If we can go back to the previous screen
-            if( Navigator.canPop(context) ){
+              //  If we can go back to the previous screen
+              if( Navigator.canPop(context) ){
 
-              //  If we have any arguments, then return the arguments when popping the screen
-              Get.back(result: arguments);
+                print('Can go back');
 
-            }else{
+                //  If we have any arguments, then return the arguments when popping the screen
+                Get.back(result: arguments);
 
-              if(fallback != null){
-              
-                fallback!();
+
+              //  If we cannot fo back to the previous screen
+              }else{
+
+                print('Cannot go back');
+
+                //  If we have a fallback function
+                if(fallback != null){
+                
+                  //  Execute the fallback function
+                  fallback!();
+
+                }
 
               }
+
+            //  If we want to overide the default function
+            }else{
+              
+              //  Execute the overide function
+              onOveride!();
 
             }
           }, 
@@ -38,7 +59,7 @@ class CustomBackButton extends StatelessWidget {
               Icon(Icons.arrow_back, color: Colors.black,),
               SizedBox(width: 10),
               Text(
-                'Back',
+                text,
                 style: Theme.of(context).textTheme.headline6,  
               ),
             ],

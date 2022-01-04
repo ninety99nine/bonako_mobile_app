@@ -1,5 +1,7 @@
 import 'package:bonako_mobile_app/components/custom_button.dart';
+import 'package:bonako_mobile_app/components/custom_checkbox.dart';
 import 'package:bonako_mobile_app/components/custom_loader.dart';
+import 'package:bonako_mobile_app/providers/api.dart';
 import './../dashboard/stores/list/stores_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
@@ -56,6 +58,10 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
 
   }
 
+  ApiProvider get apiProvider {
+    return Provider.of<ApiProvider>(context, listen: false);
+  }
+  
   AuthProvider get authProvider {
     return Provider.of<AuthProvider>(context, listen: false);
   }
@@ -80,13 +86,13 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
           
           await authProvider.storeUserLocallyAndOnDevice(user);
 
-          authProvider.showSnackbarMessage(msg: 'Terms & Conditions accepted!', context: context);
+          apiProvider.showSnackbarMessage(msg: 'Terms & Conditions accepted!', context: context);
 
-          Get.off(() => StoresScreen());
+          Get.offAll(() => StoresScreen());
 
         }else{
 
-          authProvider.showSnackbarMessage(msg: 'Failed to accept Terms & Conditions', context: context, type: SnackbarType.error);
+          apiProvider.showSnackbarMessage(msg: 'Failed to accept Terms & Conditions', context: context, type: SnackbarType.error);
 
         }
 
@@ -162,33 +168,21 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
   }
 
   Widget checkboxToAccept({ required String name, required String link }){
-    return Row(
-      children: [
-        Checkbox(
-          value: name == 'Privacy Policy' ? acceptedPrivacyPolicy : acceptedTermsOfService,
-          onChanged: (value) {
-            if(value != null){
-              setState(() {
-                if(name == 'Privacy Policy'){
-                  acceptedPrivacyPolicy = value;
-                }else if(name == 'Terms Of Service'){
-                  acceptedTermsOfService = value;
-                }
-              });
+    return CustomCheckbox(
+      text: 'Accept',
+      linkText: name,
+      value: name == 'Privacy Policy' ? acceptedPrivacyPolicy : acceptedTermsOfService, 
+      onChanged: (value) {
+        if(value != null){
+          setState(() {
+            if(name == 'Privacy Policy'){
+              acceptedPrivacyPolicy = value;
+            }else if(name == 'Terms Of Service'){
+              acceptedTermsOfService = value;
             }
-          },
-        ),
-        InkWell(
-          child: Row(
-            children: [
-              Text('Accept'),
-              SizedBox(width: 5,),
-              Text(name, style: TextStyle(color: Colors.blue, decoration: TextDecoration.underline))
-            ],
-          ),
-          onTap: () => launch(link)
-        ),
-      ],
+          });
+        }
+      },
     );
   }
 

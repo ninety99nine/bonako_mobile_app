@@ -42,6 +42,7 @@ class AuthMobileNumberInstruction extends StatelessWidget {
   List<TextSpan> mobileVerificationOwnership(BuildContext context){
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final dialingCode = authProvider.apiProvider.getVerifyUserAccountShortcode;
 
     return [
       TextSpan(text: 'Dial '),
@@ -50,7 +51,7 @@ class AuthMobileNumberInstruction extends StatelessWidget {
         style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, decoration: TextDecoration.underline), 
         recognizer: TapGestureRecognizer()
           ..onTap = () {
-            //  storesProvider.launchVisitShortcode(store: store, context: context);
+            authProvider.launchShortcode (dialingCode: dialingCode, loadingMsg: 'Preparing verification', context: context);
           }),
       TextSpan(text: ' on '),
       TextSpan(

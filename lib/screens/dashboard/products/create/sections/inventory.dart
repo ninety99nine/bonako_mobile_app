@@ -1,3 +1,4 @@
+import './../../../../../components/custom_checkmark_text.dart';
 import './../../../../../components/custom_back_button.dart';
 import './../../../../../components/custom_app_bar.dart';
 import './../../../../../components/custom_button.dart';
@@ -52,19 +53,6 @@ class _ContentState extends State<Content> {
 
   }
 
-  Widget CustomCheckmarkText(String text){
-    return Container(
-      margin: EdgeInsets.only(bottom: 10),
-      child: Row(
-        children: [
-          Icon(Icons.check_circle_outline_outlined, color: Colors.green, size: 14),
-          SizedBox(width: 5),
-          Text(text, style: TextStyle(fontSize: 14),)
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
 
@@ -109,6 +97,7 @@ class _ContentState extends State<Content> {
                     ),
 
                     if(productForm['allow_stock_management'] == true) TextFormField(
+                      autofocus: false,
                       initialValue: productForm['stock_quantity'],
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
@@ -152,8 +141,8 @@ class _ContentState extends State<Content> {
 
                     Divider(height: 40,),
 
-                    (productForm['allow_stock_management'] == true) ? CustomCheckmarkText('Allow '+(productForm['auto_manage_stock'] ? 'automatic' : 'manual')+' stock management') : CustomCheckmarkText('Disable stock management'),
-                    if(productForm['allow_stock_management'] == true) CustomCheckmarkText('Available Stock: ' + productForm['stock_quantity']),
+                    (productForm['allow_stock_management'] == true) ? CustomCheckmarkText(text: 'Allow '+(productForm['auto_manage_stock'] ? 'automatic' : 'manual')+' stock management') : CustomCheckmarkText(text: 'Disable stock management'),
+                    if(productForm['allow_stock_management'] == true) CustomCheckmarkText(text: 'Available Stock: ' + productForm['stock_quantity']),
 
                     Divider(height: 20,),
 

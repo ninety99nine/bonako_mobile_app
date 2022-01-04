@@ -4,8 +4,9 @@ class CustomCheckmarkText extends StatelessWidget {
 
   final String text;
   final String state;
+  final EdgeInsets margin;
 
-  CustomCheckmarkText({ this.text = '', this.state = 'success' });
+  CustomCheckmarkText({ this.text = '', this.state = 'success', this.margin = const EdgeInsets.only(bottom: 5) });
 
   IconData get icon {
     if(state == 'warning'){
@@ -26,12 +27,12 @@ class CustomCheckmarkText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(bottom: 5),
+      margin: margin,
       child: Row(
         children: [
           Icon(icon, color: iconColor, size: 12),
           SizedBox(width: 5),
-          Text(text, style: TextStyle(fontSize: 12),)
+          Flexible(child: Text(text, style: TextStyle(fontSize: 12),))
         ],
       ),
     );

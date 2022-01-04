@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:bonako_mobile_app/enum/enum.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,9 +17,9 @@ class OrdersProvider with ChangeNotifier{
 
   OrdersProvider({ required this.locationsProvider });
   
-  Future<http.Response> fetchOrders({ String searchWord: '', int page = 1, int limit: 10, required BuildContext context }) async {
+  Future<http.Response> fetchOrders({ String? alternativeUrl, String searchWord: '', int page = 1, int limit: 10, required BuildContext context }) async {
 
-    var url = ordersUrl+'?page='+page.toString()+'&limit='+limit.toString()+(searchWord == '' ? '':  '&search='+searchWord);
+    var url = (alternativeUrl == null ? ordersUrl : alternativeUrl)+'?page='+page.toString()+'&limit='+limit.toString()+(searchWord == '' ? '':  '&search='+searchWord);
     
     await SharedPreferences.getInstance().then((prefs) async {
 
@@ -61,7 +62,37 @@ class OrdersProvider with ChangeNotifier{
       'delivery_confirmation_code': deliveryConfirmationCode
     };
 
-    return apiProvider.post(url: verifyOrderDeliveryConfirmationCodeUrl, body: data, context: context);
+    return apiProvider.post(url: verifyOrderDeliveryConfirmationCodeUrl, body: data, context: context)
+      .then((response){
+
+          if( response.statusCode == 200){
+    
+            final responseBody = jsonDecode(response.body);
+            final bool isValid = responseBody['is_valid'];
+            final Map<String, dynamic> jsonOrder = responseBody['order'] ?? {};
+
+            if( isValid && jsonOrder.isNotEmpty ){
+
+              apiProvider.showSnackbarMessage(msg: 'Valid delivery code', context: context);
+
+            }else{
+
+              apiProvider.showSnackbarMessage(msg: 'Invalid delivery code', context: context, type: SnackbarType.error);
+
+            }
+
+          }
+
+        return response;
+
+      })
+      .onError((error, stackTrace){
+        
+        apiProvider.showSnackbarMessage(msg: 'Failed to verify delivery code', context: context, type: SnackbarType.error);
+
+        throw(stackTrace);
+        
+      });
     
   }
 
@@ -90,11 +121,11 @@ class OrdersProvider with ChangeNotifier{
   }
 
   String get ordersUrl {
-    return locationsProvider.getLocation.links.bosOrders.href;
+    return locationsProvider.getLocation.links.bosOrders.href!;
   }
 
   String get orderDeliverUrl {
-    return (order as Order).links.bosDeliver.href;
+    return (order as Order).links.bosDeliver.href!;
   }
 
   void setOrder(Order order){

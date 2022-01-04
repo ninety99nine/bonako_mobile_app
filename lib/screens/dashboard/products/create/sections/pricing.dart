@@ -118,6 +118,7 @@ class _ContentState extends State<Content> {
                     SizedBox(height: 10),
               
                     if(productForm['is_free'] == false) TextFormField(
+                      autofocus: false,
                       controller: unitRegularPriceController,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
@@ -144,6 +145,7 @@ class _ContentState extends State<Content> {
                     if(productForm['is_free'] == false) SizedBox(height: 10),
               
                     if(productForm['is_free'] == false) TextFormField(
+                      autofocus: false,
                       controller: unitSalePriceController,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
@@ -170,6 +172,7 @@ class _ContentState extends State<Content> {
                     if(productForm['is_free'] == false) SizedBox(height: 10),
               
                     if(productForm['is_free'] == false) TextFormField(
+                      autofocus: false,
                       controller: unitCostPriceController,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(

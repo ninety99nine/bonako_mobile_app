@@ -1,4 +1,6 @@
 import 'package:bonako_mobile_app/components/custom_checkmark_text.dart';
+import 'package:bonako_mobile_app/enum/enum.dart';
+import 'package:bonako_mobile_app/providers/api.dart';
 import 'package:bonako_mobile_app/screens/dashboard/products/create/sections/variations/variations.dart';
 import 'package:bonako_mobile_app/screens/dashboard/products/create/sections/visibility.dart';
 
@@ -76,6 +78,10 @@ class _ContentState extends State<Content> {
   List locationIds = [];
 
   Map serverErrors = {};
+
+  ApiProvider get apiProvider {
+    return Provider.of<ApiProvider>(context, listen: false);
+  }
 
   ProductsProvider get productsProvider {
     return Provider.of<ProductsProvider>(context, listen: false);
@@ -165,12 +171,6 @@ class _ContentState extends State<Content> {
           context: context
         ).then((response){
 
-          if( response.statusCode == 200 ){
-
-            showSnackbarMessage('Product saved successfully');
-
-          }
-
           _handleOnSubmitResponse(response);
 
         }).whenComplete((){
@@ -186,12 +186,6 @@ class _ContentState extends State<Content> {
           context: context
         ).then((response){
 
-          if( response.statusCode == 200 ){
-          
-            showSnackbarMessage('Product created successfully');
-
-          }
-
           _handleOnSubmitResponse(response);
 
         }).whenComplete((){
@@ -205,7 +199,15 @@ class _ContentState extends State<Content> {
     //  If validation failed
     }else{
 
-      showSnackbarMessage(isEditing ? 'Sorry, you cannot update product yet' : 'Sorry, you cannot create product yet');
+      if( isEditing ){
+
+        apiProvider.showSnackbarMessage(msg: 'Sorry, you cannot update product yet', context: context, type: SnackbarType.error);
+
+      }else{
+
+        apiProvider.showSnackbarMessage(msg: 'Sorry, you cannot create product yet', context: context, type: SnackbarType.error);
+
+      }
 
     }
 
@@ -225,16 +227,6 @@ class _ContentState extends State<Content> {
       Get.back(result: 'submitted');
 
     }
-
-  }
-
-  void showSnackbarMessage(String msg){
-
-    //  Set snackbar content
-    final snackBar = SnackBar(content: Text(msg, textAlign: TextAlign.center));
-
-    //  Show snackbar  
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
 
   }
 
@@ -451,21 +443,21 @@ class _ContentState extends State<Content> {
                 'productForm': productForm,
                 'serverErrors': serverErrors,
               };
-
-              print('arguments');
-              print(arguments);
                     
               //  Navigate to the screen specified to collect additional product form data
-              var updatedProductForm = await Get.to(() => screen, arguments: arguments);
+              var result = await Get.to(() => screen, arguments: arguments);
 
-              if( updatedProductForm != null ){
+              if( result == 'deleted'){
 
-                print('updatedProductForm');
-                print(updatedProductForm);
+                Get.back();
+
+              }else if( result != null ){
                 
                 setState(() {
+
                   //  Update the product form on return
-                  productForm = updatedProductForm;
+                  productForm = result;
+
                 });
 
               }
@@ -539,6 +531,7 @@ class _ContentState extends State<Content> {
             SizedBox(height: 40),
       
             TextFormField(
+              autofocus: false,
               initialValue: productForm['name'],
               keyboardType: TextInputType.text,
               decoration: InputDecoration(
@@ -579,6 +572,7 @@ class _ContentState extends State<Content> {
             ),
       
             if(productForm['show_description']) TextFormField(
+              autofocus: false,
               initialValue: productForm['description'],
               keyboardType: TextInputType.multiline,
               minLines: 2,
@@ -683,8 +677,7 @@ class _ContentState extends State<Content> {
                 child: Column(
                   children: [
                     (productForm['allow_stock_management'] == true) ? CustomCheckmarkText(text: 'Allow '+(productForm['auto_manage_stock'] ? 'automatic' : 'manual')+' stock management') : CustomCheckmarkText(text: 'Disable stock management'),
-                    if(productForm['allow_stock_management'] == true) CustomCheckmarkText(text: 'Available Stock: ' + productForm['stock_quantity']),
-                    if(productForm['allow_multiple_quantity_per_order'] == true && productForm['allow_maximum_quantity_per_order'] == true) CustomCheckmarkText(text: 'Allow between 1 and '+productForm['maximum_quantity_per_order']+' quantities per order')
+                    if(productForm['allow_stock_management'] == true) CustomCheckmarkText(text: 'Available Stock: ' + productForm['stock_quantity'])
                   ],
                 ),
               )
@@ -756,7 +749,7 @@ class _ContentState extends State<Content> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomBackButton(fallback: (){
-                Get.off(() => ProductsScreen());
+                Get.offAll(() => ProductsScreen());
               }),
               CustomRoundedRefreshButton(onPressed: (){}),
             ],

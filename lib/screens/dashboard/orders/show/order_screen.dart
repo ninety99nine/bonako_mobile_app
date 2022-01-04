@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:bonako_mobile_app/components/custom_button.dart';
 import 'package:bonako_mobile_app/components/custom_loader.dart';
 import 'package:bonako_mobile_app/enum/enum.dart';
+import 'package:bonako_mobile_app/providers/api.dart';
 import 'package:bonako_mobile_app/providers/auth.dart';
 import 'package:bonako_mobile_app/screens/auth/components/mobile_verification.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -51,7 +52,7 @@ class Content extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomBackButton(fallback: (){
-                Get.off(() => OrdersScreen());
+                Get.offAll(() => OrdersScreen());
               }),
               CustomRoundedRefreshButton(onPressed: (){}),
             ],
@@ -142,12 +143,12 @@ class OrderCard extends StatelessWidget {
             ),
             SizedBox(height: 10),
             //  Date
-            Row(
+            if(order.createdAt != null) Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Icon(Icons.watch_later_outlined, color: Colors.grey, size: 14,),
                 SizedBox(width: 5),
-                Text(DateFormat("MMM d y @ HH:mm").format(order.createdAt), style: TextStyle(fontSize: 14),),
+                Text(DateFormat("MMM d y @ HH:mm").format(order.createdAt!), style: TextStyle(fontSize: 14),),
               ]
             ),
             SizedBox(height: 10),
@@ -288,7 +289,7 @@ class OrderCouponsCard extends StatelessWidget {
       return ListTile(
         contentPadding: EdgeInsets.only(top: 0, left: 0, right: 0, bottom: 10),
         title: Text(couponLine.name),
-        subtitle: Text(couponLine.description),
+        subtitle: Text(couponLine.description ?? ''),
       );
     }).toList();
   }
@@ -391,6 +392,10 @@ class _ConfirmDeliveryByDeliveryCodeState extends State<ConfirmDeliveryByDeliver
     });
   }
 
+  ApiProvider get apiProvider {
+    return Provider.of<ApiProvider>(context, listen: false);
+  }
+
   AuthProvider get authProvider {
     return Provider.of<AuthProvider>(context, listen: false);
   }
@@ -418,7 +423,7 @@ class _ConfirmDeliveryByDeliveryCodeState extends State<ConfirmDeliveryByDeliver
 
     }else{
 
-      authProvider.showSnackbarMessage(msg: 'Invalid delivery code', context: context, type: SnackbarType.error);
+      apiProvider.showSnackbarMessage(msg: 'Invalid delivery code', context: context, type: SnackbarType.error);
 
     }
 
@@ -438,13 +443,13 @@ class _ConfirmDeliveryByDeliveryCodeState extends State<ConfirmDeliveryByDeliver
         //  If this is a successful request
         if( response.statusCode == 200){
 
-            authProvider.showSnackbarMessage(msg: 'Order accepted as delivered!', context: context);
+            apiProvider.showSnackbarMessage(msg: 'Order accepted as delivered!', context: context);
 
             Get.back(result: 'accepted');
 
         }else if(response.statusCode == 422){
 
-          authProvider.showSnackbarMessage(msg: 'Could not accept as delivered', context: context, type: SnackbarType.error);
+          apiProvider.showSnackbarMessage(msg: 'Could not accept as delivered', context: context, type: SnackbarType.error);
 
           _handleValidationErrors(response);
           
@@ -590,6 +595,10 @@ class _ConfirmDeliveryByMobileVerificationState extends State<ConfirmDeliveryByM
     });
   }
 
+  ApiProvider get apiProvider {
+    return Provider.of<ApiProvider>(context, listen: false);
+  }
+
   AuthProvider get authProvider {
     return Provider.of<AuthProvider>(context, listen: false);
   }
@@ -618,13 +627,13 @@ class _ConfirmDeliveryByMobileVerificationState extends State<ConfirmDeliveryByM
         //  If this is a successful request
         if( response.statusCode == 200){
 
-            authProvider.showSnackbarMessage(msg: 'Order accepted as delivered!', context: context);
+            apiProvider.showSnackbarMessage(msg: 'Order accepted as delivered!', context: context);
 
             Get.back(result: 'accepted');
 
         }else if(response.statusCode == 422){
 
-          authProvider.showSnackbarMessage(msg: 'Could not accept as delivered', context: context, type: SnackbarType.error);
+          apiProvider.showSnackbarMessage(msg: 'Could not accept as delivered', context: context, type: SnackbarType.error);
 
           _handleValidationErrors(response);
           

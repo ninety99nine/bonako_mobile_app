@@ -1,3 +1,7 @@
+import 'package:bonako_mobile_app/components/custom_proceed_card.dart';
+import 'package:bonako_mobile_app/enum/enum.dart';
+import 'package:bonako_mobile_app/providers/api.dart';
+import 'package:bonako_mobile_app/screens/dashboard/locations/list/locations_screen.dart';
 import 'package:bonako_mobile_app/screens/dashboard/stores/list/stores_screen.dart';
 import 'package:bonako_mobile_app/screens/dashboard/stores/show/store_screen.dart';
 import 'package:bonako_mobile_app/components/custom_floating_action_button.dart';
@@ -69,6 +73,10 @@ class _ContentState extends State<Content> {
   
   }
 
+  ApiProvider get apiProvider {
+    return Provider.of<ApiProvider>(context, listen: false);
+  }
+
   void _setStoreForm(){
 
     Store store = storesProvider.getStore;
@@ -121,7 +129,7 @@ class _ContentState extends State<Content> {
       //  If validation failed
       }else{
 
-        storesProvider.showSnackbarMessage(msg: 'Validation failed', context: context);
+        apiProvider.showSnackbarMessage(msg: 'Check for mistakes', context: context, type: SnackbarType.error);
 
       }
 
@@ -138,8 +146,6 @@ class _ContentState extends State<Content> {
     //  If this is a validation error
     if(response.statusCode == 422){
 
-      storesProvider.showSnackbarMessage(msg: 'Validation failed', context: context);
-
       _handleValidationErrors(response);
     
     //  If updated successfully
@@ -150,8 +156,6 @@ class _ContentState extends State<Content> {
       storesProvider.setStore(Store.fromJson(store));
 
       _setStoreForm();
-
-      storesProvider.showSnackbarMessage(msg: 'Store updated successfully', context: context);
 
     }
 
@@ -213,6 +217,7 @@ class _ContentState extends State<Content> {
                         children: <Widget>[
 
                           TextFormField(
+                            autofocus: false,
                             initialValue: storeForm['name'],
                             keyboardType: TextInputType.text,
                             decoration: InputDecoration(
@@ -265,6 +270,17 @@ class _ContentState extends State<Content> {
                           ),
                           Divider(height: 20),
 
+                          //  Proceed to orders
+                          CustomProceedCard(
+                            title: 'Locations',
+                            subtitle: 'Manage store locations',
+                            svgIcon: 'assets/icons/ecommerce_pack_1/pin-1.svg',
+                            onTap: () async {
+                              await Get.to(() => LocationsScreen());
+                            }
+                          ),
+                          Divider(height: 20),
+
                           if(storeFormHasChanged) CustomButton(
                             text: 'Save',
                             isLoading: isSubmitting,
@@ -279,10 +295,15 @@ class _ContentState extends State<Content> {
                               Provider.of<StoresProvider>(context, listen: false).handleDeleteStore(
                                 store: store,
                                 context: context
-                              ).whenComplete((){
+                              ).then((result){
 
-                                //  Return to the stores
-                                Get.off(() => StoresScreen());
+                                //  If we did not return a value of False
+                                if( result != false ){
+
+                                  //  Return to the stores since the store is deleted
+                                  Get.off(() => StoresScreen());
+
+                                }
 
                               });
                             },

@@ -1,3 +1,7 @@
+import 'package:bonako_mobile_app/models/customers.dart';
+import 'package:bonako_mobile_app/providers/customers.dart';
+import 'package:bonako_mobile_app/screens/dashboard/users/show/components/userProfileSummary.dart';
+
 import './../../../../screens/dashboard/orders/show/order_screen.dart';
 import './../../../../screens/dashboard/stores/show/store_screen.dart';
 import './../../../../components/custom_rounded_refresh_button.dart';
@@ -50,6 +54,18 @@ class _OrdersScreenState extends State<OrdersScreen> {
     }
   }
 
+  CustomersProvider get customerProvider {
+    return Provider.of<CustomersProvider>(context, listen: false);
+  }
+
+  bool get hasCustomer {
+    return customerProvider.hasCustomer;
+  }
+
+  Customer get customer {
+    return customerProvider.getCustomer;
+  }
+
   @override
   void initState() {
     
@@ -95,7 +111,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
     final ordersProvider = Provider.of<OrdersProvider>(context, listen: false);
 
-    final apiInstance = (ordersProvider.fetchOrders(searchWord: searchWord, page: page, limit: limit, context: context));
+    //  Set the customer orders url (If we have a customer set)
+    final customerOrdersUrl = hasCustomer ? customer.links.bosOrders.href: null;
+
+    final apiInstance = (ordersProvider.fetchOrders(alternativeUrl: customerOrdersUrl, searchWord: searchWord, page: page, limit: limit, context: context));
 
     cancellableOperation = CancelableOperation.fromFuture (
       apiInstance,
@@ -220,6 +239,18 @@ class _ContentState extends State<Content> {
         isSearching = false;
       });
     }
+  }
+
+  CustomersProvider get customerProvider {
+    return Provider.of<CustomersProvider>(context, listen: false);
+  }
+
+  bool get hasCustomer {
+    return customerProvider.hasCustomer;
+  }
+
+  Customer get customer {
+    return customerProvider.getCustomer;
   }
 
   @override
@@ -548,7 +579,7 @@ class _ContentState extends State<Content> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomBackButton(fallback: (){
-                Get.off(() => ShowStoreScreen());
+                Get.offAll(() => ShowStoreScreen());
               }),
               CustomRoundedRefreshButton(onPressed: (){
                 
@@ -580,6 +611,9 @@ class _ContentState extends State<Content> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+
+                  if(hasCustomer) UserProfileSummary(user: customer.embedded.user),
+                  if(hasCustomer) Divider(),
           
                   if(hasOrders || isSearching || searchWord != '') Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -871,6 +905,16 @@ class OrderCard extends StatelessWidget {
 
   OrderCard({ required this.order, required this.searchWord, required this.fetchOrders });
 
+  Widget separator({ width: 5.0 }){
+    return Row(
+      children: [
+        SizedBox(width: width),
+        Text('|', style: TextStyle(fontSize: 14, color: Colors.grey),),
+        SizedBox(width: width),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -881,74 +925,97 @@ class OrderCard extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    SizedBox(height: 10),
-                    //  Order # & Customer name
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('#'+order.number, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
-                        SizedBox(width: 10),
-                        Text(order.embedded.customer.embedded.user.attributes.name)
-                      ]
-                    ),
-                    SizedBox(height: 10),
-                    //  Date
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Icon(Icons.watch_later_outlined, color: Colors.grey, size: 14,),
-                        SizedBox(width: 5),
-                        Text(DateFormat("MMM d y @ HH:mm").format(order.createdAt), style: TextStyle(fontSize: 14),),
-                      ]
-                    ),
-                    SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Text(order.embedded.paymentStatus.name, style: TextStyle(fontSize: 14, color: (order.embedded.paymentStatus.name == 'Paid' ? Colors.green: Colors.grey))),
-                        SizedBox(width: 10),
-                        Text(order.embedded.deliveryStatus.name, style: TextStyle(fontSize: 14, color: (order.embedded.deliveryStatus.name == 'Delivered' ? Colors.green: Colors.grey))),
-                        //  Total Items
-                        Container(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              SizedBox(width: 5),
-                              Text('|', style: TextStyle(fontSize: 14, color: Colors.grey),),
-                              SizedBox(width: 5),
-                              Text(order.embedded.activeCart.totalItems.toString(), style: TextStyle(fontSize: 14, color: Colors.grey),),
-                              Text(order.embedded.activeCart.totalItems.toString() == '1' ? ' item' : ' items', style: TextStyle(fontSize: 14, color: Colors.grey),)
-                            ]
-                          ),
+                        SizedBox(height: 10),
+                        //  Order # & Customer name
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text('#'+order.number, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
+                            SizedBox(width: 10),
+                            Container(
+                              width: 140,
+                              child: Text(order.embedded.customer.embedded.user.attributes.name, overflow: TextOverflow.ellipsis,)
+                            )
+                          ]
                         ),
-                      ]
+                        
+                        SizedBox(height: 10),
+
+                        //  Date
+                        if(order.createdAt != null) Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Icon(Icons.watch_later_outlined, color: Colors.grey, size: 14,),
+                            SizedBox(width: 5),
+                            Text(DateFormat("MMM d y @ HH:mm").format(order.createdAt!), style: TextStyle(fontSize: 14),),
+                          ]
+                        ),
+                      ],
+                    ),
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+
+                          //  Grand Total
+                          Container(
+                            width: 85,
+                            child: Text(order.embedded.activeCart.grandTotal.currencyMoney, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis,)
+                          ),
+                                      
+                          //  Forward Arrow 
+                          Padding(
+                            padding: const EdgeInsets.only(right: 10),
+                            child: Icon(Icons.arrow_forward, color: Colors.grey,),
+                          )
+                        ],
+                      ),
                     ),
                   ],
                 ),
+                SizedBox(height: 10),
                 Row(
                   children: [
-              
-                    Text(order.embedded.activeCart.grandTotal.currencyMoney, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
-              
-                    //  Forward Arrow 
-                    TextButton(
-                      onPressed: () => {}, 
-                      child: Icon(Icons.arrow_forward, color: Colors.grey,),
-                      style: ButtonStyle(
-                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20)
-                          )
-                        )
+
+                    //  Payment Status
+                    Text(order.embedded.paymentStatus.name, style: TextStyle(fontSize: 12, color: (order.embedded.paymentStatus.name == 'Paid' ? Colors.green: Colors.grey))),
+                    
+                    separator(),
+                    
+                    //  Delivery Status
+                    Text(order.embedded.deliveryStatus.name, style: TextStyle(fontSize: 12, color: (order.embedded.deliveryStatus.name == 'Delivered' ? Colors.green: Colors.grey))),
+                    
+                    //  Total Items / Coupons
+                    if(order.embedded.activeCart.totalItems > 0 || order.embedded.activeCart.totalCoupons > 0) Container(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+          
+                          separator(),
+          
+                          //  Items
+                          Text(order.embedded.activeCart.totalItems.toString(), style: TextStyle(fontSize: 12, color: Colors.grey),),
+                          Text(order.embedded.activeCart.totalItems.toString() == '1' ? ' item' : ' items', style: TextStyle(fontSize: 12, color: Colors.grey),),
+          
+                          if(order.embedded.activeCart.totalItems > 0 && order.embedded.activeCart.totalCoupons > 0) separator(),
+          
+                          //  Coupons
+                          if(order.embedded.activeCart.totalCoupons > 0) Text(order.embedded.activeCart.totalCoupons.toString(), style: TextStyle(fontSize: 12, color: Colors.grey),),
+                          if(order.embedded.activeCart.totalCoupons > 0) Text(order.embedded.activeCart.totalCoupons.toString() == '1' ? ' coupon' : ' coupons', style: TextStyle(fontSize: 12, color: Colors.grey),)
+                        
+                        ]
                       ),
-                    )
-                  ],
-                )
+                    ),
+                  ]
+                ),
               ],
             ),
           ),

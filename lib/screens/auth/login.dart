@@ -1,5 +1,6 @@
 import 'package:bonako_mobile_app/components/custom_button.dart';
 import 'package:bonako_mobile_app/components/custom_loader.dart';
+import 'package:bonako_mobile_app/providers/api.dart';
 import 'package:bonako_mobile_app/screens/auth/components/auth_input_field.dart';
 import 'package:bonako_mobile_app/screens/auth/components/auth_mobile_number_instruction.dart';
 import 'package:bonako_mobile_app/screens/auth/components/auth_user_account.dart';
@@ -7,10 +8,10 @@ import 'package:bonako_mobile_app/screens/auth/terms_and_conditions.dart';
 
 import './../../screens/auth/components/auth_alternative_link.dart';
 import './../../screens/auth/components/mobile_verification.dart';
-import './../../screens/auth/components/auth_divider.dart';
 import './../../screens/auth/components/auth_heading.dart';
 import './../dashboard/stores/list/stores_screen.dart';
 import './../../components/previous_step_button.dart';
+import './../../components/custom_divider.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -53,6 +54,10 @@ class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey();
 
   LoginStage currLoginStage = LoginStage.enterMobile;
+
+  ApiProvider get apiProvider {
+    return Provider.of<ApiProvider>(context, listen: false);
+  }
 
   AuthProvider get authProvider {
     return Provider.of<AuthProvider>(context, listen: false);
@@ -208,7 +213,7 @@ class _LoginScreenState extends State<LoginScreen> {
         //  If validation failed
         }else{
 
-          authProvider.showSnackbarMessage(msg: 'Check for mistakes', type: SnackbarType.error, context: context);
+          apiProvider.showSnackbarMessage(msg: 'Check for mistakes', type: SnackbarType.error, context: context);
 
           storeLoginDataOnDevice();
 
@@ -307,13 +312,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if( authProvider.hasAcceptedTermsAndConditions ){
       
-        authProvider.showSnackbarMessage(msg: 'Welcome back, '+userAccount['first_name']+'!', context: context);
+        apiProvider.showSnackbarMessage(msg: 'Welcome back, '+userAccount['first_name']+'!', context: context);
 
-        Get.off(() => StoresScreen());
+        Get.offAll(() => StoresScreen());
 
       }else{
 
-        Get.off(() => TermsAndConditionsScreen());
+        Get.offAll(() => TermsAndConditionsScreen());
 
       }
 
@@ -456,7 +461,7 @@ class _LoginScreenState extends State<LoginScreen> {
           
             storeLoginDataOnDevice(reset: true);
 
-            Get.off(() => SignUpScreen(), arguments: {
+            Get.offAll(() => SignUpScreen(), arguments: {
               'mobile_number': loginForm['mobile_number'],
             });
 
@@ -534,7 +539,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if(isLoading == false) _forgotPassword(),
 
-        AuthDivider(),
+        CustomDivider(),
       
         _createAccountLabel(),
 
@@ -556,7 +561,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if(isLoading == false) _forgotPassword(),
 
-        AuthDivider(),
+        CustomDivider(),
       
         _createAccountLabel(),
 
@@ -588,7 +593,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if(isLoading == false) _forgotPassword(),
 
-        AuthDivider(),
+        CustomDivider(),
       
         _createAccountLabel(),
 
@@ -699,7 +704,7 @@ class _LoginScreenState extends State<LoginScreen> {
           //  Reset the login data stored on the device
           storeLoginDataOnDevice(reset: true);
 
-          Get.off(() => PasswordResetScreen(), arguments: {
+          Get.offAll(() => PasswordResetScreen(), arguments: {
             'mobile_number': loginForm['mobile_number'],
           });
 
@@ -829,7 +834,7 @@ class _LoginScreenState extends State<LoginScreen> {
         //  Reset the login data stored on the device
         storeLoginDataOnDevice(reset: true);
 
-        Get.off(() => SignUpScreen(), arguments: {
+        Get.offAll(() => SignUpScreen(), arguments: {
           'mobile_number': loginForm['mobile_number'],
         });
 

@@ -4,6 +4,7 @@ import 'package:async/async.dart';
 import 'package:bonako_mobile_app/components/custom_checkmark_text.dart';
 import 'package:bonako_mobile_app/components/custom_loader.dart';
 import 'package:bonako_mobile_app/components/custom_rounded_refresh_button.dart';
+import 'package:bonako_mobile_app/providers/api.dart';
 import 'package:bonako_mobile_app/screens/dashboard/products/create/sections/variations/product_variation_card.dart';
 import 'package:bonako_mobile_app/screens/dashboard/products/create/sections/variations/variation_tag.dart';
 import 'package:bonako_mobile_app/models/products.dart';
@@ -211,7 +212,7 @@ class _ContentState extends State<Content> {
                     onPressed: (){
                       setState(() {
                         variantAttributesForm.removeAt(index);
-                        productsProvider.showSnackbarMessage('Variant removed successfully', context);
+                        apiProvider.showSnackbarMessage(msg: 'Variant removed successfully', context: context);
                         Navigator.of(context).pop();
                       });
                     }
@@ -245,6 +246,10 @@ class _ContentState extends State<Content> {
         );
 
       }
+  }
+
+  ApiProvider get apiProvider {
+    return Provider.of<ApiProvider>(context, listen: false);
   }
 
   ProductsProvider get productsProvider {
@@ -456,6 +461,7 @@ class _ContentState extends State<Content> {
 
                                 //  Variation instruction
                                 TextFormField(
+                                  autofocus: false,
                                   initialValue: variantAttributesForm[index]['name'],
                                   keyboardType: TextInputType.text,
                                   decoration: InputDecoration(
@@ -482,6 +488,7 @@ class _ContentState extends State<Content> {
 
                                 //  Variation instruction
                                 TextFormField(
+                                  autofocus: false,
                                   initialValue: variantAttributesForm[index]['instruction'],
                                   keyboardType: TextInputType.text,
                                   decoration: InputDecoration(

@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 
-class AuthDivider extends StatelessWidget {
+class CustomDivider extends StatelessWidget {
   
-  final Widget text;
+  final text;
+  final double topMargin;
+  final double bottomMargin;
 
-  AuthDivider({ this.text = const Text('or') });
+  CustomDivider({ this.text = const Text('or'), this.topMargin = 10.0, this.bottomMargin = 10.0 });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 10),
+      margin: EdgeInsets.only(top: topMargin, bottom: bottomMargin),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: <Widget>[
@@ -24,7 +26,7 @@ class AuthDivider extends StatelessWidget {
               ),
             ),
           ),
-          text,
+          (text is Widget) ? text : Text(text),
           Expanded(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),

@@ -67,6 +67,7 @@ class Content extends StatelessWidget {
                   children: <Widget>[
               
                     TextFormField(
+                      autofocus: false,
                       initialValue: productForm['sku'] ?? '',
                       keyboardType: TextInputType.text,
                       decoration: InputDecoration(
@@ -85,6 +86,7 @@ class Content extends StatelessWidget {
                     SizedBox(height: 10),
               
                     TextFormField(
+                      autofocus: false,
                       initialValue: productForm['barcode'] ?? '',
                       keyboardType: TextInputType.text,
                       decoration: InputDecoration(

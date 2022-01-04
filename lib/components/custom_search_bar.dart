@@ -22,8 +22,9 @@ class CustomSearchBar extends StatefulWidget {
   final String labelText;
   final String helperText;
   final Function onSearch;
+  final EdgeInsetsGeometry margin;
 
-  CustomSearchBar({ this.labelText: '', this.helperText: '', required this.onSearch });
+  CustomSearchBar({ this.labelText: '', this.helperText: '', required this.onSearch, this.margin = const EdgeInsets.only(top: 10) });
 
   @override
   _CustomSearchBarState createState() => _CustomSearchBarState();
@@ -70,6 +71,7 @@ class _CustomSearchBarState extends State<CustomSearchBar> {
     return 
       Container(
         width: double.infinity,
+        margin: widget.margin,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

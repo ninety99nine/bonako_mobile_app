@@ -1,3 +1,4 @@
+import 'package:bonako_mobile_app/enum/enum.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -5,7 +6,7 @@ import 'dart:convert';
 
 class ApiProvider with ChangeNotifier{
 
-  final String homeUrl = 'http://165.232.179.255/api';  //  'http://127.0.0.1:9000/api';  //  
+  final String homeUrl = 'http://127.0.0.1:9000/api'; //  'http://bonakoonline.co.bw/api';  //   'http://165.232.179.255/api';  //  
 
   String _loginUrl = '';
   String _logoutUrl = '';
@@ -100,6 +101,9 @@ class ApiProvider with ChangeNotifier{
       return response;
       
     }).catchError((error){
+
+      print('error.toString()');
+      print(error.toString());
 
         handleApiFail(error, context);
 
@@ -415,6 +419,33 @@ class ApiProvider with ChangeNotifier{
 
   bool get hasBearerToken{
     return _bearerToken.isNotEmpty;
+  }
+
+  void showSnackbarMessage({ required String msg, required BuildContext context, SnackbarType type = SnackbarType.info }){
+
+    Color color = Colors.blue;
+
+    if(type == SnackbarType.warning){
+      color = Colors.orange;
+    }else if(type == SnackbarType.error){
+      color = Colors.red;
+    }
+
+    //  Set snackbar content
+    final snackBar = SnackBar(
+      backgroundColor: color,
+      content: Padding(
+        padding: const EdgeInsets.only(top: 15, bottom: 15),
+        child: Text(msg, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold),),
+      )
+    );
+
+    //  Hide existing snackbar
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
+
+    //  Show snackbar  
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
   }
   
 }

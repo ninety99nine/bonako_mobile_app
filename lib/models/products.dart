@@ -1,3 +1,10 @@
+import './common/paginationLinks.dart';
+import './common/stockQuantity.dart';
+import './common/currency.dart';
+import './common/status.dart';
+import './common/money.dart';
+import './common/cury.dart';
+import './common/link.dart';
 import 'dart:convert';
 
 PaginatedProducts paginatedProductsFromJson(String str) => PaginatedProducts.fromJson(json.decode(str));
@@ -15,22 +22,22 @@ class PaginatedProducts {
         required this.embedded,
     });
 
-    final PaginatedProductsLinks links;
-    final int total;
+    final PaginationLinks links;
     int count;
-    final int perPage;
+    final int total;
     int currentPage;
+    final int perPage;
     final int totalPages;
-    final PaginatedProductsEmbedded embedded;
+    final EmbeddedProducts embedded;
 
     factory PaginatedProducts.fromJson(Map<String, dynamic> json) => PaginatedProducts(
-        links: PaginatedProductsLinks.fromJson(json["_links"]),
+        links: PaginationLinks.fromJson(json["_links"]),
         total: int.parse(json["total"].toString()),
         count: int.parse(json["count"].toString()),
         perPage: int.parse(json["per_page"].toString()),
         totalPages: int.parse(json["total_pages"].toString()),
         currentPage: int.parse(json["current_page"].toString()),
-        embedded: PaginatedProductsEmbedded.fromJson(json["_embedded"]),
+        embedded: EmbeddedProducts.fromJson(json["_embedded"]),
     );
 
     Map<String, dynamic> toJson() => {
@@ -44,14 +51,14 @@ class PaginatedProducts {
     };
 }
 
-class PaginatedProductsEmbedded {
-    PaginatedProductsEmbedded({
+class EmbeddedProducts {
+    EmbeddedProducts({
         required this.products,
     });
 
     final List<Product> products;
 
-    factory PaginatedProductsEmbedded.fromJson(Map<String, dynamic> json) => PaginatedProductsEmbedded(
+    factory EmbeddedProducts.fromJson(Map<String, dynamic> json) => EmbeddedProducts(
         products: List<Product>.from(json["products"].map((x) => Product.fromJson(x))),
     );
 
@@ -117,7 +124,7 @@ class Product {
     final int userId;
     final DateTime? createdAt;
     final DateTime? updatedAt;
-    final Attributes attributes;
+    final ProductAttributes attributes;
     final ProductLinks links;
     final ProductEmbedded embedded;
 
@@ -147,7 +154,7 @@ class Product {
         userId: json["user_id"],
         createdAt: json["created_at"] == null ? null : DateTime.parse(json["created_at"]),
         updatedAt: json["created_at"] == null ? null : DateTime.parse(json["updated_at"]),
-        attributes: Attributes.fromJson(json["_attributes"]),
+        attributes: ProductAttributes.fromJson(json["_attributes"]),
         links: ProductLinks.fromJson(json["_links"]),
         embedded: ProductEmbedded.fromJson(json["_embedded"]),
     );
@@ -184,36 +191,8 @@ class Product {
     };
 }
 
-class Status {
-    Status({
-        required this.status,
-        required this.name,
-        required this.description,
-        required this.type,
-    });
-
-    final bool status;
-    final String name;
-    final String description;
-    final dynamic type;
-
-    factory Status.fromJson(Map<String, dynamic> json) => Status(
-        status: json["status"],
-        name: json["name"],
-        description: json["description"],
-        type: json["type"],
-    );
-
-    Map<String, dynamic> toJson() => {
-        "status": status,
-        "name": name,
-        "description": description,
-        "type": type,
-    };
-}
-
-class Attributes {
-    Attributes({
+class ProductAttributes {
+    ProductAttributes({
         required this.onSale,
         required this.hasPrice,
         required this.unitPrice,
@@ -233,7 +212,7 @@ class Attributes {
     final dynamic unitSalePercentage;
     final Status hasStock;
 
-    factory Attributes.fromJson(Map<String, dynamic> json) => Attributes(
+    factory ProductAttributes.fromJson(Map<String, dynamic> json) => ProductAttributes(
         onSale: Status.fromJson(json["on_sale"]),
         hasPrice: Status.fromJson(json["has_price"]),
         unitPrice: Money.fromJson(json["unit_price"]),
@@ -253,50 +232,6 @@ class Attributes {
         "unit_sale_discount": unitSaleDiscount.toJson(),
         "unit_sale_percentage": unitSalePercentage,
         "has_stock": hasStock.toJson(),
-    };
-}
-
-class Money {
-    Money({
-        required this.currencyMoney,
-        required this.money,
-        required this.amount,
-    });
-
-    final String currencyMoney;
-    final String money;
-    final num amount;
-
-    factory Money.fromJson(Map<String, dynamic> json) => Money(
-        currencyMoney: json["currency_money"],
-        money: json["money"],
-        amount: json["amount"],
-    );
-
-    Map<String, dynamic> toJson() => {
-        "currency_money": currencyMoney,
-        "money": money,
-        "amount": amount,
-    };
-}
-
-class Currency {
-    Currency({
-        required this.code,
-        required this.symbol,
-    });
-
-    final String code;
-    final String symbol;
-
-    factory Currency.fromJson(Map<String, dynamic> json) => Currency(
-        code: json["code"],
-        symbol: json["symbol"],
-    );
-
-    Map<String, dynamic> toJson() => {
-        "code": code,
-        "symbol": symbol,
     };
 }
 
@@ -341,125 +276,5 @@ class ProductLinks {
         "self": self.toJson(),
         "bos:locations": bosLocations.toJson(),
         "bos:variations": bosVariations.toJson(),
-    };
-}
-
-class Link {
-    Link({
-        required this.href,
-        required this.title,
-    });
-
-    final dynamic href;
-    final dynamic title;
-
-    factory Link.fromJson(Map<String, dynamic> json) => Link(
-        href: json["href"],
-        title: json["title"],
-    );
-
-    Map<String, dynamic> toJson() => {
-        "href": href,
-        "title": title,
-    };
-}
-
-class Cury {
-    Cury({
-        required this.name,
-        required this.href,
-        required this.templated,
-    });
-
-    final String name;
-    final String href;
-    final bool templated;
-
-    factory Cury.fromJson(Map<String, dynamic> json) => Cury(
-        name: json["name"],
-        href: json["href"],
-        templated: json["templated"],
-    );
-
-    Map<String, dynamic> toJson() => {
-        "name": name,
-        "href": href,
-        "templated": templated,
-    };
-}
-
-class StockQuantity {
-    StockQuantity({
-        required this.value,
-        required this.description,
-    });
-
-    final int value;
-    final String description;
-
-    factory StockQuantity.fromJson(Map<String, dynamic> json) => StockQuantity(
-        value: json["value"],
-        description: json["description"],
-    );
-
-    Map<String, dynamic> toJson() => {
-        "value": value,
-        "description": description,
-    };
-}
-
-class PaginatedProductsLinks {
-    PaginatedProductsLinks({
-        required this.self,
-        required this.first,
-        required this.prev,
-        required this.next,
-        required this.last,
-        required this.search,
-    });
-
-    final Link self;
-    final Link first;
-    final Link prev;
-    final Link next;
-    final Link last;
-    final Search search;
-
-    factory PaginatedProductsLinks.fromJson(Map<String, dynamic> json) => PaginatedProductsLinks(
-        self: Link.fromJson(json["self"]),
-        first: Link.fromJson(json["first"]),
-        prev: Link.fromJson(json["prev"]),
-        next: Link.fromJson(json["next"]),
-        last: Link.fromJson(json["last"]),
-        search: Search.fromJson(json["search"]),
-    );
-
-    Map<String, dynamic> toJson() => {
-        "self": self.toJson(),
-        "first": first.toJson(),
-        "prev": prev.toJson(),
-        "next": next.toJson(),
-        "last": last.toJson(),
-        "search": search.toJson(),
-    };
-}
-
-class Search {
-    Search({
-        required this.href,
-        required this.templated,
-    });
-
-    final String href;
-    final bool templated;
-
-    factory Search.fromJson(Map<String, dynamic> json) => Search(
-        href: json["href"],
-        templated: json["templated"],
-    );
-
-    Map<String, dynamic> toJson() => {
-        "href": href,
-        "templated": templated,
     };
 }

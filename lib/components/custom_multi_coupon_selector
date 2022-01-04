@@ -1,0 +1,230 @@
+import './../components/custom_scaffold_dialog.dart';
+import './../components/custom_search_bar.dart';
+import './../components/custom_checkbox.dart';
+import './../components/custom_button.dart';
+import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
+import './../providers/coupons.dart';
+import './../models/coupons.dart';
+import 'dart:convert';
+
+class CustomMultiCouponSelector extends StatefulWidget {
+
+  final String buttonText;
+  final Function(List<Coupon>) onSelected;
+  final List<int> selectedCouponIds;
+
+  CustomMultiCouponSelector({ this.buttonText = 'Select Coupons', this.selectedCouponIds = const [], required this.onSelected });
+
+  @override
+  _CustomMultiCouponSelectorState createState() => _CustomMultiCouponSelectorState();
+
+}
+
+class _CustomMultiCouponSelectorState extends State<CustomMultiCouponSelector> {
+
+  @override
+  void initState() {
+
+    super.initState();
+
+  }
+
+  bool get hasSelectedCoupons {
+    return widget.selectedCouponIds.length > 0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    return CustomButton(
+      size: 'small',
+      text: widget.buttonText,
+      ripple: (hasSelectedCoupons == false),
+      onSubmit: (){
+        showSelectItemsDialog(
+          selectedCouponIds: widget.selectedCouponIds,
+          onSelected: widget.onSelected,
+          context: context);
+      }
+    );
+
+  }
+
+  void showSelectItemsDialog({ required List<int> selectedCouponIds, required void Function(List<Coupon>) onSelected, required BuildContext context }) {
+
+    showGeneralDialog(
+      context: context,
+      pageBuilder: (context, animation, secondaryAnimation){
+        
+        late PaginatedCoupons paginatedCoupons;
+        List<Coupon> currSelectedCoupons = [];
+        bool fetchedInitialCoupons = false;
+        List<Coupon> coupons = [];
+        bool isSearching = false;
+
+        void addCouponId(Coupon coupon){
+          currSelectedCoupons.add(coupon);
+        }
+        
+        void removeCouponId(Coupon coupon){
+          currSelectedCoupons.removeWhere((currSelectedCoupon) => currSelectedCoupon.id == coupon.id);
+          selectedCouponIds.removeWhere((selectedCouponId) => selectedCouponId == coupon.id);
+        }
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+
+            void startSearchingLoader(){
+              setState((){
+                isSearching = true;
+              });
+            }
+
+            void stopSearchingLoader(){
+              setState((){
+                isSearching = false;
+              });
+            }
+
+            Future<http.Response> searchCoupons({ searchWord: '' }){
+
+              startSearchingLoader();
+
+              final couponsProvider = Provider.of<CouponsProvider>(context, listen: false);
+              
+              return couponsProvider.fetchCoupons(searchWord: searchWord, context: context)
+                .then((http.Response response){
+  
+                  if(response.statusCode == 200){
+
+                    final responseBody = jsonDecode(response.body);
+
+                    setState(() {
+
+                      paginatedCoupons = PaginatedCoupons.fromJson(responseBody);
+                      coupons = paginatedCoupons.embedded.coupons;
+
+                    });
+
+                  }
+
+                  return response;
+
+                }).whenComplete((){
+
+                  fetchedInitialCoupons = true;
+                  
+                  stopSearchingLoader();
+
+                });
+
+            }
+
+            //  Fetch the coupons as soon as this dialog is launched
+            if(fetchedInitialCoupons == false) searchCoupons();
+
+            return CustomScaffoldDialog(
+              child: Column(
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Search Coupons', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),)
+                  ),
+                  SizedBox(height: 20),
+
+                  //  Search bar
+                  CustomSearchBar(
+                    labelText: 'Search coupons',
+                    onSearch: (searchWord){
+                      return searchCoupons(searchWord: searchWord);
+                    }
+                  ),
+                  Expanded(
+                    child: Container(
+                    child: Column(
+                      children: [
+
+                        //  Loader
+                        if(isSearching == true) Expanded(child: Center(child: Container(width:20, height:20, margin: EdgeInsets.only(right: 10), child: CircularProgressIndicator(strokeWidth: 3)))),
+                        
+                        //  Divider
+                        if(isSearching == false) Divider(),
+
+                        //  Coupons
+                        if(isSearching == false && coupons.length > 0) ...coupons.map((coupon){
+
+                          final isChecked = (selectedCouponIds.contains(coupon.id) || currSelectedCoupons.map((currSelectedCoupon) => currSelectedCoupon.id).contains(coupon.id));
+
+                          return CustomCheckbox(
+                            value: isChecked,
+                            text: coupon.name,
+                            onChanged: selectedCouponIds.contains(coupon.id) ? null : (value) {
+                              if(value != null){
+                                setState(() {
+                                  if(value == true){
+                                    addCouponId(coupon);
+                                  }else{
+                                    removeCouponId(coupon);
+                                  }
+                                });
+                              }
+                            }
+                          );
+
+                        }).toList(),
+
+                        //  No coupons
+                        if(isSearching == false && coupons.length == 0) Container(
+                          margin: EdgeInsets.only(top: 50),
+                          child: Text('No coupons found')
+                        )
+                      ],
+                    ),
+                  )
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+
+                      //  Cancel Button
+                      Container(
+                        margin: EdgeInsets.only(right: 20),
+                        child: TextButton(
+                          child: Text("Cancel", style: Theme.of(context).textTheme.bodyText1),
+                          onPressed: () {
+
+                            //  Remove the alert dialog
+                            Navigator.of(context).pop(false);
+
+                          }
+                        )
+                      ),
+
+                      //  Delete Button
+                      if(!isSearching) TextButton(
+                        child: Text(currSelectedCoupons.length > 0 ? 'Add ('+currSelectedCoupons.length.toString()+')' : 'Done', style: TextStyle(fontWeight: FontWeight.bold)),
+                        onPressed: (){
+                          
+                          //  Pass the selected coupon ids
+                          onSelected(currSelectedCoupons);
+
+                          //  Remove the alert dialog
+                          Navigator.of(context).pop(false);
+
+                        }
+                      ),
+
+                    ]
+                  )
+                ],
+              )
+            );
+          }
+        );
+      },
+    );
+
+  }
+}

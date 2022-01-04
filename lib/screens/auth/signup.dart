@@ -1,6 +1,7 @@
 import 'package:bonako_mobile_app/components/custom_loader.dart';
+import 'package:bonako_mobile_app/providers/api.dart';
 import 'package:bonako_mobile_app/screens/auth/components/auth_alternative_link.dart';
-import 'package:bonako_mobile_app/screens/auth/components/auth_divider.dart';
+import 'package:bonako_mobile_app/components/custom_divider.dart';
 import 'package:bonako_mobile_app/screens/auth/components/auth_input_field.dart';
 import 'package:bonako_mobile_app/screens/auth/components/mobile_verification.dart';
 import 'package:bonako_mobile_app/screens/auth/terms_and_conditions.dart';
@@ -53,6 +54,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey();
   
   RegisterStage currRegistrationStage = RegisterStage.enterAccountDetails;
+
+  ApiProvider get apiProvider {
+    return Provider.of<ApiProvider>(context, listen: false);
+  }
 
   AuthProvider get authProvider {
     return Provider.of<AuthProvider>(context, listen: false);
@@ -239,7 +244,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       //  Reset the registration data stored on the device
                       storeRegistrationDataOnDevice(reset: true);
 
-                      Get.off(() => LoginScreen(), arguments: {
+                      Get.offAll(() => LoginScreen(), arguments: {
                         'mobile_number': registerForm['mobile_number'],
                       });
 
@@ -268,7 +273,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         //  If validation failed
         }else{
 
-          authProvider.showSnackbarMessage(msg: 'Check for mistakes', type: SnackbarType.error, context: context);
+          apiProvider.showSnackbarMessage(msg: 'Check for mistakes', type: SnackbarType.error, context: context);
 
           storeRegistrationDataOnDevice();
 
@@ -332,13 +337,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
         if( authProvider.hasAcceptedTermsAndConditions ){
 
-          authProvider.showSnackbarMessage(msg: 'Account created successfully', context: context);
+          apiProvider.showSnackbarMessage(msg: 'Account created successfully', context: context);
 
-          Get.off(() => StoresScreen());
+          Get.offAll(() => StoresScreen());
 
         }else{
 
-          Get.off(() => TermsAndConditionsScreen());
+          Get.offAll(() => TermsAndConditionsScreen());
 
         }
 
@@ -357,7 +362,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     //  If this is a validation error
     if(response.statusCode == 422){
 
-      authProvider.showSnackbarMessage(msg: 'Registration failed', type: SnackbarType.error, context: context);
+      apiProvider.showSnackbarMessage(msg: 'Registration failed', type: SnackbarType.error, context: context);
 
       _handleValidationErrors(response);
       
@@ -674,7 +679,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         //  Reset the registration data stored on the device
         storeRegistrationDataOnDevice(reset: true);
 
-        Get.off(() => LoginScreen(), arguments: {
+        Get.offAll(() => LoginScreen(), arguments: {
           'mobile_number': registerForm['mobile_number'],
         });
 
@@ -715,7 +720,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       if(isEnteringAccountDetails) _nextWithBackButton(),
                       if(isEnteringAccountDetails) SizedBox(height: 20),
 
-                      if(isEnteringAccountDetails) AuthDivider(),
+                      if(isEnteringAccountDetails) CustomDivider(),
                       
                       if(isEnteringAccountDetails) _loginLabel(),
                         

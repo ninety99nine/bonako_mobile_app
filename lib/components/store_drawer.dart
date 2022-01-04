@@ -1,8 +1,14 @@
-import 'package:bonako_mobile_app/components/custom_loader.dart';
 
+import 'package:bonako_mobile_app/models/locationTotals.dart';
+import 'package:bonako_mobile_app/screens/dashboard/coupons/list/coupons_screen.dart';
+import 'package:bonako_mobile_app/screens/dashboard/customers/list/customers_screen.dart';
+import 'package:bonako_mobile_app/screens/dashboard/stores/show/settings/settings.dart';
+
+import './../screens/dashboard/instant_carts/list/instant_carts_screen.dart';
+import './../screens/dashboard/orders/verify/order_options_screen.dart';
 import './../screens/dashboard/products/list/products_screen.dart';
 import './../screens/dashboard/stores/list/stores_screen.dart';
-import './../screens/dashboard/orders/list/orders_screen.dart';
+import './../components/custom_loader.dart';
 import './../screens/auth/welcome.dart';
 import './../providers/locations.dart';
 import 'package:provider/provider.dart';
@@ -51,20 +57,20 @@ class StoreDrawer extends StatelessWidget {
       //  If we have the default location totals
       if( locationsProvider.hasLocationTotals ){
 
-        final locationTotals = locationsProvider.locationTotals;
+        final LocationTotals locationTotals = locationsProvider.locationTotals;
 
         if(option['title'] == 'Orders') {
-          option['count'] = locationTotals.orders.received.total;
+          option['count'] = locationTotals.orderTotals.received.total;
         }else if(option['title'] == 'Products') {
-          option['count'] = locationTotals.products.total;
+          option['count'] = locationTotals.productTotals.total;
         }else if(option['title'] == 'Coupons') {
-          option['count'] = locationTotals.coupons.total;
+          option['count'] = locationTotals.couponTotals.total;
         }else if(option['title'] == 'Customers') {
-          option['count'] = locationTotals.customers.total;
+          option['count'] = locationTotals.customerTotals.total;
         }else if(option['title'] == 'Instant carts') {
-          option['count'] = locationTotals.instantCarts.total;
+          option['count'] = locationTotals.instantCartTotals.total;
         }else if(option['title'] == 'Staff') {
-          option['count'] = locationTotals.users.total;
+          option['count'] = locationTotals.userTotals.total;
         }
         
       }
@@ -80,9 +86,10 @@ class StoreDrawer extends StatelessWidget {
     //  Get the default location totals (Listen for changes)
     final storesProvider = Provider.of<StoresProvider>(context);
     final locationsProvider = Provider.of<LocationsProvider>(context);
-    final isLoadingLocation = (locationsProvider.isLoadingLocation || locationsProvider.isLoadingLocationTotals);
-    
-    final List<Map> primaryOptions = [
+    final locationPermissions = locationsProvider.getLocationPermissions;
+    final isLoadingLocation = (locationsProvider.isLoadingLocation || locationsProvider.isLoadingLocationTotals || locationsProvider.isLoadingLocationPermissions);
+
+    final List<Map> primaryMenus = [
       {
         'title': 'Select store',
         'requires_store': false,
@@ -91,8 +98,8 @@ class StoreDrawer extends StatelessWidget {
           'src': 'assets/icons/ecommerce_pack_1/shop.svg'
         },
         'divider': true,
-        'onPressed': () => {
-          Get.off(() => StoresScreen())
+        'onPressed': () {
+          storesProvider.switchStore(context: context);
         }, 
       },
       {
@@ -103,8 +110,9 @@ class StoreDrawer extends StatelessWidget {
           'src': 'assets/icons/ecommerce_pack_1/package.svg'
         },
         'count': 0,
+        'permission': 'manage-orders',
         'onPressed': () => {
-          Get.off(() => OrdersScreen())
+          Get.offAll(() => OrderOptionsScreen())
         }, 
       },
       {
@@ -115,8 +123,9 @@ class StoreDrawer extends StatelessWidget {
           'src': 'assets/icons/ecommerce_pack_1/shopping-bag-2.svg'
         },
         'count': 0,
+        'permission': 'manage-products',
         'onPressed': () => {
-          Get.off(() => ProductsScreen())
+          Get.offAll(() => ProductsScreen())
         }, 
       },
       {
@@ -127,8 +136,9 @@ class StoreDrawer extends StatelessWidget {
           'src': 'assets/icons/ecommerce_pack_1/discount-coupon.svg'
         },
         'count': 0,
+        'permission': 'manage-coupons',
         'onPressed': () => {
-          
+          Get.offAll(() => CouponsScreen())
         }, 
       },
       {
@@ -139,8 +149,9 @@ class StoreDrawer extends StatelessWidget {
           'src': 'assets/icons/ecommerce_pack_1/customers-3.svg'
         },
         'count': 0,
+        'permission': 'manage-customers',
         'onPressed': () => {
-          
+          Get.offAll(() => CustomersScreen())
         }, 
       },
       {
@@ -151,18 +162,20 @@ class StoreDrawer extends StatelessWidget {
           'src': 'assets/icons/ecommerce_pack_1/shopping-cart-10.svg'
         },
         'count': 0,
+        'permission': 'manage-instant-carts',
         'onPressed': () => {
-          
+          Get.offAll(() => InstantCartsScreen())
         }, 
       },
       {
-        'title': 'Staff',
+        'title': 'Team',
         'requires_store': true,
         'icon': {
           'width': 28.00,
           'src': 'assets/icons/ecommerce_pack_1/employee-badge-1.svg'
         },
         'count': 0,
+        'permission': 'manage-users',
         'onPressed': () => {
           
         }, 
@@ -174,6 +187,7 @@ class StoreDrawer extends StatelessWidget {
           'width': 28.00,
           'src': 'assets/icons/ecommerce_pack_1/pie-chart.svg'
         },
+        'permission': 'manage-reports',
         'divider': true,
         'onPressed': () => {
           
@@ -186,8 +200,9 @@ class StoreDrawer extends StatelessWidget {
           'width': 28.00,
           'src': 'assets/icons/ecommerce_pack_1/settings.svg'
         },
+        'permission': 'manage-settings',
         'onPressed': () => {
-          
+          Get.offAll(() => StoreSettingsScreen())
         }, 
       },
       {
@@ -212,7 +227,7 @@ class StoreDrawer extends StatelessWidget {
 
           Provider.of<AuthProvider>(context, listen: false).logout(context: context).then((response){
             if( response.statusCode == 200 ){
-              Get.off(() => WelcomePage());
+              Get.offAll(() => WelcomePage());
             }
           });
           
@@ -220,47 +235,64 @@ class StoreDrawer extends StatelessWidget {
       }
     ];
 
-    final primaryOptionWidgets = buildOptionWidgets(primaryOptions, storesProvider, locationsProvider);
+    List<Map> getAllowedPrimaryMenus(){
+
+      //  Return primary menus that match the allowed location permissions
+      return new List<Map>.from(primaryMenus.where((primaryMenu){
+
+        if( primaryMenu.containsKey('permission') ){
+
+          return locationPermissions.contains(primaryMenu['permission']);
+
+        }
+
+        return true;
+
+      }).toList()); 
+      
+    }
+
+    final allowedPrimaryMenus = getAllowedPrimaryMenus();
+
+    final primaryOptionWidgets = buildOptionWidgets(allowedPrimaryMenus, storesProvider, locationsProvider);
 
     return Drawer(
       child: Container(
         color: Colors.blue.shade50,
         child: ListView(
           children: [
-            DrawerHeader(
-              padding: EdgeInsets.zero,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  image: DecorationImage(
-                    fit: BoxFit.cover,
-                    colorFilter: new ColorFilter.mode(Colors.blue.withOpacity(0.1), BlendMode.dstATop),
-                    image: AssetImage('assets/images/merchant.jpeg')
-                  )
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+                image: DecorationImage(
+                  scale: 2.5,
+                  //  fit: BoxFit.contain,
+                  colorFilter: new ColorFilter.mode(Colors.blue.withOpacity(0.1), BlendMode.dstATop),
+                  image: AssetImage('assets/images/logo-white.png')
+                )
+              ),
+              padding: EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
 
-                    //  User Account Info
-                    SizedBox(height: 30),
-                    DrawerHeaderUserAccount(),
+                  //  User Account Info
+                  SizedBox(height: 30),
+                  DrawerHeaderUserAccount(),
 
-                    //  Divider
-                    SizedBox(height: 5),
-                    Divider(color: Colors.white,),
-                    SizedBox(height: 5),
+                  //  Divider
+                  SizedBox(height: 5),
+                  Divider(color: Colors.white,),
+                  SizedBox(height: 5),
 
-                    //  Store Info
-                    DrawerHeaderStore(
-                      storesProvider: storesProvider,
-                      locationsProvider: locationsProvider,
-                    ),
-                    
-                  ],
-                ),
-              )
+                  //  Store Info
+                  DrawerHeaderStore(
+                    storesProvider: storesProvider,
+                    locationsProvider: locationsProvider,
+                  ),
+                  
+                ],
+              ),
             ),
 
             if(isLoadingLocation == true) CustomLoader(topMargin: 40, bottomMargin: 40, text: 'Loading store'),
@@ -369,10 +401,13 @@ class DrawerOption extends StatelessWidget{
         leading: SvgPicture.asset(option['icon']['src'], width: option['icon']['width']),
         title: Text(option['title']),
         onTap: () => {
+          
           //  Close the drawer
           Navigator.pop(context),
+
           //  Handle option on pressed callback
           option['onPressed'](),
+
         },
         trailing: hasCount ? DrawerOptionCount(option: option) : null,
       );

@@ -113,6 +113,7 @@ class _ContentState extends State<Content> {
                     ),
               
                     if(productForm['allow_multiple_quantity_per_order'] == true && productForm['allow_maximum_quantity_per_order'] == true) TextFormField(
+                      autofocus: false,
                       initialValue: productForm['maximum_quantity_per_order'],
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(

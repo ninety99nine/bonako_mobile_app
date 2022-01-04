@@ -1,7 +1,6 @@
+import 'package:bonako_mobile_app/providers/instant_carts.dart';
+import 'package:bonako_mobile_app/providers/users.dart';
 import 'package:bonako_mobile_app/screens/auth/terms_and_conditions.dart';
-import 'package:bonako_mobile_app/screens/dashboard/orders/verify/order_options_screen.dart';
-import 'package:bonako_mobile_app/screens/dashboard/orders/verify/verify_order_screen.dart';
-
 import './screens/dashboard/stores/list/stores_screen.dart';
 import 'package:intro_slider/slide_object.dart';
 import 'package:intro_slider/intro_slider.dart';
@@ -14,7 +13,9 @@ import './screens/auth/welcome.dart';
 import './screens/auth/signup.dart';
 import './providers/locations.dart';
 import './screens/auth/login.dart';
+import './providers/customers.dart';
 import './providers/products.dart';
+import './providers/coupons.dart';
 import './providers/stores.dart';
 import './providers/orders.dart';
 import './providers/auth.dart';
@@ -80,13 +81,53 @@ class MyApp extends StatelessWidget {
         ),
         /**
          *  Note: We have to use the ChangeNotifierProxyProvider instead of 
-         *  ChangeNotifierProvider because the OrdersProvider requires the
+         *  ChangeNotifierProvider because the ProductsProvider requires the
          *  LocationsProvider as a dependency. When the LocationsProvider changes,
-         *  then the OrdersProvider will also rebuild.
+         *  then the ProductsProvider will also rebuild.
          */
         ChangeNotifierProxyProvider<LocationsProvider, ProductsProvider>(
           create: (_) => ProductsProvider(locationsProvider: LocationsProvider(storesProvider: StoresProvider(authProvider: AuthProvider(apiProvider: ApiProvider())))),
           update: (ctx, locationsProvider, previousProductsProvider) => ProductsProvider(locationsProvider: locationsProvider)
+        ),
+        /**
+         *  Note: We have to use the ChangeNotifierProxyProvider instead of 
+         *  ChangeNotifierProvider because the CouponsProvider requires the
+         *  LocationsProvider as a dependency. When the LocationsProvider changes,
+         *  then the CouponsProvider will also rebuild.
+         */
+        ChangeNotifierProxyProvider<LocationsProvider, CouponsProvider>(
+          create: (_) => CouponsProvider(locationsProvider: LocationsProvider(storesProvider: StoresProvider(authProvider: AuthProvider(apiProvider: ApiProvider())))),
+          update: (ctx, locationsProvider, previousCouponsProvider) => CouponsProvider(locationsProvider: locationsProvider)
+        ),
+        /**
+         *  Note: We have to use the ChangeNotifierProxyProvider instead of 
+         *  ChangeNotifierProvider because the InstantCartsProvider requires the
+         *  LocationsProvider as a dependency. When the LocationsProvider changes,
+         *  then the InstantCartsProvider will also rebuild.
+         */
+        ChangeNotifierProxyProvider<LocationsProvider, InstantCartsProvider>(
+          create: (_) => InstantCartsProvider(locationsProvider: LocationsProvider(storesProvider: StoresProvider(authProvider: AuthProvider(apiProvider: ApiProvider())))),
+          update: (ctx, locationsProvider, previousInstantCartsProvider) => InstantCartsProvider(locationsProvider: locationsProvider)
+        ),
+        /**
+         *  Note: We have to use the ChangeNotifierProxyProvider instead of 
+         *  ChangeNotifierProvider because the UsersProvider requires the
+         *  LocationsProvider as a dependency. When the LocationsProvider changes,
+         *  then the UsersProvider will also rebuild.
+         */
+        ChangeNotifierProxyProvider<LocationsProvider, UsersProvider>(
+          create: (_) => UsersProvider(locationsProvider: LocationsProvider(storesProvider: StoresProvider(authProvider: AuthProvider(apiProvider: ApiProvider())))),
+          update: (ctx, locationsProvider, previousUsersProvider) => UsersProvider(locationsProvider: locationsProvider)
+        ),
+        /**
+         *  Note: We have to use the ChangeNotifierProxyProvider instead of 
+         *  ChangeNotifierProvider because the CustomersProvider requires the
+         *  LocationsProvider as a dependency. When the LocationsProvider changes,
+         *  then the CustomersProvider will also rebuild.
+         */
+        ChangeNotifierProxyProvider<LocationsProvider, CustomersProvider>(
+          create: (_) => CustomersProvider(locationsProvider: LocationsProvider(storesProvider: StoresProvider(authProvider: AuthProvider(apiProvider: ApiProvider())))),
+          update: (ctx, locationsProvider, previousCustomersProvider) => CustomersProvider(locationsProvider: locationsProvider)
         ),
       ],
       child: GetMaterialApp(

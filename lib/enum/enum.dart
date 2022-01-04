@@ -35,6 +35,13 @@ enum MobileNumberInstructionType {
   mobile_verification_order_delivery_confirmation,
 }
 
+enum InviteTeamStage {
+  enterTeamMobileNumbers,
+  selectPermissions,
+  acceptGoldenRules,
+  inviting,
+}
+
 enum SnackbarType {
   warning,
   error,

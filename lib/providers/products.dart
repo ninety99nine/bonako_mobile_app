@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:bonako_mobile_app/enum/enum.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import './../screens/dashboard/products/create/create.dart';
@@ -67,38 +68,88 @@ class ProductsProvider with ChangeNotifier{
   
   Future<http.Response> createProduct({ required Map body, required BuildContext context }){
 
-    return apiProvider.post(url: createProductUrl, body: body, context: context).then((response){
+    return apiProvider.post(url: createProductUrl, body: body, context: context)
+      .then((response){
 
-        if( response.statusCode == 200 ){
+        if( response.statusCode == 200 || response.statusCode == 201 ){
+        
+          apiProvider.showSnackbarMessage(msg: 'Product created successfully', context: context, type: SnackbarType.info);
 
           locationsProvider.fetchLocationTotals(context: context);
+
+        }else{
+
+          apiProvider.showSnackbarMessage(msg: 'Failed to create product', context: context, type: SnackbarType.error);
 
         }
 
         return response;
 
+      })
+      .onError((error, stackTrace){
+        
+        apiProvider.showSnackbarMessage(msg: 'Failed to create product', context: context, type: SnackbarType.error);
+
+        throw(stackTrace);
+        
       });
     
   }
   
   Future<http.Response> updateProduct({ required Map body, required BuildContext context }){
 
-    return apiProvider.put(url: productUrl, body: body, context: context);
-    
-  }
-  
-  Future<http.Response> deleteProduct({ required BuildContext context }){
-
-    return apiProvider.delete(url: productUrl, context: context).then((response){
+    return apiProvider.put(url: productUrl, body: body, context: context)
+      .then((response){
 
         if( response.statusCode == 200 ){
+        
+          apiProvider.showSnackbarMessage(msg: 'Product updated successfully', context: context, type: SnackbarType.info);
 
-          locationsProvider.fetchLocationTotals(context: context);
+        }else{
+
+          apiProvider.showSnackbarMessage(msg: 'Failed to update product', context: context, type: SnackbarType.error);
 
         }
 
         return response;
 
+      })
+      .onError((error, stackTrace){
+        
+        apiProvider.showSnackbarMessage(msg: 'Failed to update product', context: context, type: SnackbarType.error);
+
+        throw(stackTrace);
+        
+      });
+    
+  }
+  
+  Future<http.Response> deleteProduct({ required BuildContext context }){
+
+    return apiProvider.delete(url: productUrl, context: context)
+      .then((response){
+
+        if( response.statusCode == 200 ){
+        
+          apiProvider.showSnackbarMessage(msg: 'Product deleted successfully', context: context, type: SnackbarType.info);
+
+          locationsProvider.fetchLocationTotals(context: context);
+
+        }else{
+
+          apiProvider.showSnackbarMessage(msg: 'Failed to delete product', context: context, type: SnackbarType.error);
+
+        }
+
+        return response;
+
+      })
+      .onError((error, stackTrace){
+        
+        apiProvider.showSnackbarMessage(msg: 'Failed to delete product', context: context, type: SnackbarType.error);
+
+        throw(stackTrace);
+        
       });
     
   }
@@ -125,11 +176,11 @@ class ProductsProvider with ChangeNotifier{
 
         if( response.statusCode == 200 ){
 
-          showSnackbarMessage('Arrangement saved successfully', context);
+          apiProvider.showSnackbarMessage(msg: 'Arrangement saved successfully', context: context, type: SnackbarType.info);
 
         }else{
 
-          showSnackbarMessage('Arrangement Failed', context);
+          apiProvider.showSnackbarMessage(msg: 'Arrangement Failed', context: context, type: SnackbarType.error);
 
         }
 
@@ -192,16 +243,6 @@ class ProductsProvider with ChangeNotifier{
                 context: context
               ).then((response){
 
-                if( response.statusCode == 200 ){
-
-                  showSnackbarMessage('Product deleted successfully', context);
-
-                }else{
-
-                  showSnackbarMessage('Delete Failed', context);
-
-                }
-
                 return response;
 
               }).whenComplete((){
@@ -252,29 +293,16 @@ class ProductsProvider with ChangeNotifier{
 
   }
 
-  void showSnackbarMessage(String msg, BuildContext context){
-
-    //  Set snackbar content
-    final snackBar = SnackBar(content: Text(msg, textAlign: TextAlign.center));
-
-    //  Hide existing snackbar
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
-    //  Show snackbar  
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-
-  }
-
   String get productsUrl {
-    return locationsProvider.getLocation.links.bosProducts.href;
+    return locationsProvider.getLocation.links.bosProducts.href!;
   }
 
   String get productUrl {
-    return (product as Product).links.self.href;
+    return (product as Product).links.self.href!;
   }
   
   String get productArrangementUrl {
-      return (this.locationsProvider.location as Location).links.bosProductArrangement.href;
+      return (this.locationsProvider.location as Location).links.bosProductArrangement.href!;
   }
 
   String get createProductUrl {
@@ -282,19 +310,19 @@ class ProductsProvider with ChangeNotifier{
   }
 
   String get productLocationsUrl {
-    return (product as Product).links.bosLocations.href;
+    return (product as Product).links.bosLocations.href!;
   }
 
   String get productVariationsUrl {
-    return (product as Product).links.bosVariations.href;
+    return (product as Product).links.bosVariations.href!;
   }
 
   void setProduct(Product product){
-    this. product = product;
+    this.product = product;
   }
 
   void unsetProduct(){
-    this. product = null;
+    this.product = null;
   }
 
   Future navigateToAddProduct() async {

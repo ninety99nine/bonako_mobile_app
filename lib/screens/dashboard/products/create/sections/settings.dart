@@ -37,116 +37,6 @@ class _ContentState extends State<Content> {
   Map productForm = {};
   Map serverErrors = {};
 
-  //  By default the loader is not loading
-  var isDeleting = false;
-
-  void startDeleteLoader(){
-    setState(() {
-      isDeleting= true;
-    });
-  }
-
-  void stopDeleteLoader(){
-    setState(() {
-      isDeleting = false;
-    });
-  }
-
-  showDeleteAlertDialog(BuildContext context) {
-
-    // set up the buttons
-    Widget cancelButton = TextButton(
-      child: Text("Cancel"),
-      onPressed: () => Navigator.pop(context),
-    );
-
-    Widget deleteButton = TextButton(
-      child: Text('Delete', style: TextStyle(color: Colors.red)),
-      onPressed: (){
-        
-        //  Start deleting
-        onDelete();
-
-        //  Close the alert dialog
-        Navigator.pop(context);
-
-        //  Re-open alert dialog since isDeleting = true
-        showDeleteAlertDialog(context);
-
-      }
-    );
-
-    // set up the AlertDialog
-    AlertDialog alert = AlertDialog(
-      title: Text("Confirmation"),
-      content: Row(
-        children: [
-          if(isDeleting) Container(height:20, width:20, margin: EdgeInsets.only(right: 10), child: CircularProgressIndicator(strokeWidth: 3,)),
-          if(isDeleting) Text("Deleting product..."),
-          if(!isDeleting) Flexible(child: Text("Are you sure you want to delete this product?")),
-        ],
-      ),
-      actions: [
-        cancelButton,
-        if(!isDeleting) deleteButton,
-      ],
-    );
-
-    // show the dialog
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return alert;
-          }
-        );
-      },
-    );
-  }
-
-  void onDelete(){
-
-    startDeleteLoader();
-
-    productsProvider.deleteProduct(
-      context: context
-    ).then((response){
- 
-      if(response.statusCode == 200){
-
-        showSnackbarMessage('Product deleted successfully');
-
-        //  Navigate to the products screen
-        Get.off(() => ProductsScreen());
-
-      }else{
-
-        showSnackbarMessage('Delete failed');
-
-      }
-
-    }).whenComplete((){
-      
-      //  Remove the alert dialog
-      Navigator.pop(context);
-
-      stopDeleteLoader();
-
-    });
-
-  }
-
-  void showSnackbarMessage(String msg){
-
-    //  Set snackbar content
-    final snackBar = SnackBar(content: Text(msg, textAlign: TextAlign.center));
-
-    //  Show snackbar  
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-
-  }
-
   ProductsProvider get productsProvider {
     return Provider.of<ProductsProvider>(context, listen: false);
   }
@@ -211,8 +101,19 @@ class _ContentState extends State<Content> {
 
                     CustomButton(
                       text: 'Delete',
-                      isLoading: isDeleting,
-                      onSubmit: () => showDeleteAlertDialog(context),
+                      onSubmit: (){
+
+                        final product = productsProvider.getProduct;
+                        
+                        Provider.of<ProductsProvider>(context, listen: false).handleDeleteProduct(
+                          product: product,
+                          context: context
+                        ).then((result){
+
+                          return Get.back(result: result == true ? 'deleted' : '');
+
+                        });
+                      },
                       color: Colors.red,
                     ),
                     

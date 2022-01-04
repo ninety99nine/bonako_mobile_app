@@ -50,7 +50,7 @@ class Content extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomBackButton(fallback: (){
-                Get.off(() => ShowStoreScreen());
+                Get.offAll(() => ShowStoreScreen());
               }),
             ],
           ),
@@ -106,6 +106,10 @@ class _OrderVerificationInputState extends State<OrderVerificationInput> {
     });
   }
 
+  ApiProvider get apiProvider {
+    return Provider.of<ApiProvider>(context, listen: false);
+  }
+
   AuthProvider get authProvider {
     return Provider.of<AuthProvider>(context, listen: false);
   }
@@ -124,7 +128,7 @@ class _OrderVerificationInputState extends State<OrderVerificationInput> {
 
     }else{
 
-      authProvider.showSnackbarMessage(msg: 'Invalid delivery code', context: context, type: SnackbarType.error);
+      apiProvider.showSnackbarMessage(msg: 'Invalid delivery code', context: context, type: SnackbarType.error);
 
     }
 
@@ -150,8 +154,6 @@ class _OrderVerificationInputState extends State<OrderVerificationInput> {
           final Map<String, dynamic> jsonOrder = responseBody['order'] ?? {};
 
           if( isValid && jsonOrder.isNotEmpty ){
-
-            authProvider.showSnackbarMessage(msg: 'Valid delivery code', context: context);
 
             Order order = Order.fromJson(jsonOrder);
             
@@ -183,15 +185,9 @@ class _OrderVerificationInputState extends State<OrderVerificationInput> {
 
             }
 
-          }else{
-
-            authProvider.showSnackbarMessage(msg: 'Invalid delivery code', context: context, type: SnackbarType.error);
-
           }
 
         }else if(response.statusCode == 422){
-
-          authProvider.showSnackbarMessage(msg: 'Invalid delivery code', context: context, type: SnackbarType.error);
 
           _handleValidationErrors(response);
           
@@ -260,6 +256,7 @@ class _OrderVerificationInputState extends State<OrderVerificationInput> {
   Widget _verificationInput(){
     return
       TextFormField(
+        autofocus: false,
         initialValue: deliveryConfirmationCode,
         keyboardType: TextInputType.number,
         decoration: InputDecoration(

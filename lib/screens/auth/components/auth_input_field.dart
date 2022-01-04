@@ -35,6 +35,7 @@ class AuthInputField extends StatelessWidget {
           //  If an first name text field
           if(title == 'First Name')
             TextFormField(
+              autofocus: false,
               key: ValueKey('first_name'),
               initialValue: initialValue,
               keyboardType: TextInputType.text,
@@ -66,6 +67,7 @@ class AuthInputField extends StatelessWidget {
           //  If an last name text field
           if(title == 'Last Name')
             TextFormField(
+              autofocus: false,
               key: ValueKey('last_name'),
               initialValue: initialValue,
               keyboardType: TextInputType.text,
@@ -97,6 +99,7 @@ class AuthInputField extends StatelessWidget {
           //  If a mobile text field
           if(title == 'Mobile')
             TextFormField(
+              autofocus: false,
               key: ValueKey('mobile'),
               initialValue: initialValue,
               keyboardType: TextInputType.phone,
@@ -132,6 +135,7 @@ class AuthInputField extends StatelessWidget {
           //  If a password text field
           if(title == 'Password')
             TextFormField(
+              autofocus: false,
               key: ValueKey('password'),
               initialValue: initialValue,
               keyboardType: TextInputType.text,
@@ -171,6 +175,7 @@ class AuthInputField extends StatelessWidget {
           //  If a password text field
           if(title == 'Confirm Password')
             TextFormField(
+              autofocus: false,
               key: ValueKey('confirm_password'),
               initialValue: initialValue,
               keyboardType: TextInputType.text,

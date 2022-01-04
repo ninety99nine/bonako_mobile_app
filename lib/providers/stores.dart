@@ -1,8 +1,13 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:bonako_mobile_app/enum/enum.dart';
+import 'package:bonako_mobile_app/providers/locations.dart';
+import 'package:bonako_mobile_app/screens/dashboard/stores/list/stores_screen.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import './../providers/api.dart';
 import './../models/stores.dart';
 import './auth.dart';
@@ -23,9 +28,6 @@ class StoresProvider with ChangeNotifier{
   Future<http.Response> fetchCreatedStores({ String searchWord: '', int page = 1, int limit: 10, required BuildContext context }) async {
 
     var url = createdStoresUrl+'&page='+page.toString()+'&limit='+limit.toString()+(searchWord == '' ? '':  '&search='+searchWord);
-
-    print('url');
-    print(url);
 
     return apiProvider.get(url: url, context: context);
     
@@ -53,8 +55,29 @@ class StoresProvider with ChangeNotifier{
   
   Future<http.Response> updateStore({ required Map body, required BuildContext context }){
 
-    return apiProvider.put(url: storeUrl, body: body, context: context);
-    
+    return apiProvider.put(url: storeUrl, body: body, context: context)
+    .then((response){
+
+      if( response.statusCode == 200 ){
+      
+        apiProvider.showSnackbarMessage(msg: 'Store updated successfully', context: context, type: SnackbarType.info);
+
+      }else{
+
+        apiProvider.showSnackbarMessage(msg: 'Failed to update store', context: context, type: SnackbarType.error);
+
+      }
+
+      return response;
+
+    })
+    .onError((error, stackTrace){
+      
+      apiProvider.showSnackbarMessage(msg: 'Failed to update store', context: context, type: SnackbarType.error);
+
+      throw(stackTrace);
+      
+    });
   }
   
   Future<http.Response> deleteStore({ required Store store, required BuildContext context }){
@@ -69,7 +92,11 @@ class StoresProvider with ChangeNotifier{
 
       if( response.statusCode == 200 ){
       
-        showSnackbarMessage(context: context, msg: 'Store deleted successfully');
+        apiProvider.showSnackbarMessage(msg: 'Store deleted successfully', context: context, type: SnackbarType.info);
+
+      }else{
+
+        apiProvider.showSnackbarMessage(msg: 'Failed to delete store', context: context, type: SnackbarType.error);
 
       }
 
@@ -78,7 +105,7 @@ class StoresProvider with ChangeNotifier{
     })
     .onError((error, stackTrace){
       
-      showSnackbarMessage(context: context, msg: 'Failed to delete store');
+        apiProvider.showSnackbarMessage(msg: 'Failed to delete store', context: context, type: SnackbarType.error);
 
       throw(stackTrace);
       
@@ -123,16 +150,12 @@ class StoresProvider with ChangeNotifier{
               
               startLoader();
 
-              return this.deleteStore(store: store, context: context)
+              return deleteStore(store: store, context: context)
                 .then((response){
 
                   if( response.statusCode == 200 ){
 
-                    showSnackbarMessage( msg: 'Store deleted successfully', context: context,);
-
-                  }else{
-
-                    showSnackbarMessage(msg: 'Delete Failed', context: context,);
+                    switchStore(context: context);
 
                   }
 
@@ -174,6 +197,7 @@ class StoresProvider with ChangeNotifier{
                     child: Form(
                       key: _formKey,
                       child: TextFormField(
+                        autofocus: false,
                         initialValue: userConfirmationCode,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
@@ -235,7 +259,7 @@ class StoresProvider with ChangeNotifier{
   
   Future<http.Response> generatePaymentShortcode({ required Store store, required BuildContext context }){
 
-    final generatePaymentShortcodeUrl = store.links.bosGeneratePaymentShortcode.href;
+    final generatePaymentShortcodeUrl = store.links.bosGeneratePaymentShortcode.href!;
 
     return apiProvider.post(url: generatePaymentShortcodeUrl, context: context);
     
@@ -257,11 +281,16 @@ class StoresProvider with ChangeNotifier{
 
   }
 
-  void launchPaymentShortcode ({ required Store store, required BuildContext context }) async {
+  Future<http.Response> launchPaymentShortcode ({ required Store store, required BuildContext context }) async {
+
+    authProvider.showLoadingDialog(context: context, loadingMsg: 'Creating payment shortcode');
 
     //  Run API call to generate a payment shortcode
-    await generatePaymentShortcode(store: store, context: context)
-      .then((response) async {
+    return await generatePaymentShortcode(store: store, context: context)
+      .then((response) {
+
+        //  Hide the current alert dialog
+        Navigator.of(context, rootNavigator: true).pop('dialog');
           
         //  If generated successfully
         if(response.statusCode == 200){
@@ -269,35 +298,17 @@ class StoresProvider with ChangeNotifier{
           final responseBody = jsonDecode(response.body);
           final String dialingCode = responseBody['dialing_code'];
             
-          authProvider.launchShortcode (dialingCode: dialingCode, loadingMsg: 'Preparing store subscription', context: context);
+          authProvider.launchShortcode(dialingCode: dialingCode, loadingMsg: 'Preparing store subscription', context: context);
 
         }else{
 
-          showSnackbarMessage(context: context, msg: 'Failed to generate payment shortcode');
+          apiProvider.showSnackbarMessage(msg: 'Failed to generate payment shortcode', context: context, type: SnackbarType.error);
 
         }
 
         return response;
         
-      }).whenComplete((){
-
-        //  Remove the loading dialog
-        Navigator.of(context).pop();
-
       });
-
-  }
-
-  void showSnackbarMessage({ required BuildContext context, required String msg }){
-
-    //  Set snackbar content
-    final snackBar = SnackBar(content: Text(msg, textAlign: TextAlign.center));
-
-    //  Hide existing snackbar
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
-    //  Show snackbar  
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
 
   }
 
@@ -306,11 +317,11 @@ class StoresProvider with ChangeNotifier{
   }
 
   String get createdStoresUrl {
-    return authProvider.getAuthUser.links.bosCreatedStores.href;
+    return authProvider.getAuthUser.links.bosCreatedStores!.href!;
   }
 
   String get sharedStoresUrl {
-    return authProvider.getAuthUser.links.bosSharedStores.href;
+    return authProvider.getAuthUser.links.bosSharedStores!.href!;
   }
 
   String get createStoreUrl {
@@ -318,11 +329,43 @@ class StoresProvider with ChangeNotifier{
   }
 
   String get storeUrl {
-    return (store as Store).links.self.href;
+    return (store as Store).links.self.href!;
+  }
+
+  void switchStore({ required BuildContext context }){
+    this.unsetStore(context: context);
+    Get.offAll(() => StoresScreen());
   }
 
   void setStore(Store store){
     this.store = store;
+  }
+
+  void unsetStore({ required context }){
+
+    if( this.store != null ){
+
+      this.store = null;
+
+      //  Get the location provider
+      final LocationsProvider? locationProvider = Provider.of<LocationsProvider>(context, listen: false);
+
+      //  If the location provider is available
+      if( locationProvider != null ){
+
+        //  Unset the current location
+        locationProvider.unsetLocation();
+
+        //  Unset the current location totals
+        locationProvider.unsetLocationTotals();
+
+        //  Unset the current location permissions
+        locationProvider.unsetLocationPermissions();
+
+      }
+
+    }
+
   }
 
   bool get hasStore {

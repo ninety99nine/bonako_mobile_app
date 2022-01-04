@@ -3,6 +3,7 @@ import 'package:bonako_mobile_app/components/custom_loader.dart';
 import 'package:bonako_mobile_app/enum/enum.dart';
 import 'package:bonako_mobile_app/providers/api.dart';
 import 'package:bonako_mobile_app/providers/auth.dart';
+import 'package:bonako_mobile_app/providers/customers.dart';
 import 'package:bonako_mobile_app/screens/auth/components/mobile_verification_pin_code_input.dart';
 import 'package:bonako_mobile_app/screens/dashboard/orders/show/order_screen.dart';
 import 'package:bonako_mobile_app/screens/dashboard/orders/verify/verify_order_screen.dart';
@@ -25,6 +26,10 @@ import 'package:get/get.dart';
 class OrderOptionsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context){
+
+    //  Unset any set customer
+    Provider.of<CustomersProvider>(context, listen: false).unsetCustomer();
+
     return Scaffold(
       appBar:CustomAppBar(title: 'Orders'),
       drawer: StoreDrawer(),
@@ -109,7 +114,7 @@ class Content extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomBackButton(fallback: (){
-                Get.off(() => ShowStoreScreen());
+                Get.offAll(() => ShowStoreScreen());
               }),
             ],
           ),

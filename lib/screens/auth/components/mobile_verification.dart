@@ -2,7 +2,8 @@ import 'package:bonako_mobile_app/components/custom_loader.dart';
 import 'package:bonako_mobile_app/components/previous_step_button.dart';
 import 'package:bonako_mobile_app/components/custom_button.dart';
 import 'package:bonako_mobile_app/providers/auth.dart';
-import 'package:bonako_mobile_app/screens/auth/components/auth_divider.dart';
+import 'package:bonako_mobile_app/providers/api.dart';
+import 'package:bonako_mobile_app/components/custom_divider.dart';
 import 'package:bonako_mobile_app/screens/auth/components/auth_heading.dart';
 import 'package:bonako_mobile_app/screens/auth/components/auth_mobile_number_instruction.dart';
 import 'package:bonako_mobile_app/screens/auth/components/mobile_verification_pin_code_input.dart';
@@ -82,6 +83,10 @@ class _MobileVerificationState extends State<MobileVerification> {
     });
   }
 
+  ApiProvider get apiProvider {
+    return Provider.of<ApiProvider>(context, listen: false);
+  }
+
   AuthProvider get authProvider {
     return Provider.of<AuthProvider>(context, listen: false);
   }
@@ -101,15 +106,7 @@ class _MobileVerificationState extends State<MobileVerification> {
 
   void _generateMobileVerification(){
 
-    print('_generateMobileVerification()');
-
     startLoader();
-    
-    print('................. widget.mobileNumberInstructionType .............');
-    print(widget.mobileNumberInstructionType);
-
-    print('................. mobileVerificationType .............');
-    print(mobileVerificationType);
 
     authProvider.generateMobileVerification(
       type: mobileVerificationType,
@@ -120,16 +117,6 @@ class _MobileVerificationState extends State<MobileVerification> {
 
       _handleResponse(response);
 
-      if( response.statusCode == 200){
-        
-        authProvider.showSnackbarMessage(msg: 'Verification code created', context: context);
-
-      }else{
-
-        authProvider.showSnackbarMessage(msg: 'Verification code failed', context: context);
-
-      }
-
     }).whenComplete((){
 
       stoptLoader();
@@ -139,8 +126,6 @@ class _MobileVerificationState extends State<MobileVerification> {
   }
 
   void _verifyMobileVerificationCode(){
-
-    print('_verifyMobileVerificationCode()');
 
     startVerifyVerificationCodeLoader();
 
@@ -168,7 +153,7 @@ class _MobileVerificationState extends State<MobileVerification> {
 
         }else{
 
-          authProvider.showSnackbarMessage(msg: 'Incorrect verification code', type: SnackbarType.error, context: context);
+          apiProvider.showSnackbarMessage(msg: 'Incorrect verification code', type: SnackbarType.error, context: context);
           
         }
 
@@ -183,15 +168,11 @@ class _MobileVerificationState extends State<MobileVerification> {
   }
 
   void _handleResponse(http.Response response){
-
-    print('response.statusCode');
-    print(response.statusCode);
-
-    print('jsonDecode(response.body)');
-    print(jsonDecode(response.body));
     
     //  If this is a validation error
     if(response.statusCode == 422){
+
+      apiProvider.showSnackbarMessage(msg: 'Verification code failed', context: context);
 
       _handleValidationErrors(response);
       
@@ -348,7 +329,7 @@ class _MobileVerificationState extends State<MobileVerification> {
           if(widget.isProcessingSuccess) _processing(),
           if(!widget.isProcessingSuccess) SizedBox(height: 20),
     
-          if(!widget.isProcessingSuccess) AuthDivider(text: Text('or') ),
+          if(!widget.isProcessingSuccess) CustomDivider(text: Text('or') ),
       
           if(!widget.isProcessingSuccess && !isGeneratingVerificationCode) _resendVerificationCode(),
             

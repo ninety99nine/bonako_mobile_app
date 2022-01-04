@@ -1,3 +1,8 @@
+import './common/paginationLinks.dart';
+import './common/mobileNumber.dart';
+import './common/status.dart';
+import './common/link.dart';
+import './common/cury.dart';
 import 'dart:convert';
 
 PaginatedUsers paginatedUsersFromJson(String str) => PaginatedUsers.fromJson(json.decode(str));
@@ -15,22 +20,22 @@ class PaginatedUsers {
       required this.embedded,
     });
 
-    final PaginatedUsersLinks links;
+    int count;
     final int total;
-    final int count;
+    int currentPage;
     final int perPage;
-    final int currentPage;
     final int totalPages;
-    final Embedded embedded;
+    final EmbeddedUsers embedded;
+    final PaginationLinks links;
 
     factory PaginatedUsers.fromJson(Map<String, dynamic> json) => PaginatedUsers(
-        links: PaginatedUsersLinks.fromJson(json["_links"]),
-        total: json["total"] ?? 0,
-        count: json["count"] ?? 0,
-        perPage: json["per_page"],
-        currentPage: json["current_page"] ?? 0,
-        totalPages: json["total_pages"] ?? 0,
-        embedded: Embedded.fromJson(json["_embedded"]),
+        total: int.parse(json["total"].toString()),
+        count: int.parse(json["count"].toString()),
+        embedded: EmbeddedUsers.fromJson(json["_embedded"]),
+        perPage: int.parse(json["per_page"].toString()),
+        links: PaginationLinks.fromJson(json["_links"]),
+        totalPages: int.parse(json["total_pages"].toString()),
+        currentPage: int.parse(json["current_page"].toString()),
     );
 
     Map<String, dynamic> toJson() => {
@@ -44,14 +49,14 @@ class PaginatedUsers {
     };
 }
 
-class Embedded {
-    Embedded({
+class EmbeddedUsers {
+    EmbeddedUsers({
         required this.users,
     });
 
     final List<User> users;
 
-    factory Embedded.fromJson(Map<String, dynamic> json) => Embedded(
+    factory EmbeddedUsers.fromJson(Map<String, dynamic> json) => EmbeddedUsers(
         users: List<User>.from(json["users"].map((x) => User.fromJson(x))),
     );
 
@@ -78,10 +83,10 @@ class User {
     final String firstName;
     final String lastName;
     final MobileNumber mobileNumber;
-    final BooleanStatus acceptedTermsAndConditions;
+    final Status acceptedTermsAndConditions;
     final DateTime createdAt;
     final DateTime updatedAt;
-    final Attributes attributes;
+    final UserAttributes attributes;
     final UserLinks links;
     final List<dynamic> embedded;
 
@@ -90,10 +95,10 @@ class User {
         firstName: json["first_name"],
         lastName: json["last_name"],
         mobileNumber: MobileNumber.fromJson(json["mobile_number"]),
-        acceptedTermsAndConditions: BooleanStatus.fromJson(json["accepted_terms_and_conditions"]),
+        acceptedTermsAndConditions: Status.fromJson(json["accepted_terms_and_conditions"]),
         createdAt: DateTime.parse(json["created_at"]),
         updatedAt: DateTime.parse(json["updated_at"]),
-        attributes: Attributes.fromJson(json["_attributes"]),
+        attributes: UserAttributes.fromJson(json["_attributes"]),
         links: UserLinks.fromJson(json["_links"]),
         embedded: List<dynamic>.from(json["_embedded"].map((x) => x)),
     );
@@ -112,43 +117,44 @@ class User {
     };
 }
 
-class Attributes {
-    Attributes({
+
+class UserAttributes {
+    UserAttributes({
         required this.name,
+        required this.userLocation,
     });
 
     final String name;
+    final UserLocation? userLocation;
 
-    factory Attributes.fromJson(Map<String, dynamic> json) => Attributes(
+    factory UserAttributes.fromJson(Map<String, dynamic> json) => UserAttributes(
         name: json["name"],
+        userLocation: json["user_location"] == null ? null : UserLocation.fromJson(json["user_location"]),
     );
 
     Map<String, dynamic> toJson() => {
         "name": name,
+        "user_location": userLocation == null ? null : userLocation!.toJson(),
     };
 }
 
-class BooleanStatus {
-    BooleanStatus({
-        required this.name,
-        required this.status,
-        required this.description,
+class UserLocation {
+    UserLocation({
+        required this.type,
+        required this.locationId,
     });
 
-    final bool status;
-    final String name;
-    final String description;
+    final String type;
+    final int locationId;
 
-    factory BooleanStatus.fromJson(Map<String, dynamic> json) => BooleanStatus(
-        name: json["name"],
-        status: json["status"],
-        description: json["description"],
+    factory UserLocation.fromJson(Map<String, dynamic> json) => UserLocation(
+        type: json["type"],
+        locationId: json["location_id"],
     );
 
     Map<String, dynamic> toJson() => {
-        "name": name,
-        "status": status,
-        "description": description,
+        "type": type,
+        "location_id": locationId,
     };
 }
 
@@ -166,25 +172,25 @@ class UserLinks {
     });
 
     final List<Cury> curies;
-    final ResourceLink self;
-    final ResourceLink bosAddresses;
-    final ResourceLink bosSubscriptions;
-    final ResourceLink bosStores;
-    final ResourceLink bosFavouriteStores;
-    final ResourceLink bosSharedStores;
-    final ResourceLink bosCreatedStores;
-    final ResourceLink bosAcceptTermsAndConditions;
+    final Link self;
+    final Link bosAddresses;
+    final Link bosSubscriptions;
+    final Link? bosStores;
+    final Link? bosFavouriteStores;
+    final Link? bosSharedStores;
+    final Link? bosCreatedStores;
+    final Link? bosAcceptTermsAndConditions;
 
     factory UserLinks.fromJson(Map<String, dynamic> json) => UserLinks(
         curies: List<Cury>.from(json["curies"].map((x) => Cury.fromJson(x))),
-        self: ResourceLink.fromJson(json["self"]),
-        bosAddresses: ResourceLink.fromJson(json["bos:addresses"]),
-        bosSubscriptions: ResourceLink.fromJson(json["bos:subscriptions"]),
-        bosStores: ResourceLink.fromJson(json["bos:stores"]),
-        bosFavouriteStores: ResourceLink.fromJson(json["bos:favourite-stores"]),
-        bosSharedStores: ResourceLink.fromJson(json["bos:shared-stores"]),
-        bosCreatedStores: ResourceLink.fromJson(json["bos:created-stores"]),
-        bosAcceptTermsAndConditions: ResourceLink.fromJson(json["bos:accept-terms-and-conditions"]),
+        self: Link.fromJson(json["self"]),
+        bosAddresses: Link.fromJson(json["bos:addresses"]),
+        bosSubscriptions: Link.fromJson(json["bos:subscriptions"]),
+        bosStores: json["bos:stores"] == null ? null : Link.fromJson(json["bos:stores"]),
+        bosFavouriteStores: json["bos:favourite-stores"] == null ? null : Link.fromJson(json["bos:favourite-stores"]),
+        bosSharedStores: json["bos:shared-stores"] == null ? null : Link.fromJson(json["bos:shared-stores"]),
+        bosCreatedStores: json["bos:created-stores"] == null ? null : Link.fromJson(json["bos:created-stores"]),
+        bosAcceptTermsAndConditions: json["bos:accept-terms-and-conditions"] == null ? null : Link.fromJson(json["bos:accept-terms-and-conditions"]),
     );
 
     Map<String, dynamic> toJson() => {
@@ -192,138 +198,10 @@ class UserLinks {
         "self": self.toJson(),
         "bos:addresses": bosAddresses.toJson(),
         "bos:subscriptions": bosSubscriptions.toJson(),
-        "bos:stores": bosStores.toJson(),
-        "bos:favourite-stores": bosFavouriteStores.toJson(),
-        "bos:shared-stores": bosSharedStores.toJson(),
-        "bos:created-stores": bosCreatedStores.toJson(),
-        "bos:accept-terms-and-conditions": bosAcceptTermsAndConditions.toJson(),
-    };
-}
-
-class ResourceLink {
-    ResourceLink({
-        required this.href,
-        required this.title,
-    });
-
-    final String href;
-    final String title;
-
-    factory ResourceLink.fromJson(Map<String, dynamic> json) => ResourceLink(
-        href: json["href"],
-        title: json["title"],
-    );
-
-    Map<String, dynamic> toJson() => {
-        "href": href,
-        "title": title,
-    };
-}
-
-class Cury {
-    Cury({
-        required this.name,
-        required this.href,
-        required this.templated,
-    });
-
-    final String name;
-    final String href;
-    final bool templated;
-
-    factory Cury.fromJson(Map<String, dynamic> json) => Cury(
-        name: json["name"],
-        href: json["href"],
-        templated: json["templated"],
-    );
-
-    Map<String, dynamic> toJson() => {
-        "name": name,
-        "href": href,
-        "templated": templated,
-    };
-}
-
-class MobileNumber {
-    MobileNumber({
-        required this.number,
-        required this.code,
-        required this.numberWithCode,
-        required this.callingNumber,
-    });
-
-    final String number;
-    final String code;
-    final String numberWithCode;
-    final String callingNumber;
-
-    factory MobileNumber.fromJson(Map<String, dynamic> json) => MobileNumber(
-        number: json["number"],
-        code: json["code"],
-        numberWithCode: json["number_with_code"],
-        callingNumber: json["calling_number"],
-    );
-
-    Map<String, dynamic> toJson() => {
-        "number": number,
-        "code": code,
-        "number_with_code": numberWithCode,
-        "calling_number": callingNumber,
-    };
-}
-
-class PaginatedUsersLinks {
-    PaginatedUsersLinks({
-        required this.self,
-        required this.first,
-        required this.prev,
-        required this.next,
-        required this.last,
-        required this.search,
-    });
-
-    final ResourceLink self;
-    final ResourceLink first;
-    final ResourceLink prev;
-    final ResourceLink next;
-    final ResourceLink last;
-    final Search search;
-
-    factory PaginatedUsersLinks.fromJson(Map<String, dynamic> json) => PaginatedUsersLinks(
-        self: ResourceLink.fromJson(json["self"]),
-        first: ResourceLink.fromJson(json["first"]),
-        prev: ResourceLink.fromJson(json["prev"]),
-        next: ResourceLink.fromJson(json["next"]),
-        last: ResourceLink.fromJson(json["last"]),
-        search: Search.fromJson(json["search"]),
-    );
-
-    Map<String, dynamic> toJson() => {
-        "self": self.toJson(),
-        "first": first.toJson(),
-        "prev": prev.toJson(),
-        "next": next.toJson(),
-        "last": last.toJson(),
-        "search": search.toJson(),
-    };
-}
-
-class Search {
-    Search({
-        required this.href,
-        required this.templated,
-    });
-
-    final String href;
-    final bool templated;
-
-    factory Search.fromJson(Map<String, dynamic> json) => Search(
-        href: json["href"],
-        templated: json["templated"],
-    );
-
-    Map<String, dynamic> toJson() => {
-        "href": href,
-        "templated": templated,
+        "bos:stores": bosStores == null ? null : bosStores!.toJson(),
+        "bos:favourite-stores": bosFavouriteStores == null ? null : bosFavouriteStores!.toJson(),
+        "bos:shared-stores": bosSharedStores == null ? null : bosSharedStores!.toJson(),
+        "bos:created-stores": bosCreatedStores == null ? null : bosCreatedStores!.toJson(),
+        "bos:accept-terms-and-conditions": bosAcceptTermsAndConditions == null ? null : bosAcceptTermsAndConditions!.toJson(),
     };
 }

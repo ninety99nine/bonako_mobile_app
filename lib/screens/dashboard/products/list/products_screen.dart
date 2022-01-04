@@ -1,4 +1,6 @@
 import 'package:bonako_mobile_app/components/custom_instruction_message.dart';
+import 'package:bonako_mobile_app/models/locationTotals.dart';
+import 'package:bonako_mobile_app/providers/locations.dart';
 import './../../../../screens/dashboard/stores/show/store_screen.dart';
 import './../../../../components/custom_rounded_refresh_button.dart';
 import './../../../../components/custom_floating_action_button.dart';
@@ -62,7 +64,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   }
 
   Future<http.Response> fetchProducts({ String searchWord: '', bool loadMore = false, bool resetPage = false, bool refreshContent = false, int limit = 10 }) async {
-    
+
     startLoader(loadMore: loadMore);
 
     //  If we have a cancellable operation of fetching stores
@@ -228,6 +230,10 @@ class _ContentState extends State<Content> {
     }
   }
 
+  LocationTotals get locationTotals {
+    return Provider.of<LocationsProvider>(context).getLocationTotals;
+  }
+
   @override
   void initState() {
 
@@ -357,6 +363,22 @@ class _ContentState extends State<Content> {
 
       });
     }
+  }
+
+  void removeProduct(int productId, int currNumberOfProducts){
+
+    setState(() {
+      products.removeWhere((product) => product.id == productId);
+      
+      //  If the current number of products is Zero 
+      if(currNumberOfProducts == 0){
+
+        //  Fetch the products from the server
+        widget.fetchProducts(searchWord: searchWord, resetPage: true);
+
+      }
+    });
+
   }
 
   void toggleFilterStatus(){
@@ -632,7 +654,7 @@ class _ContentState extends State<Content> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomBackButton(fallback: (){
-                Get.off(() => ShowStoreScreen());
+                Get.offAll(() => ShowStoreScreen());
               }),
               CustomRoundedRefreshButton(onPressed: (){
                 
@@ -695,7 +717,7 @@ class _ContentState extends State<Content> {
                   SizedBox(height: 10,),
   
                   //  Filters
-                  if((isLoading == false && widget.isLoading == false && hasSearchWord == false)) 
+                  if((isLoading == false && widget.isLoading == false && isSearching == false) && locationTotals.productTotals.total > 0)
                     FilterTag(
                       activeFilters: activeFilters,
                       showFiltersDialog: showFiltersDialog,
@@ -734,19 +756,23 @@ class _ContentState extends State<Content> {
                       fetchProducts: widget.fetchProducts,
                       isLoadingMore: widget.isLoadingMore,
                       reorderProducts: reorderProducts,
+                      removeProduct: removeProduct,
                       searchWord: searchWord,
                       products: products,
                     ),
           
                   //  No products found
-                  if((isLoading == false && widget.isLoading == false) && isSearching == false && hasProducts == false)
+                  if((isLoading == false && widget.isLoading == false && isSearching == false) && hasProducts == false && hasSearchWord == false)
                     NoProductsFound(
                       navigateToAddProduct: navigateToAddProduct
                     ),
           
                   //  No products found
-                  if((isLoading == false && widget.isLoading == false) && isSearching == true && hasProducts == false)
-                    NoSearchedProductsFound(searchWord: searchWord, startSearch: startSearch),
+                  if((isLoading == false && widget.isLoading == false && isSearching == false) && hasProducts == false && hasSearchWord == true)
+                    NoSearchedProductsFound(
+                      searchWord: searchWord,
+                      navigateToAddProduct: navigateToAddProduct
+                    ),
                 ],
               )
             ),
@@ -892,9 +918,17 @@ class NoProductsFound extends StatelessWidget {
           ),
           child: SvgPicture.asset('assets/icons/ecommerce_pack_1/shopping-bag-2.svg', color: Colors.blue, width: 40,)
         ),
+        
         SizedBox(height: 30),
+
         Text('No products found', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),),
         
+        SizedBox(height: 30),
+
+        AddProductButton(
+          navigateToAddProduct: navigateToAddProduct,
+        ),
+
         SizedBox(height: 30),
 
         Padding(
@@ -932,9 +966,9 @@ class NoProductsFound extends StatelessWidget {
 class NoSearchedProductsFound extends StatelessWidget {
 
   final String searchWord;
-  final Function startSearch;
+  final Function navigateToAddProduct;
 
-  NoSearchedProductsFound({ required this.searchWord, required this.startSearch });
+  NoSearchedProductsFound({ required this.searchWord, required this.navigateToAddProduct });
 
   @override
   Widget build(BuildContext context) {
@@ -946,6 +980,7 @@ class NoSearchedProductsFound extends StatelessWidget {
           Divider(),
           Container(
             padding: EdgeInsets.all(20),
+            margin: EdgeInsets.only(top: 20),
             decoration: BoxDecoration(
               color: Colors.blue.shade50,
               borderRadius: BorderRadius.circular(100),
@@ -955,6 +990,13 @@ class NoSearchedProductsFound extends StatelessWidget {
           ),
           SizedBox(height: 30),
           Text('No search results', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),),
+        
+          SizedBox(height: 30),
+          AddProductButton(
+            navigateToAddProduct: navigateToAddProduct
+          ),
+
+          SizedBox(height: 30),
           Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -982,9 +1024,29 @@ class NoSearchedProductsFound extends StatelessWidget {
   }
 }
 
+class AddProductButton extends StatelessWidget {
+
+  final Function navigateToAddProduct;
+
+  AddProductButton({ required this.navigateToAddProduct });
+
+  @override
+  Widget build(BuildContext context) {
+
+    return CustomButton(
+      width: 300,
+      text: '+ Add Product',
+      onSubmit: () async {
+        navigateToAddProduct();
+      }, 
+    );
+  }
+}
+
 class ProductList extends StatelessWidget {
   final PaginatedProducts paginatedProducts;
   final Function reorderProducts;
+  final Function removeProduct;
   final Function fetchProducts;
   final List<Product> products;
   final bool isLoadingMore;
@@ -992,14 +1054,14 @@ class ProductList extends StatelessWidget {
 
   ProductList({ 
     required this.paginatedProducts, required this.products, required this.reorderProducts, 
-    required this.fetchProducts, required this.isLoadingMore, required this.searchWord
+    required this.removeProduct, required this.fetchProducts, required this.isLoadingMore, 
+    required this.searchWord
   });
 
   @override
   Widget build(BuildContext context) {
 
     Widget buildProductListView(List<Product> products){
-
       var currNumberOfProducts = products.length;
 
       return ReorderableListView.builder(
@@ -1009,30 +1071,34 @@ class ProductList extends StatelessWidget {
         itemCount: products.length,
         itemBuilder: (ctx, index){
 
-          final productCard = ProductCard(product: products[index], searchWord: searchWord, fetchProducts: fetchProducts);
+          final Product product = products[index];
+          final productCard = ProductCard(product: product, searchWord: searchWord, fetchProducts: fetchProducts);
 
           return Dismissible(
+            key: ValueKey(product.id),
             direction: DismissDirection.startToEnd,
             confirmDismiss: (dismissDirection) async {
-              final isDeleted = await Provider.of<ProductsProvider>(context, listen: false).handleDeleteProduct(
-                product: products[index], 
+              final bool isDeleted = await Provider.of<ProductsProvider>(context, listen: false).handleDeleteProduct(
+                product: product, 
                 context: ctx
-              );
-              //  Decrement the current number of products by one
-              if(isDeleted) currNumberOfProducts--;
+              //  Default to false if null value
+              ) ?? false;
+
+              if( isDeleted ){
+
+                //  Decrement the current number of products by one
+                currNumberOfProducts--;
+
+                //  Remove the product from the list of products
+                removeProduct(product.id, currNumberOfProducts);
+
+              }
 
               //  Determine whether to dismiss the product card
               return isDeleted;
-            },
-            onDismissed: (dismissDirection){
-              //  If the current number of products is Zero 
-              if(currNumberOfProducts == 0){
-                //  Fetch the products from the server
-                fetchProducts(searchWord: searchWord, resetPage: true);
-              }
+
             },
             child: productCard,
-            key: ValueKey(products[index].id),
             background: Container(
               color: Colors.red.shade100,
               alignment: Alignment.centerLeft,

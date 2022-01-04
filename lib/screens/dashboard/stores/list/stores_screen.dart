@@ -170,6 +170,7 @@ class _StoreListState extends State<StoreList> {
   void initState() {
     fetchStores();
     scrollController = new ScrollController()..addListener(_scrollListener);
+    
     super.initState();
   }
 
@@ -612,12 +613,17 @@ class StoreCard extends StatelessWidget {
                   ),
                   onTap: () async {
                     if( hasSubscription ){
+
+                      final storeProvider = Provider.of<StoresProvider>(context, listen: false);
                       
                       //  Set the selected store on the StoresProvider
-                      Provider.of<StoresProvider>(context, listen: false).setStore(store);
+                      storeProvider.setStore(store);
 
                       //  Navigate to show store screen
                       await Get.to(() => ShowStoreScreen());
+
+                      //  Unset store on return
+                      storeProvider.unsetStore(context: context);
 
                       //  Refetch stores on return
                       fetchStores(searchWord: searchWord, resetPage: true);
@@ -829,6 +835,7 @@ class StoreCardOptionButton extends StatelessWidget {
                       children: <Widget>[
           
                         TextFormField(
+                          autofocus: false,
                           initialValue: staffMemberForm['mobile_number'],
                           keyboardType: TextInputType.phone,
                           decoration: InputDecoration(

@@ -1,12 +1,13 @@
 import 'package:bonako_mobile_app/components/custom_button.dart';
 import 'package:bonako_mobile_app/components/custom_loader.dart';
+import 'package:bonako_mobile_app/providers/api.dart';
 import 'package:bonako_mobile_app/screens/auth/components/auth_input_field.dart';
 import 'package:bonako_mobile_app/screens/auth/components/auth_mobile_number_instruction.dart';
 import 'package:bonako_mobile_app/screens/auth/components/auth_user_account.dart';
 import 'package:bonako_mobile_app/screens/auth/terms_and_conditions.dart';
 import './../../screens/auth/components/auth_alternative_link.dart';
 import './../../screens/auth/components/mobile_verification.dart';
-import './../../screens/auth/components/auth_divider.dart';
+import './../../components/custom_divider.dart';
 import './../../screens/auth/components/auth_heading.dart';
 import './../dashboard/stores/list/stores_screen.dart';
 import './../../components/previous_step_button.dart';
@@ -52,6 +53,10 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey();
 
   PasswordResetStage currPasswordResetStage = PasswordResetStage.enterMobile;
+
+  ApiProvider get apiProvider {
+    return Provider.of<ApiProvider>(context, listen: false);
+  }
 
   AuthProvider get authProvider {
     return Provider.of<AuthProvider>(context, listen: false);
@@ -202,7 +207,7 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
         //  If validation failed
         }else{
 
-          authProvider.showSnackbarMessage(msg: 'Check for mistakes', type: SnackbarType.error, context: context);
+          apiProvider.showSnackbarMessage(msg: 'Check for mistakes', type: SnackbarType.error, context: context);
 
           storePasswordResetDataOnDevice();
 
@@ -283,13 +288,13 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
 
       if( authProvider.hasAcceptedTermsAndConditions ){
       
-        authProvider.showSnackbarMessage(msg: 'Welcome back, '+userAccount['first_name']+'!', context: context);
+        apiProvider.showSnackbarMessage(msg: 'Welcome back, '+userAccount['first_name']+'!', context: context);
 
-        Get.off(() => StoresScreen());
+        Get.offAll(() => StoresScreen());
 
       }else{
 
-        Get.off(() => TermsAndConditionsScreen());
+        Get.offAll(() => TermsAndConditionsScreen());
 
       }
 
@@ -418,7 +423,7 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
           
             storePasswordResetDataOnDevice(reset: true);
 
-            Get.off(() => SignUpScreen(), arguments: {
+            Get.offAll(() => SignUpScreen(), arguments: {
               'mobile_number': passwordResetForm['mobile_number'],
             });
 
@@ -494,7 +499,7 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
 
         if(isLoading == true) CustomLoader(bottomMargin: 40,),
 
-        AuthDivider(),
+        CustomDivider(),
       
         _loginLabel(),
 
@@ -516,7 +521,7 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
 
         if(isLoading == true) CustomLoader(bottomMargin: 40,),
 
-        AuthDivider(),
+        CustomDivider(),
       
         _loginLabel(),
 
@@ -715,7 +720,7 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
         //  Reset the registration data stored on the device
         storePasswordResetDataOnDevice(reset: true);
 
-        Get.off(() => LoginScreen(), arguments: {
+        Get.offAll(() => LoginScreen(), arguments: {
           'mobile_number': passwordResetForm['mobile_number'],
         });
 

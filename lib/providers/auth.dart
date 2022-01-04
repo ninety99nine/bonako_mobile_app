@@ -51,12 +51,19 @@ class AuthProvider with ChangeNotifier{
     if( metadata.isNotEmpty ){
       data['metadata'] = metadata;
     }
-  
-    print('generateMobileVerification()');
-    print('data');
-    print(data);
 
-    return apiProvider.post(url: apiProvider.getGenerateMobileVerificationCodeUrl, body: data, context: context);
+    return apiProvider.post(url: apiProvider.getGenerateMobileVerificationCodeUrl, body: data, context: context)
+      .then((response){
+        
+        if( response.statusCode == 200){
+          
+          apiProvider.showSnackbarMessage(msg: 'Verification code created', context: context);
+
+        }
+
+        return response;
+        
+      });
     
   }
   
@@ -101,9 +108,6 @@ class AuthProvider with ChangeNotifier{
       'verification_code': verificationCode,
       'password_confirmation': passwordConfirmation,
     };
-
-    print('registerData');
-    print(registerData);
 
     return apiProvider.post(url: apiProvider.getRegisterUrl, body: registerData, context: context)
       .then((response) async {
@@ -153,10 +157,6 @@ class AuthProvider with ChangeNotifier{
 
     //  if we authenticated successfully
     if( response.statusCode == 200 ){
-
-      print('setUserAndAuthTokenFromResponse()');
-      print('response.body');
-      print(response.body);
 
       final responseBody = jsonDecode(response.body);
     
@@ -386,9 +386,6 @@ class AuthProvider with ChangeNotifier{
     
     return await SharedPreferences.getInstance().then((prefs){
 
-      print( 'prefs.getString(\'hasViewedIntro\')' );
-      print( prefs.getString('hasViewedIntro') );
-
       _hasViewedIntro = prefs.getString('hasViewedIntro') == 'true';
 
     });
@@ -450,37 +447,10 @@ class AuthProvider with ChangeNotifier{
   }
   
   String get getAcceptTermsAndConditionsUrl {
-    return getAuthUser.links.bosAcceptTermsAndConditions.href;
+    return getAuthUser.links.bosAcceptTermsAndConditions!.href!;
   }
 
-  void showSnackbarMessage({ required String msg, required BuildContext context, SnackbarType type = SnackbarType.info }){
-
-    Color color = Colors.blue;
-
-    if(type == SnackbarType.warning){
-      color = Colors.orange;
-    }else if(type == SnackbarType.error){
-      color = Colors.red;
-    }
-
-    //  Set snackbar content
-    final snackBar = SnackBar(
-      backgroundColor: color,
-      content: Padding(
-        padding: const EdgeInsets.only(top: 15),
-        child: Text(msg, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold),),
-      )
-    );
-
-    //  Hide existing snackbar
-    ScaffoldMessenger.of(context).removeCurrentSnackBar();
-
-    //  Show snackbar  
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-
-  }
-
-  void launchShortcode ({ required String dialingCode, String loadingMsg = 'Loading...', required BuildContext context }) async {
+  Future<void> launchShortcode ({ required String dialingCode, String loadingMsg = 'Loading...', required BuildContext context }) async {
 
     showLoadingDialog(context: context, loadingMsg: loadingMsg);
 
@@ -490,13 +460,17 @@ class AuthProvider with ChangeNotifier{
 
       await launch(ussdString);
 
-      Navigator.of(context).pop();
+      //  Hide the current alert dialog
+      Navigator.of(context, rootNavigator: true).pop('dialog');
 
     }
+
+    return null;
 
   }
 
   void showLoadingDialog({ required BuildContext context, String loadingMsg = 'Loading...' }){
+
     showDialog(
       context: context, 
       builder: (BuildContext context) {
@@ -504,7 +478,7 @@ class AuthProvider with ChangeNotifier{
           content: Row(
             children: [
               Container(height:20, width:20, margin: EdgeInsets.only(right: 10), child: CircularProgressIndicator(strokeWidth: 3,)),
-              Text(loadingMsg),
+              Flexible(child: Text(loadingMsg)),
             ],
           )
         );

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import './auth_divider.dart';
+import './../../../components/custom_divider.dart';
 
 class AuthHeading extends StatelessWidget {
   
@@ -13,7 +13,7 @@ class AuthHeading extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(bottom: bottomMargin),
-      child: AuthDivider(
+      child: CustomDivider(
         text: Text(
           text,
           style: TextStyle(
