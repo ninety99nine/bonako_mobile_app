@@ -1011,12 +1011,12 @@ class CustomerCard extends StatelessWidget {
                           CustomMultiWidgetSeparator(
                             texts: [
                               {
-                                'widget': CustomSecondaryText(text: 'Total Orders : ' + customer.totalOrdersPlacedByCustomer.toString()),
-                                'value': customer.totalOrdersPlacedByCustomer.toString()
+                                'widget': CustomSecondaryText(text: 'Total Orders : ' + customer.attributes.totalOrdersPlacedOnConversion.toString()),
+                                'value': customer.totalOrdersPlacedByCustomerOnConversion.toString()
                               },
                               {
-                                'widget': CustomSecondaryText(text: 'Total Amount : ' + customer.checkoutSubTotal.currencyMoney),
-                                'value': customer.checkoutSubTotal.currencyMoney
+                                'widget': CustomSecondaryText(text: 'Total Amount : ' + customer.grandTotalOnConversion.currencyMoney),
+                                'value': customer.grandTotalOnConversion.currencyMoney
                               },
                             ]
                           ),

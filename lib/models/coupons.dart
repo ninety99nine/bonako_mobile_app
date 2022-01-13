@@ -146,7 +146,7 @@ class Coupon {
     final Status allowDiscountOnDaysOfTheWeek;
     final List<String> discountOnDaysOfTheWeek;
     final Status allowDiscountOnDaysOfTheMonth;
-    final List<int> discountOnDaysOfTheMonth;
+    final List<String> discountOnDaysOfTheMonth;
     final Status allowDiscountOnMonthsOfTheYear;
     final List<String> discountOnMonthsOfTheYear;
     final Status allowDiscountOnNewCustomer;
@@ -191,7 +191,7 @@ class Coupon {
         allowDiscountOnDaysOfTheWeek: Status.fromJson(json["allow_discount_on_days_of_the_week"]),
         discountOnDaysOfTheWeek: List<String>.from(json["discount_on_days_of_the_week"].map((x) => x)),
         allowDiscountOnDaysOfTheMonth: Status.fromJson(json["allow_discount_on_days_of_the_month"]),
-        discountOnDaysOfTheMonth: List<int>.from(json["discount_on_days_of_the_month"].map((x) => x)),
+        discountOnDaysOfTheMonth: List<String>.from(json["discount_on_days_of_the_month"].map((x) => x.toString())),
         allowDiscountOnMonthsOfTheYear: Status.fromJson(json["allow_discount_on_months_of_the_year"]),
         discountOnMonthsOfTheYear: List<String>.from(json["discount_on_months_of_the_year"].map((x) => x)),
         allowDiscountOnNewCustomer: Status.fromJson(json["allow_discount_on_new_customer"]),

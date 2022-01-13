@@ -2,6 +2,7 @@ import 'package:bonako_mobile_app/components/custom_instruction_message.dart';
 import 'package:bonako_mobile_app/components/custom_tag.dart';
 import 'package:bonako_mobile_app/models/locationTotals.dart';
 import 'package:bonako_mobile_app/providers/locations.dart';
+import 'package:bonako_mobile_app/screens/dashboard/users/show/components/userRoleTag.dart';
 import './../../../../screens/dashboard/stores/show/store_screen.dart';
 import './../../../../components/custom_rounded_refresh_button.dart';
 import './../../../../components/custom_floating_action_button.dart';
@@ -1096,7 +1097,7 @@ class UserCard extends StatelessWidget {
                           children: [
 
                             //  User role
-                            CustomTag(boldedText: user.attributes.userLocation!.type, color: user.attributes.userLocation!.type == 'Owner' ? Colors.orange : Colors.green,),
+                            UserRoleTag(user: user),
 
                             SizedBox(width: 10,),
 

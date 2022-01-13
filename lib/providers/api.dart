@@ -1,12 +1,13 @@
-import 'package:bonako_mobile_app/enum/enum.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:bonako_mobile_app/enum/enum.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'dart:convert';
 
 class ApiProvider with ChangeNotifier{
 
-  final String homeUrl = 'http://127.0.0.1:9000/api'; //  'http://bonakoonline.co.bw/api';  //   'http://165.232.179.255/api';  //  
+  final String homeUrl = 'http://165.232.179.255/api';  //  'http://127.0.0.1:9000/api'; //  'http://bonakoonline.co.bw/api';  //   
 
   String _loginUrl = '';
   String _logoutUrl = '';
@@ -19,6 +20,25 @@ class ApiProvider with ChangeNotifier{
   String _verifyUserAccountShortcode = '';
   String _verifyMobileVerificationCodeUrl = '';
   String _generateMobileVerificationCodeUrl = '';
+
+  Future<http.Response> setupApiConnection ({ required BuildContext context }) async {
+    
+    //  Establish a connection to Firebase
+    await connectToFirebase();
+    
+    //  Establish a connection to Application Home API
+    return await setApiEndpoints(context: context);
+
+  }
+
+  Future<void> connectToFirebase () async {
+
+    print('Connecting To Firebase');
+    
+    //  Establish a connection to Firebase
+    await Firebase.initializeApp();
+
+  }
 
   Future<http.Response> setApiEndpoints({ required BuildContext context }) async {
     

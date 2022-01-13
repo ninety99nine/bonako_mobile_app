@@ -4,21 +4,32 @@ class CustomDivider extends StatelessWidget {
   
   final text;
   final double topMargin;
+  final double leftMargin;
+  final double rightMargin;
   final double bottomMargin;
+  final bool showLeftDivider;
+  final bool showRightDivider;
+  final CrossAxisAlignment alignment;
 
-  CustomDivider({ this.text = const Text('or'), this.topMargin = 10.0, this.bottomMargin = 10.0 });
+  CustomDivider({ 
+    this.topMargin = 10.0, 
+    this.leftMargin = 20.0, 
+    this.rightMargin = 20.0, 
+    this.bottomMargin = 10.0, 
+    this.showLeftDivider = true,
+    this.showRightDivider = true,  
+    this.text = const Text('or'),
+    this.alignment = CrossAxisAlignment.end
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(top: topMargin, bottom: bottomMargin),
+      margin: EdgeInsets.only(top: topMargin, bottom: bottomMargin, left: leftMargin, right: rightMargin),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          SizedBox(
-            width: 20,
-          ),
-          Expanded(
+          if(showLeftDivider) Expanded(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Divider(
@@ -27,16 +38,13 @@ class CustomDivider extends StatelessWidget {
             ),
           ),
           (text is Widget) ? text : Text(text),
-          Expanded(
+          if(showRightDivider) Expanded(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Divider(
                 thickness: 1,
               ),
             ),
-          ),
-          SizedBox(
-            width: 20,
           ),
         ],
       ),

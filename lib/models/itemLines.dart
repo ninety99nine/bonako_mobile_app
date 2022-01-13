@@ -72,6 +72,8 @@ class ItemLine {
         required this.id,
         required this.name,
         required this.description,
+        required this.sku,
+        required this.barcode,
         required this.isFree,
         required this.isCancelled,
         required this.cancellationReason,
@@ -97,6 +99,8 @@ class ItemLine {
     final int id;
     final String name;
     final dynamic description;
+    final dynamic sku;
+    final dynamic barcode;
     final Status isFree;
     final Status isCancelled;
     final dynamic cancellationReason;
@@ -122,6 +126,8 @@ class ItemLine {
         id: json["id"],
         name: json["name"],
         description: json["description"],
+        sku: json["sku"],
+        barcode: json["barcode"],
         isFree: Status.fromJson(json["is_free"]),
         isCancelled: Status.fromJson(json["is_cancelled"]),
         cancellationReason: json["cancellation_reason"],
@@ -148,6 +154,8 @@ class ItemLine {
         "id": id,
         "name": name,
         "description": description,
+        "sku": sku,
+        "barcode": barcode,
         "is_free": isFree.toJson(),
         "is_cancelled": isCancelled.toJson(),
         "cancellation_reason": cancellationReason,
@@ -173,16 +181,20 @@ class ItemLine {
 
 class ItemLineAttributes {
     ItemLineAttributes({
+        required this.onSale,
         required this.resourceType,
     });
 
+    final Status onSale;
     final String resourceType;
 
     factory ItemLineAttributes.fromJson(Map<String, dynamic> json) => ItemLineAttributes(
+        onSale: Status.fromJson(json["on_sale"]),
         resourceType: json["resource_type"],
     );
 
     Map<String, dynamic> toJson() => {
+        "on_sale": onSale.toJson(),
         "resource_type": resourceType,
     };
 }

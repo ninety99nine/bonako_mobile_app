@@ -1,3 +1,5 @@
+import 'package:bonako_mobile_app/components/custom_card.dart';
+
 import './../../../../../models/customers.dart';
 import 'package:flutter/material.dart';
 
@@ -7,76 +9,108 @@ class CustomerSummary extends StatelessWidget {
 
   const CustomerSummary({ required this.customer });
 
-  Widget showSummaryCard({ required String title, required IconData icon, required List<Widget> statWidgets }){
-    return Card(
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          children: [
-            ListTile(
-              leading: CircleAvatar(
-                child: Icon(icon, size: 16,),
-                foregroundColor: Colors.blue,
-                backgroundColor: Colors.blue.shade50,
-              ),
-              title: Text(title),
-            ),
-            Divider(),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-              child: Column(
-                children: statWidgets,
-              ),
-            )
-          ]
-        )
-      );
-  }
-
-  Widget getSpendingHistoryStats(){
+  Widget getCheckoutHistoryStats(){
 
     final List<Map> generalStats = [
       {
         'name': 'Sub Total',
-        'value': customer.checkoutSubTotal.currencyMoney
+        'value': customer.subTotalOnCheckout.currencyMoney
       },
       {
         'name': 'Sale Discount Total',
-        'value': customer.checkoutSaleDiscountTotal.currencyMoney
+        'value': customer.saleDiscountTotalOnCheckout.currencyMoney
       },
       {
         'name': 'Coupon Discount Total',
-        'value': customer.checkoutCouponsTotal.currencyMoney
+        'value': customer.couponTotalOnCheckout.currencyMoney
       },
       {
         'name': 'Grand total',
-        'value': customer.checkoutGrandTotal.currencyMoney
+        'value': customer.grandTotalOnCheckout.currencyMoney
       },
     ];
 
     final statWidgets = generalStats.map((stat){
 
+      final index = generalStats.indexOf(stat);
+      final isFirstItem = (index == 0);
+      final requiresSeparation =  ['Grand total'].contains(stat['name']);
+
       return Container(
-        margin: EdgeInsets.only(bottom: (stat['name'] == 'Coupon Discount Total') ? 0 : 10),
+        margin: EdgeInsets.only(top: (isFirstItem || requiresSeparation) ? 0 : 10),
         child: Column(
           children: [
-            if(stat['name'] == 'Grand total') Divider(height: 40,),
+            if(requiresSeparation) Divider(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(stat['name'], style: TextStyle(fontWeight: (stat['name'] == 'Grand total') ? FontWeight.bold : FontWeight.normal)),
                 Text(stat['value'], style: TextStyle(fontWeight: (stat['name'] == 'Grand total') ? FontWeight.bold : FontWeight.normal)),
               ],
-            )
+            ),
           ],
         ),
       );
 
     }).toList();
 
-    return showSummaryCard(
+    return CustomCard(
+      title: 'Checkout Total', 
+      description: statWidgets,
+      icon: Icons.account_balance_wallet_outlined,
+    );
+
+  }
+
+  Widget getConversionHistoryStats(){
+
+    final List<Map> generalStats = [
+      {
+        'name': 'Sub Total',
+        'value': customer.subTotalOnConversion.currencyMoney
+      },
+      {
+        'name': 'Sale Discount Total',
+        'value': customer.saleDiscountTotalOnConversion.currencyMoney
+      },
+      {
+        'name': 'Coupon Discount Total',
+        'value': customer.couponTotalOnConversion.currencyMoney
+      },
+      {
+        'name': 'Grand total',
+        'value': customer.grandTotalOnConversion.currencyMoney
+      },
+    ];
+
+    final statWidgets = generalStats.map((stat){
+
+      final index = generalStats.indexOf(stat);
+      final isFirstItem = (index == 0);
+      final requiresSeparation =  ['Grand total'].contains(stat['name']);
+
+      return Container(
+        margin: EdgeInsets.only(top: (isFirstItem || requiresSeparation) ? 0 : 10),
+        child: Column(
+          children: [
+            if(requiresSeparation) Divider(height: 30),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(stat['name'], style: TextStyle(fontWeight: (stat['name'] == 'Grand total') ? FontWeight.bold : FontWeight.normal)),
+                Text(stat['value'], style: TextStyle(fontWeight: (stat['name'] == 'Grand total') ? FontWeight.bold : FontWeight.normal)),
+              ],
+            ),
+          ],
+        ),
+      );
+
+    }).toList();
+
+    return CustomCard(
+      title: 'Conversion Total', 
+      description: statWidgets,
       icon: Icons.attach_money_rounded,
-      title: 'Spending History', 
-      statWidgets: statWidgets
     );
 
   }
@@ -86,11 +120,19 @@ class CustomerSummary extends StatelessWidget {
     final List<Map> stats = [
       {
         'name': 'Orders placed',
-        'value': customer.totalOrdersPlacedByCustomer
+        'value': customer.totalOrdersPlacedByCustomerOnCheckout
+      },
+      {
+        'name': 'Orders delivered',
+        'value': customer.totalOrdersPlacedByCustomerOnCheckout
+      },
+      {
+        'name': 'Orders cancelled',
+        'value': customer.totalOrdersPlacedByCustomerOnCheckout
       },
       {
         'name': 'Items selected',
-        'value': customer.checkoutTotalItems
+        'value': customer.totalItemsOnCheckout
       },
       {
         'name': 'Free delivery claimed',
@@ -108,11 +150,15 @@ class CustomerSummary extends StatelessWidget {
 
     final statWidgets = stats.map((stat){
 
+      final index = stats.indexOf(stat);
+      final isFirstItem = (index == 0);
+      final requiresSeparation =  ['Items selected', 'Adverts used'].contains(stat['name']);
+
       return Container(
-        margin: EdgeInsets.only(bottom: (stat['name'] == 'Free delivery claimed') ? 0 : 10),
+        margin: EdgeInsets.only(top: (isFirstItem || requiresSeparation) ? 0 : 10),
         child: Column(
           children: [
-            if(stat['name'] == 'Adverts used') Divider(height: 30,),
+            if(requiresSeparation) Divider(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -126,10 +172,10 @@ class CustomerSummary extends StatelessWidget {
 
     }).toList();
 
-    return showSummaryCard(
-      icon: Icons.shopping_cart_outlined,
+    return CustomCard(
       title: 'Shopping History', 
-      statWidgets: statWidgets
+      description: statWidgets,
+      icon: Icons.shopping_cart_outlined,
     );
 
   }
@@ -140,7 +186,9 @@ class CustomerSummary extends StatelessWidget {
     return Container(
       child: Column(
         children: [
-          getSpendingHistoryStats(),
+          getCheckoutHistoryStats(),
+          SizedBox(height: 10,),
+          getConversionHistoryStats(),
           SizedBox(height: 10,),
           getShoppingHistoryStats(),
         ]

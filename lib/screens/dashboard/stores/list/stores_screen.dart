@@ -1,3 +1,4 @@
+import 'package:bonako_mobile_app/components/custom_countup.dart';
 import 'package:bonako_mobile_app/components/custom_instruction_message.dart';
 import 'package:bonako_mobile_app/components/custom_search_bar.dart';
 import './../../../../../components/custom_rounded_refresh_button.dart';
@@ -489,8 +490,6 @@ class StoreCard extends StatelessWidget {
     return Row(
       children: <Widget> [
 
-        SvgPicture.asset('assets/icons/ecommerce_pack_1/padlock-1.svg', width: 16),
-        SizedBox(width: 20),
         StoreCardOptionButton(store: store, shared: shared, searchWord: searchWord, fetchStores: fetchStores)
 
       ]
@@ -499,20 +498,30 @@ class StoreCard extends StatelessWidget {
 
   Widget storeNameAndDialingCode(bool hasSubscription, bool hasVisitShortCode, visitShortCodeDialingCode){
     return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: <Widget> [
 
         //  Store Name
-        storeName(),
+        Expanded(
+          child: storeName()
+        ),
         
         SizedBox(width: 10),
 
+        //  Padlock icon
+        if(hasSubscription == false) Container(
+          margin: EdgeInsets.only(right: 10),
+          child: SvgPicture.asset('assets/icons/ecommerce_pack_1/padlock-1.svg', width: 16)
+        ),
+
         //  Store Dialing Code
-        if(hasSubscription && hasVisitShortCode) 
-          visitDialingCode(visitShortCodeDialingCode),
+        if(hasSubscription == true && hasVisitShortCode == true) 
+          Flexible(
+            child: visitDialingCode(visitShortCodeDialingCode)
+          ),
 
         //  Store Dialing Code (Unknown)
-        if(hasSubscription && !hasVisitShortCode) 
+        if(hasSubscription == true && hasVisitShortCode == false) 
           noShortcodeDesclaimer(),
           
         ]
@@ -520,11 +529,11 @@ class StoreCard extends StatelessWidget {
   }
 
   Widget storeName(){
-    return Text(store.name, style: TextStyle(fontWeight: FontWeight.bold));
+    return Text(store.name, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.bold));
   }
 
   Widget visitDialingCode(String visitShortCodeDialingCode){
-    return Text(visitShortCodeDialingCode);
+    return Text(visitShortCodeDialingCode, overflow: TextOverflow.ellipsis);
   }
 
   Widget noShortcodeDesclaimer(){
@@ -575,27 +584,33 @@ class StoreCard extends StatelessWidget {
                 children: <Widget> [
           
                   //  Store Name & Dialing Code
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget> [
-                      
-                      //  Store Name and Dialing code
-                      storeNameAndDialingCode(hasSubscription, hasVisitShortCode, visitShortCodeDialingCode),
-
-                      //  Subscription End Date 
-                      if(hasSubscription) subscriptionCountDown(endTime)
-
-                    ], 
-
+                  Expanded(
+                    flex: 7,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget> [
+                        
+                        //  Store Name and Dialing code
+                        storeNameAndDialingCode(hasSubscription, hasVisitShortCode, visitShortCodeDialingCode),
+                                    
+                        //  Subscription End Date 
+                        if(hasSubscription) subscriptionCountDown(endTime)
+                                    
+                      ], 
+                                    
+                    ),
                   ),
           
-                  Container(
-                    child:
-                      hasSubscription
-                        //  Arrow Button
-                        ? forwardArrowButton()
-                        //  Options Button
-                        : optionsButton()
+                  Expanded(
+                    flex: 3,
+                    child: Container(
+                      child:
+                        hasSubscription
+                          //  Arrow Button
+                          ? forwardArrowButton()
+                          //  Options Button
+                          : optionsButton()
+                    ),
                   )
                   
                 ]
@@ -881,15 +896,17 @@ class StoreCardOptionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(right: 15),
-      child: ElevatedButton(
-        onPressed: () => {
-          showOptionsDialog(context)
-        }, 
-        child: Text('Options', style: TextStyle(fontSize: 12),),
-        style:  ElevatedButton.styleFrom(
-          primary: Colors.blue,
+    return Expanded(
+      child: Container(
+        alignment: Alignment.center,
+        child: ElevatedButton(
+          onPressed: () => {
+            showOptionsDialog(context)
+          }, 
+          child: Text('Options', style: TextStyle(fontSize: 12),),
+          style:  ElevatedButton.styleFrom(
+            primary: Colors.blue,
+          ),
         ),
       ),
     );

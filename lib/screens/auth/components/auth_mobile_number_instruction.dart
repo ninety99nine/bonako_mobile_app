@@ -7,9 +7,10 @@ import './../../../enum/enum.dart';
 class AuthMobileNumberInstruction extends StatelessWidget {
 
   final String mobileNumber;
+  final bool hasGeneratedCode;
   final MobileNumberInstructionType type;
 
-  AuthMobileNumberInstruction({ this.type = MobileNumberInstructionType.login_enter_mobile, this.mobileNumber = '###' });
+  AuthMobileNumberInstruction({ this.type = MobileNumberInstructionType.login_enter_mobile, this.mobileNumber = '###', this.hasGeneratedCode = false });
 
   List<TextSpan> loginEnterMobile(){
     return [
@@ -104,33 +105,48 @@ class AuthMobileNumberInstruction extends StatelessWidget {
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    return [
-      TextSpan(text: 'Inform your customer to dial '),
-      TextSpan(
-        text: authProvider.apiProvider.getVerifyUserAccountShortcode, 
-        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, decoration: TextDecoration.underline), 
-        recognizer: TapGestureRecognizer()
-          ..onTap = () {
-            
-            final dialingCode = authProvider.apiProvider.getVerifyUserAccountShortcode;
-            
-            if( dialingCode.isNotEmpty ){
-              authProvider.launchShortcode(dialingCode: dialingCode, loadingMsg: 'Loading...', context: context);
-            }
+    if( hasGeneratedCode == true ){
 
-          }),
-      TextSpan(text: ' on their mobile number '),
-      TextSpan(
-        text: mobileNumber, 
-        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
-      ),
-      TextSpan(text: ' to confirm that they have paid and received their order. Enter the '),
-      TextSpan(
-        text: '6 digit verification code', 
-        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
-      ),
-      TextSpan(text: ' below'),
-    ];
+      return [
+        TextSpan(text: 'Inform your customer to dial '),
+        TextSpan(
+          text: authProvider.apiProvider.getVerifyUserAccountShortcode, 
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, decoration: TextDecoration.underline), 
+          recognizer: TapGestureRecognizer()
+            ..onTap = () {
+              
+              final dialingCode = authProvider.apiProvider.getVerifyUserAccountShortcode;
+              
+              if( dialingCode.isNotEmpty ){
+                authProvider.launchShortcode(dialingCode: dialingCode, loadingMsg: 'Loading...', context: context);
+              }
+
+            }),
+        TextSpan(text: ' on their mobile number '),
+        TextSpan(
+          text: mobileNumber, 
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+        ),
+        TextSpan(text: '. Enter the '),
+        TextSpan(
+          text: '6 digit verification code', 
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+        ),
+        TextSpan(text: ' provided by the customer to confirm that they have paid and received their order'),
+      ];
+
+    }else{
+
+      return [
+        TextSpan(text: 'Send the customer a delivery verification code to their mobile number '),
+        TextSpan(
+          text: mobileNumber, 
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+        ),
+        TextSpan(text: ' to confirm that they have paid and received their order. Tap the button to send'),
+      ];
+
+    }
   }
 
   List<TextSpan> passwordResetEnterMobile(){
@@ -151,6 +167,7 @@ class AuthMobileNumberInstruction extends StatelessWidget {
   Widget build(BuildContext context) {
 
     List<TextSpan> textSpan = [];
+    Color iconColor = Colors.black87;
     IconData icon = Icons.phone_android;
 
     if( type == MobileNumberInstructionType.login_enter_mobile ){
@@ -179,8 +196,8 @@ class AuthMobileNumberInstruction extends StatelessWidget {
     }else if( type == MobileNumberInstructionType.mobile_verification_order_delivery_confirmation ){
 
       textSpan = mobileVerificationOrderDeliveryConfirmation(context);
-      icon = Icons.dialpad_rounded;
-
+      icon = hasGeneratedCode ? Icons.dialpad_rounded : Icons.speaker_phone;
+      iconColor = hasGeneratedCode ? iconColor : Colors.blue;
     }
 
     return Container(
@@ -193,7 +210,7 @@ class AuthMobileNumberInstruction extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon),
+          Icon(icon, color: iconColor),
           SizedBox(width: 10),
           Flexible(
             child: RichText(

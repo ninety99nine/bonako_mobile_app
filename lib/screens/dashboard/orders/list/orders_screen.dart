@@ -1,5 +1,7 @@
+import 'package:bonako_mobile_app/components/custom_multi_widget_separator.dart';
 import 'package:bonako_mobile_app/models/customers.dart';
 import 'package:bonako_mobile_app/providers/customers.dart';
+import 'package:bonako_mobile_app/screens/dashboard/orders/components/orderStatusSummary.dart';
 import 'package:bonako_mobile_app/screens/dashboard/users/show/components/userProfileSummary.dart';
 
 import './../../../../screens/dashboard/orders/show/order_screen.dart';
@@ -905,20 +907,12 @@ class OrderCard extends StatelessWidget {
 
   OrderCard({ required this.order, required this.searchWord, required this.fetchOrders });
 
-  Widget separator({ width: 5.0 }){
-    return Row(
-      children: [
-        SizedBox(width: width),
-        Text('|', style: TextStyle(fontSize: 14, color: Colors.grey),),
-        SizedBox(width: width),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
 
+    final size = MediaQuery.of(context).size;
     final ordersProvider = Provider.of<OrdersProvider>(context, listen: false);
+
 
     return Card(
       child: Stack(
@@ -935,16 +929,24 @@ class OrderCard extends StatelessWidget {
                       children: [
                         SizedBox(height: 10),
                         //  Order # & Customer name
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text('#'+order.number, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
-                            SizedBox(width: 10),
-                            Container(
-                              width: 140,
-                              child: Text(order.embedded.customer.embedded.user.attributes.name, overflow: TextOverflow.ellipsis,)
-                            )
-                          ]
+                        Container(
+                          width: size.width * 0.6,  //  Occupy 60%
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Flexible(
+                                child: Text('#'+order.number, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
+                              ),
+                              Expanded(
+                                child: Container(
+                                  margin: EdgeInsets.only(top: 3, left: 10),
+                                  child: Text(order.embedded.customer.embedded.user.attributes.name, overflow: TextOverflow.ellipsis,)
+                                ),
+                              ),
+                              
+                            ]
+                          ),
                         ),
                         
                         SizedBox(height: 10),
@@ -966,9 +968,10 @@ class OrderCard extends StatelessWidget {
                         children: [
 
                           //  Grand Total
-                          Container(
-                            width: 85,
-                            child: Text(order.embedded.activeCart.grandTotal.currencyMoney, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis,)
+                          Expanded(
+                            child: Container(
+                              child: Text(order.embedded.activeCart.grandTotal.currencyMoney, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis,)
+                            ),
                           ),
                                       
                           //  Forward Arrow 
@@ -982,40 +985,12 @@ class OrderCard extends StatelessWidget {
                   ],
                 ),
                 SizedBox(height: 10),
-                Row(
-                  children: [
 
-                    //  Payment Status
-                    Text(order.embedded.paymentStatus.name, style: TextStyle(fontSize: 12, color: (order.embedded.paymentStatus.name == 'Paid' ? Colors.green: Colors.grey))),
-                    
-                    separator(),
-                    
-                    //  Delivery Status
-                    Text(order.embedded.deliveryStatus.name, style: TextStyle(fontSize: 12, color: (order.embedded.deliveryStatus.name == 'Delivered' ? Colors.green: Colors.grey))),
-                    
-                    //  Total Items / Coupons
-                    if(order.embedded.activeCart.totalItems > 0 || order.embedded.activeCart.totalCoupons > 0) Container(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-          
-                          separator(),
-          
-                          //  Items
-                          Text(order.embedded.activeCart.totalItems.toString(), style: TextStyle(fontSize: 12, color: Colors.grey),),
-                          Text(order.embedded.activeCart.totalItems.toString() == '1' ? ' item' : ' items', style: TextStyle(fontSize: 12, color: Colors.grey),),
-          
-                          if(order.embedded.activeCart.totalItems > 0 && order.embedded.activeCart.totalCoupons > 0) separator(),
-          
-                          //  Coupons
-                          if(order.embedded.activeCart.totalCoupons > 0) Text(order.embedded.activeCart.totalCoupons.toString(), style: TextStyle(fontSize: 12, color: Colors.grey),),
-                          if(order.embedded.activeCart.totalCoupons > 0) Text(order.embedded.activeCart.totalCoupons.toString() == '1' ? ' coupon' : ' coupons', style: TextStyle(fontSize: 12, color: Colors.grey),)
-                        
-                        ]
-                      ),
-                    ),
-                  ]
-                ),
+                //  Payment status | Delivery status | Total items | Total coupons
+                OrderStatusSummary(
+                  order: order,
+                )
+                
               ],
             ),
           ),

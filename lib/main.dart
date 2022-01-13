@@ -1,7 +1,10 @@
-import 'package:bonako_mobile_app/providers/instant_carts.dart';
-import 'package:bonako_mobile_app/providers/users.dart';
 import 'package:bonako_mobile_app/screens/auth/terms_and_conditions.dart';
+import 'package:bonako_mobile_app/providers/instant_carts.dart';
+import 'package:bonako_mobile_app/services/localNotificationService.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import './screens/dashboard/stores/list/stores_screen.dart';
+import 'package:bonako_mobile_app/providers/users.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:intro_slider/slide_object.dart';
 import 'package:intro_slider/intro_slider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -23,7 +26,69 @@ import './providers/api.dart';
 import 'package:get/get.dart';
 import 'dart:convert';
 
-void main() {
+//  Handle received Remote Message (notification) when App is terminated
+Future<void> notificationBackgroundHandler(RemoteMessage remoteMessage) async {
+
+  /*
+   *  Refer to the Youtube video: https://youtu.be/p7aIZ3aEi2w which i used to setup notifications
+   */
+  print('Background remoteMessage');
+
+  if(remoteMessage.notification != null){
+
+    print(remoteMessage.notification!.title);
+    print(remoteMessage.notification!.body);
+    print(remoteMessage.data.toString());
+
+    /**
+     *  Force the remoteMessage to pop-up on the screen so that the user is aware that the notification 
+     *  came in even while the App is in Foreground mode. This kind of behaviour is called a "Heads-up 
+     *  Notification" because the user is being made aware that a new notification was received instead 
+     *  of the notification being silently received. Locate the LocalNotificationService Class from the
+     *  "/services/LocalNotificationService.dart" to see what the "display" message does. I provided a 
+     *  few notes there. Remember that this LocalNotificationService.dart file is a custom file i 
+     *  created as well as the Logic in it. The code utilises the "flutter_local_notifications"
+     *  plugin to help us show notifications even if we are in Foreground mode by utilizing
+     *  a concept called "Channels".
+     *
+     *  Refer to the Youtube video: https://youtu.be/p7aIZ3aEi2w which i used to setup notifications
+     */
+    LocalNotificationService.display(remoteMessage);
+
+  }
+}
+
+void main() async {
+
+  /**
+   *  The WidgetsFlutterBinding.ensureInitialized() is required for Firebase.initializeApp() to
+   *  work properly.
+   */
+  WidgetsFlutterBinding.ensureInitialized();
+
+  //  Connect to Firebase services (So that we can use Firebase Apis e.g Firebase Cloud Messaging)
+  await Firebase.initializeApp();
+
+  /**
+   *  Create a stream to capture notifications received whilst the App instance is in the background.
+   *  Background means that the user opened the App but is not currently interating with it e.g Maybe
+   *  the user switched to another App or returned to the device home screen. This stream will 
+   *  therefore capture the notification even before the user clicks on the actual notification 
+   *  from the notifications tray. We can then use the notification data to extract any
+   *  information embedded on the notification.
+   * 
+   *  The following "FirebaseMessaging.onBackgroundMessage" method requires the handler to be 
+   *  a Future Function with the RemoteMessage (the notification message) as the parameter. 
+   * 
+   *  The handler must be a Top Level Future Function (that is, it must not be inside any class, 
+   *  but outside everything) since the "FirebaseMessaging.onBackgroundMessage" works in its own 
+   *  isolated scope, which is outside the flutter application scope. This allows the App to
+   *  handle the RemoteMessage eventhough if the App is not showing in the foreground.
+   * 
+   *  Refer to the Youtube video: https://youtu.be/p7aIZ3aEi2w which i used to setup notifications
+   */
+  FirebaseMessaging.onBackgroundMessage(notificationBackgroundHandler);
+
   runApp(MyApp());
 }
 
@@ -33,6 +98,28 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
 
     print('Building MyApp');
+    
+    FirebaseMessaging.instance.getToken().then((token) {
+      print('FirebaseMessaging token');      
+      print(token);      
+    });
+
+    /**
+     *  The "LocalNotificationService" is a custom service we created in the "services" folder.
+     *  Its responsible to force notifications to pop-up and show when we are in Foreground
+     *  mode. Foreground means that we have the App open and we are interacting with it.
+     *  Usually in Foreground mode Flutter does not allow notifications to pop-up and
+     *  show, but in our App we want them to show even if the user is using the App.
+     * 
+     *  We need to run LocalNotificationService.initialize() to setup the service. Then later
+     *  we can use the service by running LocalNotificationService.display(remoteMessage)
+     *  from the "FirebaseMessaging.onMessage.listen((RemoteMessage remoteMessage)" to
+     *  show the remoteMessage (aka Notification) even while we are in Foreground mode.
+     * 
+     *  Refer to the Youtube video: https://youtu.be/p7aIZ3aEi2w which i used to setup notifications
+     */
+
+    LocalNotificationService.initialize(context);
 
     return MultiProvider(
       providers: [
@@ -182,6 +269,133 @@ class _AppScreenState extends State<AppScreen> {
   void initState() {
 
     print('initState: AppScreen');
+
+    /**
+     *  Get the Remote Message captured after the user taps on the notification from the notification tray
+     *  and open the App from the terminated state. The terminated state means that the App is not 
+     *  launched or existing in the background.
+     *
+     *  Refer to the Youtube video: https://youtu.be/p7aIZ3aEi2w which i used to setup notifications
+     */
+    FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? remoteMessage){
+
+      //  Check if the remote message exists
+      if( remoteMessage != null ){
+
+        print('Termiated remoteMessage');
+        print(remoteMessage);
+
+        print('remoteMessage.notification');
+        print(remoteMessage.notification);
+
+        if(remoteMessage.notification != null){
+          
+          showDialog(context: context, builder: (_){
+            return AlertDialog(
+              title: Text((remoteMessage.notification!.title as String)),
+              content: Text((remoteMessage.notification!.body as String)),
+            );
+          });
+
+          print(remoteMessage.notification!.title);
+          print(remoteMessage.notification!.body);
+
+        }
+
+      }
+
+    });
+
+    /**
+     *  Create a stream to capture notifications received whilst the App instance is in the foreground.
+     *  Foreground means that the user opened the App and is currently interating with it. This stream
+     *  will therefore return any notifications received while the user is actively using the app.
+     *
+     *  Refer to the Youtube video: https://youtu.be/p7aIZ3aEi2w which i used to setup notifications
+     */
+    FirebaseMessaging.onMessage.listen((RemoteMessage remoteMessage) { 
+
+      print('Foreground remoteMessage');
+      print(remoteMessage);
+
+      print('remoteMessage.notification');
+      print(remoteMessage.notification);
+
+      if(remoteMessage.notification != null){
+
+        print(remoteMessage.notification!.title);
+        print(remoteMessage.notification!.body);
+
+        /**
+         *  Force the remoteMessage to pop-up on the screen so that the user is aware that the notification 
+         *  came in even while the App is in Foreground mode. This kind of behaviour is called a "Heads-up 
+         *  Notification" because the user is being made aware that a new notification was received instead 
+         *  of the notification being silently received. Locate the LocalNotificationService Class from the
+         *  "/services/LocalNotificationService.dart" to see what the "display" message does. I provided a 
+         *  few notes there. Remember that this LocalNotificationService.dart file is a custom file i 
+         *  created as well as the Logic in it. The code utilises the "flutter_local_notifications"
+         *  plugin to help us show notifications even if we are in Foreground mode by utilizing
+         *  a concept called "Channels".
+         *
+         *  Refer to the Youtube video: https://youtu.be/p7aIZ3aEi2w which i used to setup notifications
+         */
+        LocalNotificationService.display(remoteMessage);
+
+      }
+
+    });
+
+    /**
+     *  Create a stream to capture notifications received whilst the App instance is in the background.
+     *  Background means that the user opened the App but is not currently interating with it e.g Maybe
+     *  the user switched to another App or returned to the device home screen. This stream will 
+     *  therefore capture the notification only if the user clicks on the actual notification 
+     *  from the notifications tray. We can then use the notification data to extract any
+     *  information embedded on the notification.
+     * 
+     *  We had to include the following metadata within the "/android/app/src/main/AndroidManifest.xml":
+     * 
+     *  <meta-data
+     *    android:name="com.google.firebase.messaging.default_notification_channel_id"
+     *    android:value="high_importance_channel" 
+     *  />
+     * 
+     *  By default the flutter App did not contain this meta-data, but its important for us to allow our
+     *  notification to show as a "Heads-up" notification while in Background mode. Usually in this state, 
+     *  when notifications are sent, they are received but the notification summary is not shown to the 
+     *  user. That is we don't get a pop-up (Heads-up) of the notification, but when you pull down the
+     *  notifications tray, you will see that the notification was received. To force the notificaiton
+     *  to show as a "Heads-up" behaviour, we can archieve this by setting up a channel that can be 
+     *  used to deliver notifications for "Heads-up" display even if we are in this Background mode.
+     * 
+     *  We do this by registering the channel from the "AndroidManifest.xml" file and giving the channel
+     *  an identifier. I decided to enter "high_importance_channel" as the channel ID (aka identifier) 
+     *  to the "android:value". This can be any value you want e.g "bonako_important_channel" or
+     *  whatever you want. From the Firebase Cloud Messaging console when creating a notification, the
+     *  same channel id must be included on the notification from the "Additional options" section of
+     *  the notification. You will see a field called "Android Notification Channel" which is where
+     *  the channel id must be inserted. This is an indication that the notification is so important
+     *  that even if the notification is received while on Background mode, we must still allow it
+     *  to pop-up and show to the user.
+     *
+     *  Refer to the Youtube video: https://youtu.be/p7aIZ3aEi2w which i used to setup notifications
+     */
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage remoteMessage) { 
+
+      print('Background remoteMessage (On Tap)');
+      print(remoteMessage);
+
+      print('remoteMessage.notification');
+      print(remoteMessage.notification);
+
+      if(remoteMessage.notification != null){
+
+        print(remoteMessage.notification!.title);
+        print(remoteMessage.notification!.body);
+
+      }
+
+    });
 
     setApiEndpoints();
 

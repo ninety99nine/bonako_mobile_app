@@ -56,10 +56,18 @@ class OrdersProvider with ChangeNotifier{
     
   }
 
+  
+  Future<http.Response> fetchOrder({ required BuildContext context }){
+
+    return apiProvider.get(url: orderUrl, context: context);
+    
+  }
+
   Future<http.Response> verifyOrderDeliveryConfirmationCode({ String deliveryConfirmationCode: '', required BuildContext context }) async {
 
     final data = {
-      'delivery_confirmation_code': deliveryConfirmationCode
+      'delivery_confirmation_code': deliveryConfirmationCode,
+      'location_id': locationsProvider.getLocation.id
     };
 
     return apiProvider.post(url: verifyOrderDeliveryConfirmationCodeUrl, body: data, context: context)
@@ -112,6 +120,8 @@ class OrdersProvider with ChangeNotifier{
       data['mobile_number'] = mobileNumber;
     }
 
+    data['location_id'] = locationsProvider.getLocation.id;
+
     return apiProvider.put(url: orderDeliverUrl, body: data, context: context);
     
   }
@@ -122,6 +132,10 @@ class OrdersProvider with ChangeNotifier{
 
   String get ordersUrl {
     return locationsProvider.getLocation.links.bosOrders.href!;
+  }
+
+  String get orderUrl {
+    return (order as Order).links.self.href!;
   }
 
   String get orderDeliverUrl {

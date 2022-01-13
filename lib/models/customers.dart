@@ -69,20 +69,37 @@ class Customer {
     Customer({
         required this.id,
         required this.userId,
+
         required this.totalCouponsUsedOnCheckout,
         required this.totalInstantCartsUsedOnCheckout,
         required this.totalAdvertsUsedOnCheckout,
-        required this.totalOrdersPlacedByCustomer,
-        required this.totalOrdersPlacedByStore,
-        required this.checkoutGrandTotal,
-        required this.checkoutSubTotal,
-        required this.checkoutCouponsTotal,
-        required this.checkoutSaleDiscountTotal,
-        required this.checkoutCouponsAndSaleDiscountTotal,
-        required this.checkoutDeliveryFee,
+        required this.totalOrdersPlacedByCustomerOnCheckout,
+        required this.totalOrdersPlacedByStoreOnCheckout,
         required this.totalFreeDeliveryOnCheckout,
-        required this.checkoutTotalItems,
-        required this.checkoutTotalUniqueItems,
+        required this.grandTotalOnCheckout,
+        required this.subTotalOnCheckout,
+        required this.couponTotalOnCheckout,
+        required this.saleDiscountTotalOnCheckout,
+        required this.couponAndSaleDiscountTotalOnCheckout,
+        required this.deliveryFeeOnCheckout,
+        required this.totalItemsOnCheckout,
+        required this.totalUniqueItemsOnCheckout,
+
+        required this.totalCouponsUsedOnConversion,
+        required this.totalInstantCartsUsedOnConversion,
+        required this.totalAdvertsUsedOnConversion,
+        required this.totalOrdersPlacedByCustomerOnConversion,
+        required this.totalOrdersPlacedByStoreOnConversion,
+        required this.totalFreeDeliveryOnConversion,
+        required this.grandTotalOnConversion,
+        required this.subTotalOnConversion,
+        required this.couponTotalOnConversion,
+        required this.saleDiscountTotalOnConversion,
+        required this.couponAndSaleDiscountTotalOnConversion,
+        required this.deliveryFeeOnConversion,
+        required this.totalItemsOnConversion,
+        required this.totalUniqueItemsOnConversion,
+
         required this.locationId,
         required this.createdAt,
         required this.updatedAt,
@@ -93,20 +110,37 @@ class Customer {
 
     final int id;
     final int userId;
+
     final int totalCouponsUsedOnCheckout;
     final int totalInstantCartsUsedOnCheckout;
     final int totalAdvertsUsedOnCheckout;
-    final int totalOrdersPlacedByCustomer;
-    final int totalOrdersPlacedByStore;
-    final Money checkoutGrandTotal;
-    final Money checkoutSubTotal;
-    final Money checkoutCouponsTotal;
-    final Money checkoutSaleDiscountTotal;
-    final Money checkoutCouponsAndSaleDiscountTotal;
-    final Money checkoutDeliveryFee;
+    final int totalOrdersPlacedByCustomerOnCheckout;
+    final int totalOrdersPlacedByStoreOnCheckout;
     final int totalFreeDeliveryOnCheckout;
-    final int checkoutTotalItems;
-    final int checkoutTotalUniqueItems;
+    final Money grandTotalOnCheckout;
+    final Money subTotalOnCheckout;
+    final Money couponTotalOnCheckout;
+    final Money saleDiscountTotalOnCheckout;
+    final Money couponAndSaleDiscountTotalOnCheckout;
+    final Money deliveryFeeOnCheckout;
+    final int totalItemsOnCheckout;
+    final int totalUniqueItemsOnCheckout;
+
+    final int totalCouponsUsedOnConversion;
+    final int totalInstantCartsUsedOnConversion;
+    final int totalAdvertsUsedOnConversion;
+    final int totalOrdersPlacedByCustomerOnConversion;
+    final int totalOrdersPlacedByStoreOnConversion;
+    final int totalFreeDeliveryOnConversion;
+    final Money grandTotalOnConversion;
+    final Money subTotalOnConversion;
+    final Money couponTotalOnConversion;
+    final Money saleDiscountTotalOnConversion;
+    final Money couponAndSaleDiscountTotalOnConversion;
+    final Money deliveryFeeOnConversion;
+    final int totalItemsOnConversion;
+    final int totalUniqueItemsOnConversion;
+
     final int locationId;
     final DateTime createdAt;
     final DateTime updatedAt;
@@ -117,20 +151,37 @@ class Customer {
     factory Customer.fromJson(Map<String, dynamic> json) => Customer(
         id: json["id"],
         userId: json["user_id"],
+
         totalCouponsUsedOnCheckout: json["total_coupons_used_on_checkout"],
         totalInstantCartsUsedOnCheckout: json["total_instant_carts_used_on_checkout"],
         totalAdvertsUsedOnCheckout: json["total_adverts_used_on_checkout"],
-        totalOrdersPlacedByCustomer: json["total_orders_placed_by_customer"],
-        totalOrdersPlacedByStore: json["total_orders_placed_by_store"],
-        checkoutGrandTotal: Money.fromJson(json["checkout_grand_total"]),
-        checkoutSubTotal: Money.fromJson(json["checkout_sub_total"]),
-        checkoutCouponsTotal: Money.fromJson(json["checkout_coupons_total"]),
-        checkoutSaleDiscountTotal: Money.fromJson(json["checkout_sale_discount_total"]),
-        checkoutCouponsAndSaleDiscountTotal: Money.fromJson(json["checkout_coupons_and_sale_discount_total"]),
-        checkoutDeliveryFee: Money.fromJson(json["checkout_delivery_fee"]),
+        totalOrdersPlacedByCustomerOnCheckout: json["total_orders_placed_by_customer_on_checkout"],
+        totalOrdersPlacedByStoreOnCheckout: json["total_orders_placed_by_store_on_checkout"],
         totalFreeDeliveryOnCheckout: json["total_free_delivery_on_checkout"],
-        checkoutTotalItems: json["checkout_total_items"],
-        checkoutTotalUniqueItems: json["checkout_total_unique_items"],
+        grandTotalOnCheckout: Money.fromJson(json["grand_total_on_checkout"]),
+        subTotalOnCheckout: Money.fromJson(json["sub_total_on_checkout"]),
+        couponTotalOnCheckout: Money.fromJson(json["coupon_total_on_checkout"]),
+        saleDiscountTotalOnCheckout: Money.fromJson(json["sale_discount_total_on_checkout"]),
+        couponAndSaleDiscountTotalOnCheckout: Money.fromJson(json["coupon_and_sale_discount_total_on_checkout"]),
+        deliveryFeeOnCheckout: Money.fromJson(json["delivery_fee_on_checkout"]),
+        totalItemsOnCheckout: json["total_items_on_checkout"],
+        totalUniqueItemsOnCheckout: json["total_unique_items_on_checkout"],
+
+        totalCouponsUsedOnConversion: json["total_coupons_used_on_conversion"],
+        totalInstantCartsUsedOnConversion: json["total_instant_carts_used_on_conversion"],
+        totalAdvertsUsedOnConversion: json["total_adverts_used_on_conversion"],
+        totalOrdersPlacedByCustomerOnConversion: json["total_orders_placed_by_customer_on_conversion"],
+        totalOrdersPlacedByStoreOnConversion: json["total_orders_placed_by_store_on_conversion"],
+        totalFreeDeliveryOnConversion: json["total_free_delivery_on_conversion"],
+        grandTotalOnConversion: Money.fromJson(json["grand_total_on_conversion"]),
+        subTotalOnConversion: Money.fromJson(json["sub_total_on_conversion"]),
+        couponTotalOnConversion: Money.fromJson(json["coupon_total_on_conversion"]),
+        saleDiscountTotalOnConversion: Money.fromJson(json["sale_discount_total_on_conversion"]),
+        couponAndSaleDiscountTotalOnConversion: Money.fromJson(json["coupon_and_sale_discount_total_on_conversion"]),
+        deliveryFeeOnConversion: Money.fromJson(json["delivery_fee_on_conversion"]),
+        totalItemsOnConversion: json["total_items_on_conversion"],
+        totalUniqueItemsOnConversion: json["total_unique_items_on_conversion"],
+
         locationId: json["location_id"],
         createdAt: DateTime.parse(json["created_at"]),
         updatedAt: DateTime.parse(json["updated_at"]),
@@ -142,20 +193,37 @@ class Customer {
     Map<String, dynamic> toJson() => {
         "id": id,
         "user_id": userId,
+
         "total_coupons_used_on_checkout": totalCouponsUsedOnCheckout,
         "total_instant_carts_used_on_checkout": totalInstantCartsUsedOnCheckout,
         "total_adverts_used_on_checkout": totalAdvertsUsedOnCheckout,
-        "total_orders_placed_by_customer": totalOrdersPlacedByCustomer,
-        "total_orders_placed_by_store": totalOrdersPlacedByStore,
-        "checkout_grand_total": checkoutGrandTotal.toJson(),
-        "checkout_sub_total": checkoutSubTotal.toJson(),
-        "checkout_coupons_total": checkoutCouponsTotal.toJson(),
-        "checkout_sale_discount_total": checkoutSaleDiscountTotal.toJson(),
-        "checkout_coupons_and_sale_discount_total": checkoutCouponsAndSaleDiscountTotal.toJson(),
-        "checkout_delivery_fee": checkoutDeliveryFee.toJson(),
+        "total_orders_placed_by_customer_on_checkout": totalOrdersPlacedByCustomerOnCheckout,
+        "total_orders_placed_by_store_on_checkout": totalOrdersPlacedByStoreOnCheckout,
+        "grand_total_on_checkout": grandTotalOnCheckout.toJson(),
+        "sub_total_on_checkout": subTotalOnCheckout.toJson(),
+        "coupon_total_on_checkout": couponTotalOnCheckout.toJson(),
+        "sale_discount_total_on_checkout": saleDiscountTotalOnCheckout.toJson(),
+        "coupon_and_sale_discount_total_on_checkout": couponAndSaleDiscountTotalOnCheckout.toJson(),
+        "delivery_fee_on_checkout": deliveryFeeOnCheckout.toJson(),
         "total_free_delivery_on_checkout": totalFreeDeliveryOnCheckout,
-        "checkout_total_items": checkoutTotalItems,
-        "checkout_total_unique_items": checkoutTotalUniqueItems,
+        "total_items_on_checkout": totalItemsOnCheckout,
+        "total_unique_items_on_checkout": totalUniqueItemsOnCheckout,
+
+        "total_coupons_used_on_conversion": totalCouponsUsedOnConversion,
+        "total_instant_carts_used_on_conversion": totalInstantCartsUsedOnConversion,
+        "total_adverts_used_on_conversion": totalAdvertsUsedOnConversion,
+        "total_orders_placed_by_customer_on_conversion": totalOrdersPlacedByCustomerOnConversion,
+        "total_orders_placed_by_store_on_conversion": totalOrdersPlacedByStoreOnConversion,
+        "grand_total_on_conversion": grandTotalOnConversion.toJson(),
+        "sub_total_on_conversion": subTotalOnConversion.toJson(),
+        "coupon_total_on_conversion": couponTotalOnConversion.toJson(),
+        "sale_discount_total_on_conversion": saleDiscountTotalOnConversion.toJson(),
+        "coupon_and_sale_discount_total_on_conversion": couponAndSaleDiscountTotalOnConversion.toJson(),
+        "delivery_fee_on_conversion": deliveryFeeOnConversion.toJson(),
+        "total_free_delivery_on_conversion": totalFreeDeliveryOnConversion,
+        "total_items_on_conversion": totalItemsOnConversion,
+        "total_unique_items_on_conversion": totalUniqueItemsOnConversion,
+
         "location_id": locationId,
         "created_at": createdAt.toIso8601String(),
         "updated_at": updatedAt.toIso8601String(),
@@ -168,16 +236,24 @@ class Customer {
 class CustomerAttributes {
     CustomerAttributes({
         required this.resourceType,
+        required this.totalOrdersPlacedOnCheckout,
+        required this.totalOrdersPlacedOnConversion,
     });
 
     final String resourceType;
+    final int totalOrdersPlacedOnCheckout;
+    final int totalOrdersPlacedOnConversion;
 
     factory CustomerAttributes.fromJson(Map<String, dynamic> json) => CustomerAttributes(
         resourceType: json["resource_type"],
+        totalOrdersPlacedOnCheckout: json["total_orders_placed_on_checkout"],
+        totalOrdersPlacedOnConversion: json["total_orders_placed_on_conversion"],
     );
 
     Map<String, dynamic> toJson() => {
         "resource_type": resourceType,
+        "total_orders_placed_on_checkout": totalOrdersPlacedOnCheckout,
+        "total_orders_placed_on_conversion": totalOrdersPlacedOnConversion,
     };
 }
 

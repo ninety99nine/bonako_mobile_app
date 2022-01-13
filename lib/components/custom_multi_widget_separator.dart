@@ -43,9 +43,6 @@ class CustomMultiWidgetSeparator extends StatelessWidget {
 
     });
 
-    print('texts');
-    print(texts);
-
     //  Initialize an empty widget list
     final List<Widget> widgets = [];
 
@@ -90,9 +87,6 @@ class CustomMultiWidgetSeparator extends StatelessWidget {
       }
 
     }
-
-    print('widgets');
-    print(widgets);
 
     return widgets;
 

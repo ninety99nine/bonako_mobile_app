@@ -1,4 +1,4 @@
-package com.example.bonako_mobile_app
+package bw.co.bonakoonline
 
 import io.flutter.embedding.android.FlutterActivity
 

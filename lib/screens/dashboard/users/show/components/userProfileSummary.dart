@@ -1,3 +1,7 @@
+import 'package:bonako_mobile_app/providers/auth.dart';
+import 'package:get/route_manager.dart';
+import 'package:provider/provider.dart';
+
 import '../../../../../models/users.dart';
 import 'package:flutter/material.dart';
 
@@ -23,11 +27,30 @@ class UserProfileSummary extends StatelessWidget {
                 backgroundColor: Colors.blue.shade50,
               ),
               title: Text(user.attributes.name),
-              subtitle: Text(
-                user.mobileNumber.number,
-                style: TextStyle(color: Colors.black.withOpacity(0.6)),
+              subtitle: Container(
+                margin: EdgeInsets.only(top: 10),
+                child: Row(
+                  children: [
+                    Text('Tap to call'),
+                    SizedBox(width: 5),
+                    Icon(Icons.phone, color: Colors.grey, size: 14,),
+                    SizedBox(width: 5),
+                    Text(
+                      user.mobileNumber.number, 
+                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+                    ),
+                  ],
+                ),
               ),
-            )
+              onTap: (){
+                  
+                final dialingCode = user.mobileNumber.number;
+                final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                
+                authProvider.launchShortcode(dialingCode: dialingCode, loadingMsg: 'Preparing to call ' + user.firstName, context: context);
+
+              },
+            ),
           ]
         )
       ),

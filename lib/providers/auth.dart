@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import './../components/custom_loader.dart';
@@ -57,7 +58,7 @@ class AuthProvider with ChangeNotifier{
         
         if( response.statusCode == 200){
           
-          apiProvider.showSnackbarMessage(msg: 'Verification code created', context: context);
+          apiProvider.showSnackbarMessage(msg: 'Verification code sent to ' + mobileNumber, context: context);
 
         }
 
@@ -79,9 +80,12 @@ class AuthProvider with ChangeNotifier{
     
   }
 
-  Future<http.Response> loginWithMobile({ required String mobileNumber, required String password, String? passwordConfirmation, String? verificationCode, required BuildContext context}){
+  Future<http.Response> loginWithMobile({ required String mobileNumber, required String password, String? passwordConfirmation, String? verificationCode, required BuildContext context}) async {
     
+    final firebaseDeviceToken = await getFirebaseDeviceToken();
+
     final loginData = {
+      'firebase_device_token': firebaseDeviceToken,
       'mobile_number': mobileNumber,
       'password': password,
     };
@@ -98,14 +102,30 @@ class AuthProvider with ChangeNotifier{
     
   }
 
-  Future<http.Response> registerUserAccount({ required String firstName, required String lastName, required String mobileNumber, required String password, required String passwordConfirmation, required String verificationCode, required BuildContext context}){
+  Future<http.Response> login({ required Map loginData, required BuildContext context}){
+
+    return apiProvider.post(url: apiProvider.getLoginUrl, body: loginData, context: context)
+      .then((response) async {
+
+        await setUserAndAuthTokenFromResponse(response);
+
+        return response;
+
+      });
     
+  }
+
+  Future<http.Response> registerUserAccount({ required String firstName, required String lastName, required String mobileNumber, required String password, required String passwordConfirmation, required String verificationCode, required BuildContext context}) async {
+
+    final firebaseDeviceToken = await getFirebaseDeviceToken();
+
     final registerData = {
       'password': password,
       'last_name': lastName,
       'first_name': firstName,
       'mobile_number': mobileNumber,
       'verification_code': verificationCode,
+      'firebase_device_token': firebaseDeviceToken,
       'password_confirmation': passwordConfirmation,
     };
 
@@ -120,25 +140,15 @@ class AuthProvider with ChangeNotifier{
     
   }
 
-  Future<http.Response> login({ required Map loginData, required BuildContext context}){
-
-    return apiProvider.post(url: apiProvider.getLoginUrl, body: loginData, context: context)
-      .then((response) async {
-
-        await setUserAndAuthTokenFromResponse(response);
-
-        return response;
-
-      });
+  Future<http.Response> resetUserAccountPassword({ required String mobileNumber, required String password, required String passwordConfirmation, required String verificationCode, required BuildContext context}) async {
     
-  }
+    final firebaseDeviceToken = await getFirebaseDeviceToken();
 
-  Future<http.Response> resetUserAccountPassword({ required String mobileNumber, required String password, required String passwordConfirmation, required String verificationCode, required BuildContext context}){
-    
     final passwordResetData = {
       'password': password,
       'mobile_number': mobileNumber,
       'verification_code': verificationCode,
+      'firebase_device_token': firebaseDeviceToken,
       'password_confirmation': passwordConfirmation,
     };
 
@@ -151,6 +161,26 @@ class AuthProvider with ChangeNotifier{
 
       });
     
+  }
+
+  Future<String?> getFirebaseDeviceToken() async {
+        
+    /**
+     *  Capture the Firebase device token so that we can be able to send notifications to this device.
+     *  We will remove this token if the user logs out. Its simply used to know the devices used by
+     *  the user to consume our services so that we can send notifications to the right devices.
+     */
+    var firebaseDeviceToken;
+    
+    await FirebaseMessaging.instance.getToken().then((token) {
+
+      //  Set the Firebase device token (Unique for every mobile device)
+      firebaseDeviceToken = token;
+      
+    });
+
+    return firebaseDeviceToken;
+
   }
 
   Future<http.Response> setUserAndAuthTokenFromResponse(http.Response response) async {

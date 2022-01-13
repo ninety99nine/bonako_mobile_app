@@ -18,6 +18,7 @@ import 'dart:convert';
 class MobileVerification extends StatefulWidget {
 
   final MobileNumberInstructionType mobileNumberInstructionType;
+  final Function()? onGenerateMobileVerificationCode;
   final bool autoGenerateVerificationCode;
   final Function(String)? onCompleted;
   final Function(String)? onChanged;
@@ -32,7 +33,7 @@ class MobileVerification extends StatefulWidget {
   final String verifyText;
   final Map metadata;
 
-  MobileVerification({ this.metadata = const {}, this.hideBackButton = false, this.verifyText = 'Verify', required this.mobileNumberInstructionType, required this.mobileNumber, this.autoGenerateVerificationCode = true, this.onCompleted, this.onChanged , this.showPreviousStepButton = true, this.onGoBack, this.onSuccess, this.isProcessingSuccess = true, this.hideHeadingText = false, this.headingText = 'Verify Mobile' });
+  MobileVerification({ this.metadata = const {}, this.hideBackButton = false, this.verifyText = 'Verify', required this.mobileNumberInstructionType, required this.mobileNumber, this.autoGenerateVerificationCode = true, this.onCompleted, this.onChanged , this.showPreviousStepButton = true, this.onGoBack, this.onSuccess, this.isProcessingSuccess = true, this.hideHeadingText = false, this.headingText = 'Verify Mobile', this.onGenerateMobileVerificationCode });
 
   @override
   _MobileVerificationState createState() => _MobileVerificationState();
@@ -44,6 +45,7 @@ class _MobileVerificationState extends State<MobileVerification> {
   Map serverErrors = {};
   var isVerifyingCode = false;
   String verificationCode = '';
+  bool hasGeneratedCode = false;
   var isGeneratingVerificationCode = false;
   final GlobalKey<FormState> _formKey = GlobalKey();
 
@@ -104,16 +106,27 @@ class _MobileVerificationState extends State<MobileVerification> {
     }
   }
 
-  void _generateMobileVerification(){
+  void _generateMobileVerification() async {
 
     startLoader();
 
-    authProvider.generateMobileVerification(
+    await authProvider.generateMobileVerification(
       type: mobileVerificationType,
       mobileNumber: widget.mobileNumber,
       metadata: widget.metadata,
       context: context
     ).then((response){
+
+      if(response.statusCode == 200){
+
+        setState(() {
+
+          //  Indicate that the code was generated
+          hasGeneratedCode = true;
+          
+        });
+        
+      }
 
       _handleResponse(response);
 
@@ -122,6 +135,12 @@ class _MobileVerificationState extends State<MobileVerification> {
       stoptLoader();
 
     });
+
+    if( widget.onGenerateMobileVerificationCode != null){
+      
+      widget.onGenerateMobileVerificationCode!();
+
+    }
 
   }
 
@@ -200,7 +219,11 @@ class _MobileVerificationState extends State<MobileVerification> {
   }
 
   Widget _instructionText(){
-    return AuthMobileNumberInstruction(type: widget.mobileNumberInstructionType, mobileNumber: widget.mobileNumber);
+    return AuthMobileNumberInstruction(
+      type: widget.mobileNumberInstructionType, 
+      mobileNumber: widget.mobileNumber,
+      hasGeneratedCode: hasGeneratedCode
+    );
   }
 
   Widget _verificationInput(){
@@ -228,7 +251,7 @@ class _MobileVerificationState extends State<MobileVerification> {
       children: [
         if(isGeneratingVerificationCode == true) CustomLoader(text: 'Generating verification code'),
         if(isGeneratingVerificationCode == false) _instructionText(),
-        _verificationInput(),
+        if(hasGeneratedCode) _verificationInput(),
       ],
     );
   }
@@ -281,26 +304,39 @@ class _MobileVerificationState extends State<MobileVerification> {
     );
   }
 
-  Widget _resendVerificationCode() {
-    return Container(
-      margin: EdgeInsets.only(top: 20),
-      child: TextButton(
-        onPressed: (){
-          _generateMobileVerification();
-        },
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: <Widget>[
-            Icon(Icons.speaker_phone, color: Colors.green,),
-            SizedBox(width: 10),
-            Text(
-              'Resend verification code',
-              style: TextStyle(color: Colors.green, fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-          ],
+  Widget _sendVerificationCode() {
+
+    final onPressed = (){
+      _generateMobileVerification();
+    };
+
+    final child = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: <Widget>[
+        Icon(Icons.speaker_phone, color: hasGeneratedCode ? Colors.green : Colors.white,),
+        SizedBox(width: 10),
+        Text(
+          (hasGeneratedCode ? 'Resend' : 'Send') + ' verification code',
+          style: TextStyle(color: hasGeneratedCode ? Colors.green : Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
         ),
-      ),
+      ],
+    );
+
+    return Container(
+      margin: EdgeInsets.only(top: hasGeneratedCode ? 20 : 0),
+      child: hasGeneratedCode 
+        ? TextButton(
+            onPressed: onPressed,
+            child: child,
+          )
+        : ElevatedButton(
+            onPressed: onPressed,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: child,
+            ),
+          )
     );
   }
 
@@ -324,14 +360,14 @@ class _MobileVerificationState extends State<MobileVerification> {
           if(!widget.isProcessingSuccess) _instructionTextAndVerificationInput(),
           if(!widget.isProcessingSuccess) SizedBox(height: 20),
             
-          if(!widget.isProcessingSuccess && widget.hideBackButton) _verifyButton(),
+          if(!widget.isProcessingSuccess && widget.hideBackButton && hasGeneratedCode) _verifyButton(),
           if(!widget.isProcessingSuccess && !widget.hideBackButton) _verifyWithBackButton(),
           if(widget.isProcessingSuccess) _processing(),
-          if(!widget.isProcessingSuccess) SizedBox(height: 20),
+          if(!widget.isProcessingSuccess && hasGeneratedCode) SizedBox(height: 20),
     
-          if(!widget.isProcessingSuccess) CustomDivider(text: Text('or') ),
+          if(!widget.isProcessingSuccess && hasGeneratedCode) CustomDivider(text: Text('or') ),
       
-          if(!widget.isProcessingSuccess && !isGeneratingVerificationCode) _resendVerificationCode(),
+          if(!widget.isProcessingSuccess && !isGeneratingVerificationCode) _sendVerificationCode(),
             
         ],
       ),

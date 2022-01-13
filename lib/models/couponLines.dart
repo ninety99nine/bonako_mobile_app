@@ -92,7 +92,6 @@ class CouponLine {
         required this.allowDiscountOnEndDatetime,
         required this.discountOnEndDatetime,
         required this.allowUsageLimit,
-        required this.usageLimit,
         required this.quantityRemaining,
         required this.allowDiscountOnTimes,
         required this.discountOnTimes,
@@ -104,6 +103,9 @@ class CouponLine {
         required this.discountOnMonthsOfTheYear,
         required this.allowDiscountOnNewCustomer,
         required this.allowDiscountOnExistingCustomer,
+        required this.isCancelled,
+        required this.cancellationReason,
+        required this.detectedChanges,
         required this.createdAt,
         required this.updatedAt,
         required this.attributes,
@@ -133,18 +135,20 @@ class CouponLine {
     final Status allowDiscountOnEndDatetime;
     final DateTime? discountOnEndDatetime;
     final Status allowUsageLimit;
-    final int usageLimit;
-    final int? quantityRemaining;
+    final int quantityRemaining;
     final Status allowDiscountOnTimes;
     final List<String> discountOnTimes;
     final Status allowDiscountOnDaysOfTheWeek;
     final List<String> discountOnDaysOfTheWeek;
     final Status allowDiscountOnDaysOfTheMonth;
-    final List<int> discountOnDaysOfTheMonth;
+    final List<String> discountOnDaysOfTheMonth;
     final Status allowDiscountOnMonthsOfTheYear;
     final List<String> discountOnMonthsOfTheYear;
     final Status allowDiscountOnNewCustomer;
     final Status allowDiscountOnExistingCustomer;
+    final Status isCancelled;
+    final dynamic cancellationReason;
+    final List<dynamic> detectedChanges;
     final DateTime createdAt;
     final DateTime updatedAt;
     final CouponLineAttributes attributes;
@@ -174,18 +178,20 @@ class CouponLine {
         allowDiscountOnEndDatetime: Status.fromJson(json["allow_discount_on_end_datetime"]),
         discountOnEndDatetime: json["discount_on_end_datetime"] == null ? null : DateTime.parse(json["discount_on_end_datetime"]),
         allowUsageLimit: Status.fromJson(json["allow_usage_limit"]),
-        usageLimit: json["usage_limit"],
         quantityRemaining: json["quantity_remaining"],
         allowDiscountOnTimes: Status.fromJson(json["allow_discount_on_times"]),
         discountOnTimes: List<String>.from(json["discount_on_times"].map((x) => x)),
         allowDiscountOnDaysOfTheWeek: Status.fromJson(json["allow_discount_on_days_of_the_week"]),
         discountOnDaysOfTheWeek: List<String>.from(json["discount_on_days_of_the_week"].map((x) => x)),
         allowDiscountOnDaysOfTheMonth: Status.fromJson(json["allow_discount_on_days_of_the_month"]),
-        discountOnDaysOfTheMonth: List<int>.from(json["discount_on_days_of_the_month"].map((x) => x)),
+        discountOnDaysOfTheMonth: List<String>.from(json["discount_on_days_of_the_month"].map((x) => x.toString())),
         allowDiscountOnMonthsOfTheYear: Status.fromJson(json["allow_discount_on_months_of_the_year"]),
         discountOnMonthsOfTheYear: List<String>.from(json["discount_on_months_of_the_year"].map((x) => x)),
         allowDiscountOnNewCustomer: Status.fromJson(json["allow_discount_on_new_customer"]),
         allowDiscountOnExistingCustomer: Status.fromJson(json["allow_discount_on_existing_customer"]),
+        isCancelled: Status.fromJson(json["is_cancelled"]),
+        cancellationReason: json["cancellation_reason"],
+        detectedChanges: List<dynamic>.from(json["detected_changes"].map((x) => x)),
         createdAt: DateTime.parse(json["created_at"]),
         updatedAt: DateTime.parse(json["updated_at"]),
         attributes: CouponLineAttributes.fromJson(json["_attributes"]),
@@ -216,7 +222,6 @@ class CouponLine {
         "allow_discount_on_end_datetime": allowDiscountOnEndDatetime.toJson(),
         "discount_on_end_datetime": discountOnEndDatetime == null ? null : discountOnEndDatetime!.toIso8601String(),
         "allow_usage_limit": allowUsageLimit.toJson(),
-        "usage_limit": usageLimit,
         "quantity_remaining": quantityRemaining,
         "allow_discount_on_times": allowDiscountOnTimes.toJson(),
         "discount_on_times": List<dynamic>.from(discountOnTimes.map((x) => x)),
@@ -228,6 +233,9 @@ class CouponLine {
         "discount_on_months_of_the_year": List<dynamic>.from(discountOnMonthsOfTheYear.map((x) => x)),
         "allow_discount_on_new_customer": allowDiscountOnNewCustomer.toJson(),
         "allow_discount_on_existing_customer": allowDiscountOnExistingCustomer.toJson(),
+        "is_cancelled": isCancelled.toJson(),
+        "cancellation_reason": cancellationReason,
+        "detected_changes": List<dynamic>.from(detectedChanges.map((x) => x)),
         "created_at": createdAt.toIso8601String(),
         "updated_at": updatedAt.toIso8601String(),
         "_attributes": attributes.toJson(),

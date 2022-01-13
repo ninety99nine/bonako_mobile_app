@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "46636267387",
+    "project_id": "bonako-dial2sell-mobile-app",
+    "storage_bucket": "bonako-dial2sell-mobile-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:46636267387:android:fc94e6981cceb6cfb6afde",
+        "android_client_info": {
+          "package_name": "bw.co.bonakoonline"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "46636267387-ftverrk6k1icgau6psudlubtu0fv3n31.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBsG-CjXL19Vlf7U0fW-KpdpQRapNh-ark"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "46636267387-ftverrk6k1icgau6psudlubtu0fv3n31.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

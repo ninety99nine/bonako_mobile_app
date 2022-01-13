@@ -75,6 +75,7 @@ class Order {
         required this.number,
         required this.deliveryVerified,
         required this.deliveryVerifiedAt,
+        required this.deliveryVerifiedBy,
         required this.customerId,
         required this.locationId,
         required this.cancellationReason,
@@ -90,6 +91,7 @@ class Order {
     final String number;
     final bool deliveryVerified;
     final DateTime? deliveryVerifiedAt;
+    final String? deliveryVerifiedBy;
     final int? customerId;
     final int? locationId;
     final String? cancellationReason;
@@ -104,7 +106,8 @@ class Order {
         id: json["id"],
         number: json["number"],
         deliveryVerified: json["delivery_verified"],
-        deliveryVerifiedAt: json["delivery_verified_at"],
+        deliveryVerifiedAt: json["delivery_verified_at"] == null ? null : DateTime.parse(json["delivery_verified_at"]),
+        deliveryVerifiedBy: json["delivery_verified_by"] == null ? null : json["delivery_verified_by"],
         customerId: json["customer_id"],
         locationId: json["location_id"],
         cancellationReason: json["cancellation_reason"],
@@ -121,6 +124,7 @@ class Order {
         "number": number,
         "delivery_verified": deliveryVerified,
         "delivery_verified_at": deliveryVerifiedAt,
+        "delivery_verified_by": deliveryVerifiedBy,
         "customer_id": customerId,
         "location_id": locationId,
         "cancellation_reason": cancellationReason,
@@ -140,6 +144,7 @@ class OrderAttributes {
         required this.requiresDeliveryConfirmationCode,
         required this.resourceType,
         required this.deliveryVerifiedDescription,
+        required this.timeElapsedToDeliveryVerified,
         required this.paymentShortCode,
     });
 
@@ -148,6 +153,7 @@ class OrderAttributes {
     final bool requiresDeliveryConfirmationCode;
     final String resourceType;
     final String deliveryVerifiedDescription;
+    final TimeElapsedToDeliveryVerified? timeElapsedToDeliveryVerified;
     final ShortCodeAttribute? paymentShortCode;
 
     factory OrderAttributes.fromJson(Map<String, dynamic> json) => OrderAttributes(
@@ -156,6 +162,7 @@ class OrderAttributes {
         requiresDeliveryConfirmationCode: json["requires_delivery_confirmation_code"],
         resourceType: json["resource_type"],
         deliveryVerifiedDescription: json["delivery_verified_description"],
+        timeElapsedToDeliveryVerified: json["time_elapsed_to_delivery_verified"] == null ? null : TimeElapsedToDeliveryVerified.fromJson(json["time_elapsed_to_delivery_verified"]),
         paymentShortCode: json["payment_short_code"],
     );
 
@@ -165,6 +172,7 @@ class OrderAttributes {
         "requires_delivery_confirmation_code": requiresDeliveryConfirmationCode,
         "resource_type": resourceType,
         "delivery_verified_description": deliveryVerifiedDescription,
+        "time_elapsed_to_delivery_verified": timeElapsedToDeliveryVerified == null ? null : timeElapsedToDeliveryVerified!.toJson(),
         "payment_short_code": paymentShortCode,
     };
 }
@@ -258,5 +266,25 @@ class OrderEmbedded {
         "delivery_line": deliveryLine == null ? null : deliveryLine!.toJson(),
         "transaction": transaction == null ? null : transaction!.toJson(),
         "customer": customer.toJson(),
+    };
+}
+
+class TimeElapsedToDeliveryVerified {
+    TimeElapsedToDeliveryVerified({
+        required this.oneEntry,
+        required this.twoEntries,
+    });
+
+    final String oneEntry;
+    final String twoEntries;
+
+    factory TimeElapsedToDeliveryVerified.fromJson(Map<String, dynamic> json) => TimeElapsedToDeliveryVerified(
+        oneEntry: json["one_entry"],
+        twoEntries: json["two_entries"],
+    );
+
+    Map<String, dynamic> toJson() => {
+        "one_entry": oneEntry,
+        "two_entries": twoEntries,
     };
 }

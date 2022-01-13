@@ -174,8 +174,8 @@ class _OrderVerificationInputState extends State<OrderVerificationInput> {
 
               });
 
-              //  Stop showing next order text after 2 seconds
-              Future.delayed(const Duration(milliseconds: 2000), () {
+              //  Stop showing next order text after 5 seconds
+              Future.delayed(const Duration(milliseconds: 5000), () {
                 
                 setState(() {
                   showNextOrderText = false;
@@ -273,10 +273,10 @@ class _OrderVerificationInputState extends State<OrderVerificationInput> {
         validator: (value){
           if(value == null || value.isEmpty){
             return 'Enter order delivery confirmation code';
-          }if(value.length != 14){
-            return 'Must be 14 digits long';
-          }else if(serverErrors.containsKey('first_name')){
-            return serverErrors['first_name'];
+          }if(value.length != 16){
+            return 'Must be 16 digits long';
+          }else if(serverErrors.containsKey('delivery_confirmation_code')){
+            return serverErrors['delivery_confirmation_code'];
           }
         },
         onChanged: (value){

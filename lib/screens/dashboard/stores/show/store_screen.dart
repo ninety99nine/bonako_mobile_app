@@ -332,7 +332,7 @@ class _ContentState extends State<Content> {
   Widget build(BuildContext context){
 
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 20),
+      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
@@ -348,39 +348,37 @@ class _ContentState extends State<Content> {
               CustomRoundedRefreshButton(onPressed: widget.fetchLocation),
             ],
           ),
-          Divider(height: 0),
+          Divider(),
 
           Expanded(
             child: Stack(
               children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        SizedBox(height: 20),
-                        if(hasStore) StoreDialingInstructions(store: widget.store!),
-                        SizedBox(height: 10),
-                        if(hasStore) SubcsriptionCountdown(store: widget.store!),
-                        SizedBox(height: 10),
-                  
-                        //  Resource Creation Slider
-                        if(!widget.isLoadingLocation && !widget.isLoadingTotals && !widget.isLoadingPermissions) ResourceCreationSlider(locationPermissions: widget.locationPermissions),
-                  
-                        //  Loader
-                        if(widget.isLoadingLocation || widget.isLoadingTotals || widget.isLoadingPermissions) Divider(),
-                        if(widget.isLoadingLocation || widget.isLoadingTotals || widget.isLoadingPermissions) CustomLoader(),
-                  
-                        //  Store Menus
-                        if(!widget.isLoadingLocation && !widget.isLoadingTotals && !widget.isLoadingPermissions) StoreMenus(
-                          locationPermissions: widget.locationPermissions,
-                          fetchLocationTotals: widget.fetchLocationTotals,
-                          fetchLocation: widget.fetchLocation,
-                          fetchStore: widget.fetchStore
-                        ),
-          
-                        SizedBox(height: 80)
-                      ],
-                    ),
+                SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      SizedBox(height: 20),
+                      if(hasStore) StoreDialingInstructions(store: widget.store!),
+                      SizedBox(height: 10),
+                      if(hasStore) SubcsriptionCountdown(store: widget.store!),
+                      SizedBox(height: 10),
+                
+                      //  Resource Creation Slider
+                      if(!widget.isLoadingLocation && !widget.isLoadingTotals && !widget.isLoadingPermissions) ResourceCreationSlider(locationPermissions: widget.locationPermissions),
+                
+                      //  Loader
+                      if(widget.isLoadingLocation || widget.isLoadingTotals || widget.isLoadingPermissions) Divider(),
+                      if(widget.isLoadingLocation || widget.isLoadingTotals || widget.isLoadingPermissions) CustomLoader(),
+                
+                      //  Store Menus
+                      if(!widget.isLoadingLocation && !widget.isLoadingTotals && !widget.isLoadingPermissions) StoreMenus(
+                        locationPermissions: widget.locationPermissions,
+                        fetchLocationTotals: widget.fetchLocationTotals,
+                        fetchLocation: widget.fetchLocation,
+                        fetchStore: widget.fetchStore
+                      ),
+            
+                      SizedBox(height: 80)
+                    ],
                   ),
                 ),
               ],

@@ -1,5 +1,7 @@
+import 'package:bonako_mobile_app/components/custom_card.dart';
 import 'package:bonako_mobile_app/components/custom_checkmark_text.dart';
 import 'package:bonako_mobile_app/components/custom_divider.dart';
+import 'package:bonako_mobile_app/components/custom_tag.dart';
 import 'package:bonako_mobile_app/components/previous_step_button.dart';
 import 'package:bonako_mobile_app/enum/enum.dart';
 import 'package:bonako_mobile_app/models/users.dart';
@@ -10,6 +12,8 @@ import 'package:bonako_mobile_app/screens/dashboard/stores/show/store_screen.dar
 import 'package:bonako_mobile_app/screens/dashboard/users/list/users_screen.dart';
 import 'package:bonako_mobile_app/components/custom_checkbox.dart';
 import 'package:bonako_mobile_app/components/custom_loader.dart';
+import 'package:bonako_mobile_app/screens/dashboard/users/show/components/userProfileSummary.dart';
+import 'package:bonako_mobile_app/screens/dashboard/users/show/components/userRoleTag.dart';
 import 'package:flutter/foundation.dart';
 import './../../../../components/custom_back_button.dart';
 import './../../../../components/custom_app_bar.dart';
@@ -280,10 +284,6 @@ class _ContentState extends State<Content> {
     );
   }
 
-  Widget ownerDescription(){
-    return CustomCheckmarkText(text: 'Owner permissions cannot be modified', state: 'warning');
-  }
-
   List<Widget> permissionCheckboxes(){
 
     return new List<Widget>.from(availablePermissions.asMap().map((int index, Map availablePermission){
@@ -325,45 +325,62 @@ class _ContentState extends State<Content> {
 
     final List<Widget> content = [];
 
-    if( isLoadingUserPermissions || isLoadingAvailablePermissions){
+    final user = Provider.of<UsersProvider>(context, listen: false).getUser;
+    final isLoading = (isLoadingUserPermissions || isLoadingAvailablePermissions);
 
-      //  Loader
-      content.addAll([
-        CustomLoader()
-      ]);
+    content.addAll([
 
-    }else{
+      //  User profile
+      UserProfileSummary(user: user),
 
-      content.addAll([
+      //  User performance
+      CustomCard(
+        icon: Icons.show_chart_rounded,
+        title: 'Performance', 
+        description: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Orders delivered'),
+                Text('255'),
+              ],
+            )
+          ],
+        ),
+      ),
 
-        //  Title
-        title(),
-      
-        Divider(height: 50),
+      SizedBox(height: 10),
 
-        if(isOwner) ownerDescription(),
-      
-        if(isOwner) Divider(height: 40),
+      //  User permissions
+      CustomCard(
+        icon: Icons.shield_sharp,
+        title: 'Permissions', 
+        subtitle: isOwner ? CustomCheckmarkText(text: 'Owner permissions cannot be modified', state: 'warning') : null, 
+        description: [
 
-        //  Permissions checkbox
-        ...permissionCheckboxes(),
-      
-        Divider(height: 50),
+          //  Loader
+          if(isLoading == true) CustomLoader(bottomMargin: 40,),
 
-        //  Submission button
-        submittionButton()
+          //  Permissions checkbox
+          if(isLoading == false) ...permissionCheckboxes(),
+    
+          if(isLoading == false) Divider(height: 50),
 
-      ]);
+          //  Submission button
+          if(isLoading == false) submittionButton(),
 
-    }
+        ],
+      ),
+
+      SizedBox(height: 100),
+
+    ]);
 
     return Form(
       key: _formKey,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-        child: Column(
-          children: content
-        ),
+      child: Column(
+        children: content
       ),
     );
   }
@@ -371,13 +388,25 @@ class _ContentState extends State<Content> {
   @override
   Widget build(BuildContext context) {
 
+    final user = Provider.of<UsersProvider>(context, listen: false).getUser;
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
       child: Column(
         children: [
-          CustomBackButton(fallback: (){
-            Get.offAll(() => UsersScreen());
-          }),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+          
+              CustomBackButton(fallback: (){
+                Get.offAll(() => UsersScreen());
+              }),
+
+              //  User role
+              UserRoleTag(user: user),
+
+            ],
+          ),
           Divider(),
           Expanded(
             child: SingleChildScrollView(
