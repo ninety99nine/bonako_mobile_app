@@ -1,4 +1,14 @@
+import 'dart:convert';
+
+import 'package:bonako_mobile_app/components/custom_checkbox.dart';
+import 'package:bonako_mobile_app/components/custom_countup.dart';
+import 'package:bonako_mobile_app/models/common/attributes/shortCodeAttribute.dart';
+import 'package:bonako_mobile_app/models/paymentMethods.dart';
 import 'package:bonako_mobile_app/models/transactions.dart';
+import 'package:bonako_mobile_app/providers/transactions.dart';
+import 'package:bonako_mobile_app/screens/dashboard/orders/components/transaction/paymentRequestInstructions.dart';
+import 'package:bonako_mobile_app/screens/dashboard/orders/requestPaymentScreen.dart';
+import 'package:flutter/gestures.dart';
 
 import './../../../../../screens/dashboard/orders/cartICancelledtemLinesScreen.dart';
 import './../../../../../components/custom_button.dart';
@@ -10,137 +20,118 @@ import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class CartTransaction extends StatelessWidget {
+class TransactionWidget extends StatelessWidget {
+
+  final Transaction transaction;
+
+  final Function()? afterPaymentRequestCallback;
+
+  TransactionWidget({ required this.transaction, required this.afterPaymentRequestCallback });
 
   @override
   Widget build(BuildContext context) {
 
-    final order = Provider.of<OrdersProvider>(context, listen: false).getOrder;
-    final hasTransaction = order.embedded.transaction == null ? false : true;
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 10),
-        child: Container(
-          width: double.infinity,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 10),
-              Text('Transaction', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 10),
-              Divider(),
-              SizedBox(height: 20),
-
-              //  Transaction
-              if(hasTransaction) TransactionLine(),
-
-              //  No Transaction
-              if(!hasTransaction) Row(
-                children: [
-                  SvgPicture.asset('assets/icons/ecommerce_pack_1/coin.svg', width: 16, color: Colors.grey),
-                  SizedBox(width: 10),
-                  Text('No transaction recorded', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                ]
-              ),
-              
-              SizedBox(height: 20),
-            ],
-          ),
-        ),
-      )
-    );
-  }
-}
-
-class TransactionLine extends StatelessWidget {
-
-  @override
-  Widget build(BuildContext context) {
-
-    final order = Provider.of<OrdersProvider>(context, listen: false).getOrder;
-    final Transaction transaction = order.embedded.transaction!;
+    final bool hasPaymentMethod = transaction.embedded.paymentMethod == null ? false : true;
+    final PaymentMethod? paymentMethod = transaction.embedded.paymentMethod;
+    final transactionStatusName = (transaction.embedded.status.name);
 
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 10),
-      margin: EdgeInsets.only(right: 10, bottom: 10),
       decoration: BoxDecoration(
         color: Colors.blue.withOpacity(0.05),
         borderRadius: BorderRadius.circular(5),
       ),
+      margin: EdgeInsets.only(right: 10, bottom: 10),
       child: ListTile(
         onTap: () async {
-          
-          /*
-          await Get.to(() => CartCouponLineScreen(
-            couponLine: couponLine,
-          ));
-          */
+
+          final transactionProvider = Provider.of<TransactionsProvider>(context, listen: false);
+
+          transactionProvider.setTransaction(transaction);
+
+          final response = await Get.to(() => RequestPaymentScreen());
+
+          transactionProvider.unsetTransaction();
+
+          if( response == false ){
+            return;
+          }
+
+          afterPaymentRequestCallback!();
 
         },
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
+        title: Container(
+          margin: EdgeInsets.symmetric(vertical: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Transaction #' + transaction.number),
                   SizedBox(height: 10),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Flexible(
-                        child: RichText(
-                          textAlign: TextAlign.justify,
-                          text: TextSpan(
-                            style: TextStyle(color: Colors.black, height: 1.5),
-                            children: <TextSpan>[
-                              TextSpan(text: 'Status: ', style: TextStyle(color: Colors.grey, fontSize: 12),),
-                              TextSpan(text: transaction.embedded.status.name, style: TextStyle(color: Colors.black, fontSize: 12),),
-                            ],
-                          ),
-                        ),
+                      RichText(
+                        text: TextSpan(
+                          style: TextStyle(color: Colors.black, height: 1.5, fontSize: 12),
+                          children: <TextSpan>[
+                            TextSpan(text: 'Status ', style: TextStyle(color: Colors.grey)),
+                            TextSpan(
+                              text: transactionStatusName, 
+                              style: TextStyle(color: (transactionStatusName == 'Paid') ? Colors.green : (transactionStatusName == 'Pending' ? Colors.yellow.shade900 : Colors.black) )
+                            ),
+                          ],
+                        )
                       ),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: RichText(
-                          textAlign: TextAlign.justify,
-                          text: TextSpan(
-                            style: TextStyle(color: Colors.black, height: 1.5),
-                            children: <TextSpan>[
-                              TextSpan(text: 'Method: ', style: TextStyle(color: Colors.grey, fontSize: 12),),
-                              TextSpan(text: transaction.embedded.paymentMethod.name, style: TextStyle(color: Colors.black, fontSize: 12),),
-                            ],
-                          ),
-                        ),
-                      ),
+                      SizedBox(width: 20),
+                      RichText(
+                        text: TextSpan(
+                          style: TextStyle(color: Colors.black, height: 1.5, fontSize: 12),
+                          children: <TextSpan>[
+                            TextSpan(text: 'Amount ', style: TextStyle(color: Colors.grey)),
+                            TextSpan(
+                              text: transaction.amount.currencyMoney
+                            ),
+                          ],
+                        )
+                      )
                     ],
                   ),
-                  SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
+                  if(hasPaymentMethod) SizedBox(height: 10),
+                  if(hasPaymentMethod) Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(
-                        child: RichText(
-                          textAlign: TextAlign.justify,
-                          text: TextSpan(
-                            style: TextStyle(color: Colors.black, height: 1.5),
-                            children: <TextSpan>[
-                              TextSpan(text: 'Amount: ', style: TextStyle(color: Colors.grey, fontSize: 12),),
-                              TextSpan(text: transaction.amount.currencyMoney, style: TextStyle(color: Colors.black, fontSize: 12),),
-                            ],
-                          ),
-                        ),
+                      RichText(
+                        text: TextSpan(
+                          style: TextStyle(color: Colors.black, height: 1.5, fontSize: 12),
+                          children: <TextSpan>[
+                            TextSpan(text: 'Payment Method ', style: TextStyle(color: Colors.grey)),
+                            TextSpan(
+                              text: paymentMethod!.name
+                            ),
+                          ],
+                        )
                       ),
+                      SizedBox(width: 20),
+                      RichText(
+                        text: TextSpan(
+                          style: TextStyle(color: Colors.black, height: 1.5, fontSize: 12),
+                          children: <TextSpan>[
+                            TextSpan(text: 'Amount ', style: TextStyle(color: Colors.grey)),
+                            TextSpan(
+                              text: transaction.amount.currencyMoney
+                            ),
+                          ],
+                        )
+                      )
                     ],
                   )
                 ],
-              )
-            ),
-            Icon(Icons.arrow_forward, color: Colors.grey, size: 12,),  //  Forward Arrow 
-          ],
+              ),
+              Icon(Icons.arrow_forward, color: Colors.grey, size: 12,),  //  Forward Arrow 
+            ],
+          ),
         ),
       )
     );

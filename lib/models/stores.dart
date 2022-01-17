@@ -163,7 +163,7 @@ class StoreAttributes {
         "resource_type": resourceType,
         "visit_short_code": visitShortCode == null ? null : visitShortCode!.toJson(),
         "has_visit_short_code": hasVisitShortCode,
-        "payment_short_code": paymentShortCode!.toJson(),
+        "payment_short_code": paymentShortCode == null ? null : paymentShortCode!.toJson(),
         "has_payment_short_code": hasPaymentShortCode,
         "subscription": subscription == null ? null : subscription!.toJson(),
         "has_subscription": hasSubscription,

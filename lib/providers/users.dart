@@ -63,6 +63,16 @@ class UsersProvider with ChangeNotifier{
     
   }
   
+  Future<http.Response> searchUserByMobileNumber({ required String mobileNumber, required BuildContext context }){
+
+    Map body = {
+      'mobile_number': mobileNumber
+    };
+
+    return apiProvider.post(url: apiProvider.getSearchUserByMobileNumberUrl, body: body, context: context);
+    
+  }
+  
   Future<http.Response> updateUser({ required Map body, required BuildContext context }){
 
     return apiProvider.put(url: userUrl, body: body, context: context);

@@ -2,6 +2,7 @@ import 'package:bonako_mobile_app/screens/auth/terms_and_conditions.dart';
 import 'package:bonako_mobile_app/providers/instant_carts.dart';
 import 'package:bonako_mobile_app/services/localNotificationService.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:bonako_mobile_app/providers/transactions.dart';
 import './screens/dashboard/stores/list/stores_screen.dart';
 import 'package:bonako_mobile_app/providers/users.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -215,6 +216,16 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProxyProvider<LocationsProvider, CustomersProvider>(
           create: (_) => CustomersProvider(locationsProvider: LocationsProvider(storesProvider: StoresProvider(authProvider: AuthProvider(apiProvider: ApiProvider())))),
           update: (ctx, locationsProvider, previousCustomersProvider) => CustomersProvider(locationsProvider: locationsProvider)
+        ),
+        /**
+         *  Note: We have to use the ChangeNotifierProxyProvider instead of 
+         *  ChangeNotifierProvider because the TransactionsProvider requires the
+         *  LocationsProvider as a dependency. When the LocationsProvider changes,
+         *  then the TransactionsProvider will also rebuild.
+         */
+        ChangeNotifierProxyProvider<OrdersProvider, TransactionsProvider>(
+          create: (_) => TransactionsProvider(ordersProvider: OrdersProvider(locationsProvider: LocationsProvider(storesProvider: StoresProvider(authProvider: AuthProvider(apiProvider: ApiProvider()))))),
+          update: (ctx, ordersProvider, previousTransactionsProvider) => TransactionsProvider(ordersProvider: ordersProvider)
         ),
       ],
       child: GetMaterialApp(
@@ -640,8 +651,9 @@ class _IntroScreenState extends State<IntroScreen> {
       //  Slide 1
       new Slide(
 
-        colorBegin: Colors.blue,
-        colorEnd: Colors.blue.shade900,
+        backgroundOpacity: 0.95,
+        backgroundOpacityColor: Colors.blue.shade700,
+        backgroundImage: 'assets/images/logo-white-2x.png',
         
         centerWidget: Column(
           children: [

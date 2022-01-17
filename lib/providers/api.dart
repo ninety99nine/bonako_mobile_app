@@ -7,7 +7,7 @@ import 'dart:convert';
 
 class ApiProvider with ChangeNotifier{
 
-  final String homeUrl = 'http://165.232.179.255/api';  //  'http://127.0.0.1:9000/api'; //  'http://bonakoonline.co.bw/api';  //   
+  final String homeUrl = 'http://127.0.0.1:9000/api'; //  'http://165.232.179.255/api';  //  'http://bonakoonline.co.bw/api';  //   
 
   String _loginUrl = '';
   String _logoutUrl = '';
@@ -20,6 +20,7 @@ class ApiProvider with ChangeNotifier{
   String _verifyUserAccountShortcode = '';
   String _verifyMobileVerificationCodeUrl = '';
   String _generateMobileVerificationCodeUrl = '';
+  String _searchUserByMobileNumberUrl = '';
 
   Future<http.Response> setupApiConnection ({ required BuildContext context }) async {
     
@@ -88,11 +89,16 @@ class ApiProvider with ChangeNotifier{
             //  Update the reset password url
             _resetPasswordUrl = responseBody['_links']['bos:reset_password']['href'];
 
+            //  Update the search user by mobile number url
+            _searchUserByMobileNumberUrl = responseBody['_links']['bos:search_user_by_mobile_number']['href'];
+
             //  Update Main USSD shortcode
             _mainShortcode = responseBody['_embedded']['main_shortcode'];
 
             //  Update shortcode to verify user account after registration
             _verifyUserAccountShortcode = responseBody['_embedded']['verify_user_account_shortcode'];
+
+            
 
 
           }
@@ -135,6 +141,9 @@ class ApiProvider with ChangeNotifier{
   Future<http.Response> post({ required String url, body: const {}, required BuildContext context }) {
     
     print('post url: '+ url);
+
+    print('post body');
+    print(body);
 
     return http.post(
       Uri.parse(url),
@@ -317,7 +326,7 @@ class ApiProvider with ChangeNotifier{
       });
   }
 
-  void showAlertDialog({ required String title, required String content, required devContent, bool showingDevContent = false, required BuildContext context }){
+  void showAlertDialog({ required String title, required String? content, required devContent, bool showingDevContent = false, required BuildContext context }){
 
     showDialog(context: context, builder: (ctx){
 
@@ -329,8 +338,8 @@ class ApiProvider with ChangeNotifier{
               content: Wrap(
                 children: [
                   Divider(height: 10),
-                  if(showingDevContent == true) (devContent is String ? Text(devContent, style: TextStyle(fontSize: 12)) : devContent),
-                  if(showingDevContent == false) Text(content, style: TextStyle(fontSize: 12)),
+                  if(showingDevContent == true && devContent != null) (devContent is String ? Text(devContent, style: TextStyle(fontSize: 12)) : devContent),
+                  if(showingDevContent == false && content != null) Text(content, style: TextStyle(fontSize: 12)),
                   Divider(height: 10),
                 ],
               ),
@@ -392,6 +401,11 @@ class ApiProvider with ChangeNotifier{
   String get getResetPasswordUrl{
     return _resetPasswordUrl;
   }
+  
+  String get getSearchUserByMobileNumberUrl{
+    return _searchUserByMobileNumberUrl;
+  }
+
 
 
   

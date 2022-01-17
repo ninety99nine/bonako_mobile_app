@@ -18,13 +18,13 @@ class OrderStatusSummary extends StatelessWidget {
 
           //  Payment status
           {
-            'widget': Text(order.embedded.paymentStatus.name, style: TextStyle(fontSize: 12, color: (order.embedded.paymentStatus.name == 'Paid' ? Colors.green: Colors.yellow.shade700))),
+            'widget': Text(order.embedded.paymentStatus.name, style: TextStyle(fontSize: 12, color: (order.embedded.paymentStatus.name == 'Paid' ? Colors.green: Colors.yellow.shade900))),
             'value': order.embedded.paymentStatus.name
           },
 
           //  Delivery status
           {
-            'widget': Text(order.embedded.deliveryStatus.name, style: TextStyle(fontSize: 12, color: (order.embedded.deliveryStatus.name == 'Delivered' ? Colors.green: Colors.yellow.shade700))),
+            'widget': Text(order.embedded.deliveryStatus.name, style: TextStyle(fontSize: 12, color: (order.embedded.deliveryStatus.name == 'Delivered' ? Colors.green: Colors.yellow.shade900))),
             'value': order.embedded.deliveryStatus.name
           },
 

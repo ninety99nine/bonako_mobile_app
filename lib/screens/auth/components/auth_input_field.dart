@@ -43,7 +43,7 @@ class AuthInputField extends StatelessWidget {
                 filled: true,
                 hintText: 'Katlego',
                 border: InputBorder.none,
-                fillColor: Colors.black.withOpacity(0.05),
+                fillColor: Colors.blue.withOpacity(0.1),
               ),
               validator: (value){
                 if(value == null || value.isEmpty){
@@ -75,7 +75,7 @@ class AuthInputField extends StatelessWidget {
                 filled: true,
                 hintText: 'Warona',
                 border: InputBorder.none,
-                fillColor: Colors.black.withOpacity(0.05),
+                fillColor: Colors.blue.withOpacity(0.1),
               ),
               validator: (value){
                 if(value == null || value.isEmpty){
@@ -106,7 +106,7 @@ class AuthInputField extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: 'e.g 72000123',
                 border: InputBorder.none,
-                  fillColor: Colors.black.withOpacity(0.05),
+                  fillColor: Colors.blue.withOpacity(0.1),
                 filled: true
               ),
               validator: (value){
@@ -141,7 +141,7 @@ class AuthInputField extends StatelessWidget {
               keyboardType: TextInputType.text,
               obscureText: hidePassword,
               decoration: InputDecoration(
-                  fillColor: Colors.black.withOpacity(0.05),
+                  fillColor: Colors.blue.withOpacity(0.1),
                 border: InputBorder.none,
                 filled: true,
                 suffixIcon: IconButton(
@@ -181,7 +181,7 @@ class AuthInputField extends StatelessWidget {
               keyboardType: TextInputType.text,
               obscureText: hidePassword,
               decoration: InputDecoration(
-                  fillColor: Colors.black.withOpacity(0.05),
+                  fillColor: Colors.blue.withOpacity(0.1),
                 border: InputBorder.none,
                 filled: true,
                 suffixIcon: IconButton(

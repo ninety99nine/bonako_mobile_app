@@ -126,6 +126,47 @@ class OrdersProvider with ChangeNotifier{
     
   }
 
+  Future<http.Response> requestPayment({ int? transactionId, String? payerMobileNumber, double percentageRate = 0, bool sendCustomerSms = false, required BuildContext context }) async {
+
+    Map data = {
+      'percentage_rate': percentageRate,
+      'send_customer_sms': sendCustomerSms,
+    };
+
+    if( payerMobileNumber != null ){
+      data['payer_mobile_number'] = payerMobileNumber;
+    }
+
+    if( transactionId != null ){
+      data['transaction_id'] = transactionId;
+    }
+
+    return apiProvider.post(url: orderPaymentRequestUrl, body: data, context: context)
+      .then((response){
+
+        if( response.statusCode == 200 ){
+        
+          apiProvider.showSnackbarMessage(msg: 'Payment requested successfully', context: context, type: SnackbarType.info);
+
+        }else{
+
+          apiProvider.showSnackbarMessage(msg: 'Failed to request payment', context: context, type: SnackbarType.error);
+
+        }
+
+        return response;
+
+      })
+      .onError((error, stackTrace){
+        
+        apiProvider.showSnackbarMessage(msg: 'Failed to request payment', context: context, type: SnackbarType.error);
+
+        throw(stackTrace);
+        
+      });
+    
+  }
+
   String get verifyOrderDeliveryConfirmationCodeUrl {
     return apiProvider.apiHome['_links']['bos:order_verify_delivery_confirmation_code']['href'];
   }
@@ -140,6 +181,10 @@ class OrdersProvider with ChangeNotifier{
 
   String get orderDeliverUrl {
     return (order as Order).links.bosDeliver.href!;
+  }
+
+  String get orderPaymentRequestUrl {
+    return (order as Order).links.bosPaymentRequest.href!;
   }
 
   void setOrder(Order order){

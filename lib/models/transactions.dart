@@ -1,3 +1,6 @@
+import 'package:bonako_mobile_app/models/common/attributes/shortCodeAttribute.dart';
+import 'package:bonako_mobile_app/models/users.dart';
+
 import './common/paginationLinks.dart';
 import './common/currency.dart';
 import './paymentMethods.dart';
@@ -73,7 +76,9 @@ class Transaction {
         required this.number,
         required this.currency,
         required this.amount,
+        required this.percentageRate,
         required this.userId,
+        required this.payerId,
         required this.description,
         required this.paymentMethodId,
         required this.createdAt,
@@ -88,9 +93,11 @@ class Transaction {
     final String number;
     final Currency currency;
     final Money amount;
+    final int? percentageRate;
     final int userId;
+    final int payerId;
     final String description;
-    final String paymentMethodId;
+    final String? paymentMethodId;
     final DateTime createdAt;
     final DateTime updatedAt;
     final TransactionAttributes attributes;
@@ -103,9 +110,11 @@ class Transaction {
         number: json["number"],
         currency: Currency.fromJson(json["currency"]),
         amount: Money.fromJson(json["amount"]),
+        percentageRate: json["percentage_rate"] == null ? null : json["percentage_rate"], 
         userId: json["user_id"],
+        payerId: json["payer_id"],
         description: json["description"],
-        paymentMethodId: json["payment_method_id"],
+        paymentMethodId: json["payment_method_id"] == null ? null : json["payment_method_id"],
         createdAt: DateTime.parse(json["created_at"]),
         updatedAt: DateTime.parse(json["updated_at"]),
         attributes: TransactionAttributes.fromJson(json["_attributes"]),
@@ -119,7 +128,9 @@ class Transaction {
         "number": number,
         "currency": currency.toJson(),
         "amount": amount.toJson(),
+        "percentage_rate": percentageRate,
         "user_id": userId,
+        "payer_id": payerId,
         "description": description,
         "payment_method_id": paymentMethodId,
         "created_at": createdAt.toIso8601String(),
@@ -133,16 +144,24 @@ class Transaction {
 class TransactionAttributes {
     TransactionAttributes({
         required this.resourceType,
+        this.paymentShortCode,
+        required this.hasPaymentShortCode,
     });
 
     final String resourceType;
+    final ShortCodeAttribute? paymentShortCode;
+    final bool hasPaymentShortCode;
 
     factory TransactionAttributes.fromJson(Map<String, dynamic> json) => TransactionAttributes(
         resourceType: json["resource_type"],
+        paymentShortCode: json["payment_short_code"] == null ? null : ShortCodeAttribute.fromJson(json["payment_short_code"]),
+        hasPaymentShortCode: json["has_payment_short_code"],
     );
 
     Map<String, dynamic> toJson() => {
         "resource_type": resourceType,
+        "payment_short_code": paymentShortCode == null ? null : paymentShortCode!.toJson(),
+        "has_payment_short_code": hasPaymentShortCode,
     };
 }
 
@@ -166,18 +185,26 @@ class TransactionEmbedded {
     TransactionEmbedded({
         required this.status,
         required this.paymentMethod,
+        required this.payer,
+        required this.user,
     });
 
+    final User? user;
+    final User? payer;
     final StatusModel status;
-    final PaymentMethod paymentMethod;
+    final PaymentMethod? paymentMethod;
 
     factory TransactionEmbedded.fromJson(Map<String, dynamic> json) => TransactionEmbedded(
         status: StatusModel.fromJson(json["status"]),
-        paymentMethod: PaymentMethod.fromJson(json["payment_method"]),
+        paymentMethod: json["payment_method"] == null ? null : PaymentMethod.fromJson(json["payment_method"]),
+        payer: json["payer"] == null ? null : User.fromJson(json["payer"]),
+        user: json["user"] == null ? null : User.fromJson(json["user"]),
     );
 
     Map<String, dynamic> toJson() => {
         "status": status.toJson(),
-        "payment_method": paymentMethod.toJson(),
+        "user": user == null ? null : user!.toJson(),
+        "payer": payer == null ? null : payer!.toJson(),
+        "payment_method": paymentMethod == null ? null : paymentMethod!.toJson(),
     };
 }

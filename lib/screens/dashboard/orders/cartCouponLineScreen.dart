@@ -1,5 +1,6 @@
 import 'package:bonako_mobile_app/components/custom_back_button.dart';
 import 'package:bonako_mobile_app/components/custom_divider.dart';
+import 'package:bonako_mobile_app/components/custom_explainer.dart';
 import 'package:bonako_mobile_app/screens/dashboard/orders/show/order_screen.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -308,55 +309,15 @@ class Content extends StatelessWidget {
 
                       final index = activationRules.indexOf(activationRule);
                       final position = (index + 1).toString();
-                            
-                      return Container(
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(10)
-                        ),
-                        margin: EdgeInsets.only(bottom: 20),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 25,
-                              height: 25,
-                              alignment: Alignment.center,
-                              margin: EdgeInsets.only(right: 10),
-                              decoration: BoxDecoration(
-                                color: Colors.blue.shade100,
-                                borderRadius: BorderRadius.circular(25),
-                                border: Border.all(color: Colors.white)
 
-                              ),
-                              child: Text(position, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),)
-                            ),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(activationRule['title']),
-                                      Text(activationRule['value'], style: TextStyle(fontWeight: FontWeight.bold)),
-                                    ],
-                                  ),
-                                  if(activationRule.containsKey('description')) SizedBox(height: 10),
-                                  if(activationRule.containsKey('description')) Text(
-                                    activationRule['description'], 
-                                    textAlign: TextAlign.justify,
-                                    style: TextStyle(fontSize: 12)
-                                  ),
-                                ],
-                              ),
-                            )
-                          ],
-                        ),
+                      return CustomExplainer(
+                        mark: position,
+                        title: activationRule['title'],
+                        sideNote: activationRule['value'],
+                        margin: EdgeInsets.only(bottom: 20),
+                        description: activationRule.containsKey('description') ? activationRule['description'] : null,
                       );
+
                     }),
 
                     //  No Activation Rules

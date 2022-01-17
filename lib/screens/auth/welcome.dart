@@ -168,7 +168,8 @@ class _WelcomePageState extends State<WelcomePage> {
       decoration: BoxDecoration(
         image: DecorationImage(
           fit: BoxFit.cover,
-          image: AssetImage('assets/images/woman-street-vendor.jpeg')
+          image: AssetImage('assets/images/logo-white-2x.png'),
+          colorFilter: new ColorFilter.mode(Colors.blue.withOpacity(0.2), BlendMode.dstATop),
         )
       ),
     );
@@ -181,7 +182,7 @@ class _WelcomePageState extends State<WelcomePage> {
         gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.blue.shade500.withOpacity(0.8), Colors.blue.shade900]
+            colors: [Colors.blue.shade600, Colors.blue.shade900]
         )
       )
     );
@@ -231,9 +232,9 @@ class _WelcomePageState extends State<WelcomePage> {
       body: Stack(
         children: [
 
-          _backgroundImage(),
-
           _backgroundGradient(),
+
+          _backgroundImage(),
 
           _content(),
 

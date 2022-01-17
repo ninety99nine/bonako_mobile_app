@@ -854,6 +854,12 @@ class _LoginScreenState extends State<LoginScreen> {
           child: SingleChildScrollView(
             child: Center(
               child: Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    fit: BoxFit.cover,
+                    image: AssetImage('assets/images/logo-white-2x.png'),
+                  )
+                ),
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 constraints: BoxConstraints(maxWidth: 800),
                 child: Column(

@@ -197,12 +197,16 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
         body: SafeArea(
           child: SingleChildScrollView(
             child: Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  fit: BoxFit.cover,
+                  image: AssetImage('assets/images/logo-white-2x.png'),
+                  colorFilter: new ColorFilter.mode(Colors.grey.withOpacity(0.08), BlendMode.dstATop),
+                )
+              ),
               padding: EdgeInsets.symmetric(horizontal: 40),
               constraints: BoxConstraints(maxWidth: 800),
               height: height * 0.9,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,

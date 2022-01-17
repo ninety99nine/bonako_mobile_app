@@ -1,6 +1,7 @@
 import 'package:bonako_mobile_app/components/custom_countup.dart';
 import 'package:bonako_mobile_app/screens/dashboard/orders/components/cartCouponLines/couponLines.dart';
 import 'package:bonako_mobile_app/screens/dashboard/orders/components/transaction/transaction.dart';
+import 'package:bonako_mobile_app/screens/dashboard/orders/components/transaction/transactions.dart';
 
 import './../../../../screens/dashboard/orders/components/cartItemLines/cartItemLines.dart';
 import './../../../../screens/dashboard/orders/components/customerSummaryCard.dart';
@@ -226,7 +227,7 @@ class _ContentState extends State<Content> {
                   CartCouponLines(),
                   SizedBox(height: 20),
           
-                  CartTransaction(),
+                  CartTransactions(afterPaymentRequestCallback: fetchOrder),
                   SizedBox(height: 20),
 
                   DeliveryConfirmationStaus(

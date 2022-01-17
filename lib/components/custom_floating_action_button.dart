@@ -48,127 +48,139 @@ class CustomFloatingActionButton extends StatelessWidget {
 
           return Container(
             height: 400,
-            color: Colors.blue.shade50,
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+            ),
             padding: EdgeInsets.symmetric(vertical: 30, horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Stack(
               children: [
-              
-                if(hasStore) Padding(
-                  padding: const EdgeInsets.only(left: 20),
-                  child: Text((storesProvider.store as Store).name, style: Theme.of(context).textTheme.headline6,),
-                ),
-                
-                if(hasStore && hasLocation) Divider(height:30),
-
-                Expanded(
-                  child: ListView(
-                    children: [
-                      
-                      //  Loader
-                      if(isLoadingLocation) CustomLoader(),
-                
-                      //  Add product option
-                      if(hasStore && hasLocation && !isLoadingLocation && hasPermission('manage-products')) ModalOption(
-                        title: 'Add Product',
-                        ripple: shouldRippleProducts,
-                        svg: 'assets/icons/ecommerce_pack_1/shopping-bag-2.svg',
-                        onPressed: () async {
-
-                          final result = await Provider.of<ProductsProvider>(context, listen: false).navigateToAddProduct();
-
-                          //  If we submitted a product successfully
-                          if( result == 'submitted' ){
-
-                            if(onAddProduct != null){
-                              onAddProduct!();
-                            }
-                            
-                          }
-                        }
-                      ),
-                
-                      //  Add coupon option
-                      if(hasStore && hasLocation && !isLoadingLocation && hasPermission('manage-coupons')) ModalOption(
-                        title: 'Add Coupon',
-                        svg: 'assets/icons/ecommerce_pack_1/discount-coupon.svg',
-                        onPressed: () async {
-
-                          final result = await Provider.of<CouponsProvider>(context, listen: false).navigateToAddCoupon();
-
-                          //  If we submitted a coupon successfully
-                          if( result == 'submitted' ){
-
-                            if(onAddCoupon != null){
-                              onAddCoupon!();
-                            }
-                            
-                          }
-                        }
-                      ),
-                
-                      //  Add instant cart option
-                      if(hasStore && hasLocation && !isLoadingLocation && hasPermission('manage-instant-carts')) ModalOption(
-                        title: 'Add Instant Cart',
-                        svg: 'assets/icons/ecommerce_pack_1/shopping-cart-10.svg',
-                        onPressed: () async {
-
-                          final result = await Provider.of<InstantCartsProvider>(context, listen: false).navigateToAddInstantCart();
-
-                          //  If we submitted an instant cart successfully
-                          if( result == 'submitted' ){
-
-                            if(onAddInstantCart != null){
-                              onAddInstantCart!();
-                            }
-                            
-                          }
-                        }
-                      ),
-                
-                      //  Add coupon option
-                      if(hasStore && hasLocation && !isLoadingLocation && hasPermission('manage-users')) ModalOption(
-                        title: 'Invite Team',
-                        svg: 'assets/icons/ecommerce_pack_1/employee-badge-1.svg',
-                        onPressed: () async {
-
-                          final result = await Provider.of<UsersProvider>(context, listen: false).navigateToInviteUsers();
-
-                          //  If invited users successfully
-                          if( result == 'submitted' ){
-
-                            if(onAddUser != null){
-                              onAddUser!();
-                            }
-                            
-                          }
-                        }
-                      ),
-                
-                      //  Visit store option
-                      if(hasStore && hasLocation && !isLoadingLocation) ModalOption(
-                        title: 'Visit store ('+dialingCode+')',
-                        svg: 'assets/icons/ecommerce_pack_1/pin-1.svg',
-                        onPressed: (){
-                          storesProvider.launchVisitShortcode(store: store, context: context);
-                        }
-                      ),
-                      
-                      if(isLoadingLocation) SizedBox(height: 30),
-                      if((hasStore && hasLocation && !isLoadingLocation) || isLoadingLocation) Divider(),
-                
-                      //  Add store option
-                      ModalOption(
-                        title: 'Add Store',
-                        svg: 'assets/icons/ecommerce_pack_1/plus.svg',
-                        onPressed: () async {
-                          await Get.to(() => CreateStoresScreen());
-                          Get.to(() => StoresScreen());
-                        }
-                      ),
-                
-                    ]
+                Opacity(
+                  opacity: 0.3,
+                  child: Container(
+                    child: Image.asset('assets/images/logo-white-2x.png'),
                   ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                  
+                    if(hasStore) Padding(
+                      padding: const EdgeInsets.only(left: 20),
+                      child: Text((storesProvider.store as Store).name, style: Theme.of(context).textTheme.headline6,),
+                    ),
+                    
+                    if(hasStore && hasLocation) Divider(height:30),
+
+                    Expanded(
+                      child: ListView(
+                        children: [
+                          
+                          //  Loader
+                          if(isLoadingLocation) CustomLoader(),
+                    
+                          //  Add product option
+                          if(hasStore && hasLocation && !isLoadingLocation && hasPermission('manage-products')) ModalOption(
+                            title: 'Add Product',
+                            ripple: shouldRippleProducts,
+                            svg: 'assets/icons/ecommerce_pack_1/shopping-bag-2.svg',
+                            onPressed: () async {
+
+                              final result = await Provider.of<ProductsProvider>(context, listen: false).navigateToAddProduct();
+
+                              //  If we submitted a product successfully
+                              if( result == 'submitted' ){
+
+                                if(onAddProduct != null){
+                                  onAddProduct!();
+                                }
+                                
+                              }
+                            }
+                          ),
+                    
+                          //  Add coupon option
+                          if(hasStore && hasLocation && !isLoadingLocation && hasPermission('manage-coupons')) ModalOption(
+                            title: 'Add Coupon',
+                            svg: 'assets/icons/ecommerce_pack_1/discount-coupon.svg',
+                            onPressed: () async {
+
+                              final result = await Provider.of<CouponsProvider>(context, listen: false).navigateToAddCoupon();
+
+                              //  If we submitted a coupon successfully
+                              if( result == 'submitted' ){
+
+                                if(onAddCoupon != null){
+                                  onAddCoupon!();
+                                }
+                                
+                              }
+                            }
+                          ),
+                    
+                          //  Add instant cart option
+                          if(hasStore && hasLocation && !isLoadingLocation && hasPermission('manage-instant-carts')) ModalOption(
+                            title: 'Add Instant Cart',
+                            svg: 'assets/icons/ecommerce_pack_1/shopping-cart-10.svg',
+                            onPressed: () async {
+
+                              final result = await Provider.of<InstantCartsProvider>(context, listen: false).navigateToAddInstantCart();
+
+                              //  If we submitted an instant cart successfully
+                              if( result == 'submitted' ){
+
+                                if(onAddInstantCart != null){
+                                  onAddInstantCart!();
+                                }
+                                
+                              }
+                            }
+                          ),
+                    
+                          //  Add coupon option
+                          if(hasStore && hasLocation && !isLoadingLocation && hasPermission('manage-users')) ModalOption(
+                            title: 'Invite Team',
+                            svg: 'assets/icons/ecommerce_pack_1/employee-badge-1.svg',
+                            onPressed: () async {
+
+                              final result = await Provider.of<UsersProvider>(context, listen: false).navigateToInviteUsers();
+
+                              //  If invited users successfully
+                              if( result == 'submitted' ){
+
+                                if(onAddUser != null){
+                                  onAddUser!();
+                                }
+                                
+                              }
+                            }
+                          ),
+                    
+                          //  Visit store option
+                          if(hasStore && hasLocation && !isLoadingLocation) ModalOption(
+                            title: 'Visit store ('+dialingCode+')',
+                            svg: 'assets/icons/ecommerce_pack_1/pin-1.svg',
+                            onPressed: (){
+                              storesProvider.launchVisitShortcode(store: store, context: context);
+                            }
+                          ),
+                          
+                          if(isLoadingLocation) SizedBox(height: 30),
+                          if((hasStore && hasLocation && !isLoadingLocation) || isLoadingLocation) Divider(),
+                    
+                          //  Add store option
+                          ModalOption(
+                            title: 'Add Store',
+                            svg: 'assets/icons/ecommerce_pack_1/plus.svg',
+                            onPressed: () async {
+                              await Get.to(() => CreateStoresScreen());
+                              Get.to(() => StoresScreen());
+                            }
+                          ),
+                    
+                        ]
+                      ),
+                    )
+                  ],
                 )
               ],
             ),

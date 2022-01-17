@@ -144,8 +144,7 @@ class OrderAttributes {
         required this.requiresDeliveryConfirmationCode,
         required this.resourceType,
         required this.deliveryVerifiedDescription,
-        required this.timeElapsedToDeliveryVerified,
-        required this.paymentShortCode,
+        required this.timeElapsedToDeliveryVerified
     });
 
     final bool isPaid;
@@ -154,7 +153,6 @@ class OrderAttributes {
     final String resourceType;
     final String deliveryVerifiedDescription;
     final TimeElapsedToDeliveryVerified? timeElapsedToDeliveryVerified;
-    final ShortCodeAttribute? paymentShortCode;
 
     factory OrderAttributes.fromJson(Map<String, dynamic> json) => OrderAttributes(
         isPaid: json["is_paid"],
@@ -163,7 +161,6 @@ class OrderAttributes {
         resourceType: json["resource_type"],
         deliveryVerifiedDescription: json["delivery_verified_description"],
         timeElapsedToDeliveryVerified: json["time_elapsed_to_delivery_verified"] == null ? null : TimeElapsedToDeliveryVerified.fromJson(json["time_elapsed_to_delivery_verified"]),
-        paymentShortCode: json["payment_short_code"],
     );
 
     Map<String, dynamic> toJson() => {
@@ -173,7 +170,6 @@ class OrderAttributes {
         "resource_type": resourceType,
         "delivery_verified_description": deliveryVerifiedDescription,
         "time_elapsed_to_delivery_verified": timeElapsedToDeliveryVerified == null ? null : timeElapsedToDeliveryVerified!.toJson(),
-        "payment_short_code": paymentShortCode,
     };
 }
 
@@ -236,7 +232,7 @@ class OrderEmbedded {
         required this.deliveryStatus,
         required this.activeCart,
         required this.deliveryLine,
-        required this.transaction,
+        required this.transactions,
         required this.customer,
     });
 
@@ -245,7 +241,7 @@ class OrderEmbedded {
     final StatusModel deliveryStatus;
     final Cart activeCart;
     final DeliveryLine? deliveryLine;
-    final Transaction? transaction;
+    final List<Transaction> transactions;
     final Customer customer;
 
     factory OrderEmbedded.fromJson(Map<String, dynamic> json) => OrderEmbedded(
@@ -254,7 +250,7 @@ class OrderEmbedded {
         deliveryStatus: StatusModel.fromJson(json["delivery_status"]),
         activeCart: Cart.fromJson(json["active_cart"]),
         deliveryLine: json["delivery_line"] == null ? null : DeliveryLine.fromJson(json["delivery_line"]),
-        transaction: json["transaction"] == null ? null : Transaction.fromJson(json["transaction"]),
+        transactions: List<Transaction>.from(json["transactions"].map((x) => Transaction.fromJson(x))),
         customer: Customer.fromJson(json["customer"]),
     );
 
@@ -264,7 +260,7 @@ class OrderEmbedded {
         "delivery_status": deliveryStatus.toJson(),
         "active_cart": activeCart.toJson(),
         "delivery_line": deliveryLine == null ? null : deliveryLine!.toJson(),
-        "transaction": transaction == null ? null : transaction!.toJson(),
+        "transactions": List<dynamic>.from(transactions.map((x) => x.toJson())),
         "customer": customer.toJson(),
     };
 }
