@@ -100,11 +100,6 @@ class MyApp extends StatelessWidget {
 
     print('Building MyApp');
     
-    FirebaseMessaging.instance.getToken().then((token) {
-      print('FirebaseMessaging token');      
-      print(token);      
-    });
-
     /**
      *  The "LocalNotificationService" is a custom service we created in the "services" folder.
      *  Its responsible to force notifications to pop-up and show when we are in Foreground

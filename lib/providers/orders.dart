@@ -126,7 +126,7 @@ class OrdersProvider with ChangeNotifier{
     
   }
 
-  Future<http.Response> requestPayment({ int? transactionId, String? payerMobileNumber, double percentageRate = 0, bool sendCustomerSms = false, required BuildContext context }) async {
+  Future<http.Response> requestPayment({ int? transactionId, String? payerMobileNumber, int percentageRate = 100, bool sendCustomerSms = false, required BuildContext context }) async {
 
     Map data = {
       'percentage_rate': percentageRate,

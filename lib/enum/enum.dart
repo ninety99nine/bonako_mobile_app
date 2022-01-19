@@ -48,6 +48,16 @@ enum SnackbarType {
   info
 }
 
+enum TransactionPaymentType {
+  fullPayment,
+  partialPayment
+}
+
+enum TransactionBillingAccountType {
+  customerAccount,
+  differentAccount
+}
+
 String extractEnumValue(customEnum){
   return customEnum.toString().substring(customEnum.toString().indexOf('.') + 1);
 }

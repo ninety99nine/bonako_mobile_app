@@ -147,14 +147,7 @@ class _ContentState extends State<Content> {
   }
 
   void scrollToBottom() {
-
-    /**
-     *  Since executing currLoginStage = LoginStage.enterVerificationCode
-     *  will force the form to change the input fields, we need to give the
-     *  application a chance to change the inputs before we can validate,
-     *  we buy ourselves this time by delaying the execution of the form
-     *  validation
-     */
+    
     Future.delayed(const Duration(milliseconds: 100), () {
 
       /**

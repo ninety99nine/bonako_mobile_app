@@ -7,7 +7,7 @@ import 'dart:convert';
 
 class ApiProvider with ChangeNotifier{
 
-  final String homeUrl = 'http://127.0.0.1:9000/api'; //  'http://165.232.179.255/api';  //  'http://bonakoonline.co.bw/api';  //   
+  final String homeUrl = 'http://165.232.179.255/api';  //  'http://127.0.0.1:9000/api'; //  'http://bonakoonline.co.bw/api';  //   
 
   String _loginUrl = '';
   String _logoutUrl = '';
@@ -16,6 +16,7 @@ class ApiProvider with ChangeNotifier{
   String _mainShortcode = '';
   String _resetPasswordUrl = '';
   String _accountExistsUrl = '';
+  String _paymentMethodsUrl = '';
   Map<String, dynamic> _apiHome = {};
   String _verifyUserAccountShortcode = '';
   String _verifyMobileVerificationCodeUrl = '';
@@ -92,14 +93,14 @@ class ApiProvider with ChangeNotifier{
             //  Update the search user by mobile number url
             _searchUserByMobileNumberUrl = responseBody['_links']['bos:search_user_by_mobile_number']['href'];
 
+            //  Update the payment methods url
+            _paymentMethodsUrl = responseBody['_links']['bos:payment_methods']['href'];
+
             //  Update Main USSD shortcode
             _mainShortcode = responseBody['_embedded']['main_shortcode'];
 
             //  Update shortcode to verify user account after registration
             _verifyUserAccountShortcode = responseBody['_embedded']['verify_user_account_shortcode'];
-
-            
-
 
           }
 
@@ -109,6 +110,12 @@ class ApiProvider with ChangeNotifier{
 
     });
 
+  }
+  
+  Future<http.Response> fetchPaymentMethods({ required BuildContext context }){
+
+    return get(url: getPaymentMethodsUrl, context: context);
+    
   }
 
   Future<http.Response> get({ required String url, required BuildContext context }){
@@ -405,6 +412,11 @@ class ApiProvider with ChangeNotifier{
   String get getSearchUserByMobileNumberUrl{
     return _searchUserByMobileNumberUrl;
   }
+  
+  String get getPaymentMethodsUrl{
+    return _paymentMethodsUrl;
+  }
+
 
 
 

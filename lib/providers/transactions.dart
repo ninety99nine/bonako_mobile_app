@@ -31,7 +31,11 @@ class TransactionsProvider with ChangeNotifier{
   }
 
   void setTransaction(Transaction transaction){
+    print('setTransaction: before');
+    print(this._transaction);
     this._transaction = transaction;
+    print('setTransaction: after');
+    print(this._transaction);
   }
 
   void unsetTransaction(){

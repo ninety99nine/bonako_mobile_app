@@ -16,7 +16,7 @@ class CouponLineWidget extends StatelessWidget {
         color: Colors.blue.withOpacity(0.05),
         borderRadius: BorderRadius.circular(5),
       ),
-      margin: EdgeInsets.only(right: 10, bottom: 10),
+      margin: EdgeInsets.only(bottom: 10),
       child: ListTile(
         onTap: () async {
           

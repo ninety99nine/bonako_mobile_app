@@ -1,3 +1,5 @@
+import 'package:bonako_mobile_app/models/common/money.dart';
+
 import './common/attributes/shortCodeAttribute.dart';
 import './common/paginationLinks.dart';
 import './deliveryLines.dart';
@@ -144,7 +146,8 @@ class OrderAttributes {
         required this.requiresDeliveryConfirmationCode,
         required this.resourceType,
         required this.deliveryVerifiedDescription,
-        required this.timeElapsedToDeliveryVerified
+        required this.timeElapsedToDeliveryVerified,
+        required this.paymentProgress,
     });
 
     final bool isPaid;
@@ -153,6 +156,7 @@ class OrderAttributes {
     final String resourceType;
     final String deliveryVerifiedDescription;
     final TimeElapsedToDeliveryVerified? timeElapsedToDeliveryVerified;
+    final PaymentProgress paymentProgress;
 
     factory OrderAttributes.fromJson(Map<String, dynamic> json) => OrderAttributes(
         isPaid: json["is_paid"],
@@ -161,6 +165,7 @@ class OrderAttributes {
         resourceType: json["resource_type"],
         deliveryVerifiedDescription: json["delivery_verified_description"],
         timeElapsedToDeliveryVerified: json["time_elapsed_to_delivery_verified"] == null ? null : TimeElapsedToDeliveryVerified.fromJson(json["time_elapsed_to_delivery_verified"]),
+        paymentProgress: PaymentProgress.fromJson(json["payment_progress"]),
     );
 
     Map<String, dynamic> toJson() => {
@@ -170,6 +175,64 @@ class OrderAttributes {
         "resource_type": resourceType,
         "delivery_verified_description": deliveryVerifiedDescription,
         "time_elapsed_to_delivery_verified": timeElapsedToDeliveryVerified == null ? null : timeElapsedToDeliveryVerified!.toJson(),
+        "payment_progress": paymentProgress.toJson(),
+    };
+}
+
+
+class PaymentProgress {
+    PaymentProgress({
+        required this.balancePaid,
+        required this.balancePending,
+        required this.balanceOutstanding,
+        required this.percentageBalancePaid,
+        required this.percentageBalancePending,
+        required this.percentageBalanceOutstanding,
+    });
+
+    final Money balancePaid;
+    final Money balancePending;
+    final Money balanceOutstanding;
+    final BalancePercentage percentageBalancePaid;
+    final BalancePercentage percentageBalancePending;
+    final BalancePercentage percentageBalanceOutstanding;
+
+    factory PaymentProgress.fromJson(Map<String, dynamic> json) => PaymentProgress(
+        balancePaid: Money.fromJson(json["balance_paid"]),
+        balancePending: Money.fromJson(json["balance_pending"]),
+        balanceOutstanding: Money.fromJson(json["balance_outstanding"]),
+        percentageBalancePaid: BalancePercentage.fromJson(json["percentage_balance_paid"]),
+        percentageBalancePending: BalancePercentage.fromJson(json["percentage_balance_pending"]),
+        percentageBalanceOutstanding: BalancePercentage.fromJson(json["percentage_balance_outstanding"]),
+    );
+
+    Map<String, dynamic> toJson() => {
+        "balance_paid": balancePaid.toJson(),
+        "balance_pending": balancePending.toJson(),
+        "balance_outstanding": balanceOutstanding.toJson(),
+        "percentage_balance_paid": percentageBalancePaid.toJson(),
+        "percentage_balance_pending": percentageBalancePending.toJson(),
+        "percentage_balance_outstanding": percentageBalanceOutstanding.toJson(),
+    };
+}
+
+class BalancePercentage {
+    BalancePercentage({
+        required this.withoutSign,
+        required this.withSign,
+    });
+
+    final int withoutSign;
+    final String withSign;
+
+    factory BalancePercentage.fromJson(Map<String, dynamic> json) => BalancePercentage(
+        withoutSign: json["without_sign"],
+        withSign: json["with_sign"],
+    );
+
+    Map<String, dynamic> toJson() => {
+        "without_sign": withoutSign,
+        "with_sign": withSign,
     };
 }
 
